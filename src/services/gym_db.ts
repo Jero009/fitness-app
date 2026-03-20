@@ -141,9 +141,21 @@ export async function addExercise(name: string, muscleGroup: string, equipment: 
   return result;
 }
 
+export async function deleteExercise(id: number) {
+  if (!db) return;
+
+  const result = await db.run(
+    `DELETE FROM exercise WHERE id = ?`,
+    [id]
+  );
+
+  return result;
+}
+
 
 export async function getExercises() {
   if (!db) return [];
+
   const result = await db.query('SELECT * FROM exercise;');
   return result.values || [];
 }

@@ -2,18 +2,19 @@
 
 
 <template>
+<ion-page>
   <ion-header>
     <ion-toolbar>
         <ion-title class="title">Exercises</ion-title>
       <ion-buttons slot="end">
-        <ion-button  id="open-modal" expand="block" >
+        <ion-button  @click="openModal">
           <ion-icon :icon="add" ></ion-icon>
         </ion-button>
       </ion-buttons>
       </ion-toolbar>
   </ion-header>
   <ion-content class="ion-padding">
-    <ion-modal ref="modal" trigger="open-modal" >
+    <ion-modal :is-open="isOpen" >
       <ion-header>
         <ion-toolbar>
           <ion-buttons slot="start">
@@ -52,38 +53,53 @@
           <ion-title size="large">Exercises</ion-title>
         </ion-toolbar>
       </ion-header>
-                <ion-list class="exercise-list" lines="full"   v-for="ex in exercises" :key="ex.id">
-                    <ion-item class="exercise-item">{{ ex.name }}</ion-item>
+                <ion-list class="exercise-list" lines="full"  >
+                    <ion-item class="exercise-item"  v-for="ex in exercises" :key="ex.id">
+                        {{ ex.name }}
+                      <ion-button slot="end" color="danger" @click="deleteEx(ex.id)">Delete</ion-button>
+                    </ion-item>
                 </ion-list>
   </ion-content>
+  </ion-page>
 </template>
 
 <script setup lang="ts">
-import { IonPage, IonHeader, IonToolbar, IonTitle, IonContent,IonCard,IonCardHeader,IonCardContent,IonCardSubtitle,IonCardTitle,IonList,IonItem,IonButton,IonIcon,IonButtons,IonModal,IonInput } from '@ionic/vue';
+import { IonPage, IonHeader, IonToolbar, IonTitle, IonContent,IonList,IonItem,IonButton,IonIcon,IonButtons,IonModal,IonInput ,onIonViewWillEnter} from '@ionic/vue';
 import { add} from 'ionicons/icons'
 import { ref,onMounted } from 'vue';
-import { addExercise } from '@/services/gym_db'
-import { getExercises } from '@/services/gym_db'
+import { addExercise, getExercises, deleteExercise} from '@/services/gym_db'
 
 //creqating exercise modal
-    const modal = ref();
+    const isOpen = ref(false);
     const name = ref('')
     const muscleGroup = ref('')
     const equipment = ref('')
 
-const confirm  = async() => {
-    await addExercise(name.value, muscleGroup.value, equipment.value,  60);
+    const exercises = ref<exercise[]>([])
+//modal opening 
 
-  console.log("✅ Exercise saved");
+const openModal = () => {
+  isOpen.value = true;
+};
 
-  name.value = ''
-  muscleGroup.value = ''
-  equipment.value = ''
+const cancel = () => {
+  isOpen.value = false;
+};
 
-  modal.value.$el.dismiss(null, 'confirm');
-};  
 
-const cancel = () => modal.value.$el.dismiss(null, 'cancel');
+const confirm = async () => {
+  if (!name.value) return;
+  
+  await addExercise(name.value, muscleGroup.value, equipment.value, 60);
+
+  await LoadExercises();
+
+  isOpen.value = false;
+  name.value = '';
+  muscleGroup.value = '';
+  equipment.value = '';
+};
+
 
 // get exercises from db
 
@@ -93,16 +109,29 @@ type exercise = {
   muscle_group: string;
   equipment: string;
 }
-const exercises = ref<exercise[]>([])
+
 
 const LoadExercises = async () =>{
   const data = await getExercises();
   exercises.value = data;
   
 };
+
+
+//delete exercise
+const deleteEx = async (id: number) => {
+  await deleteExercise(id);
+  await LoadExercises();
+};
+
 onMounted(() => {
     LoadExercises()
-})
+});
+
+onIonViewWillEnter(() => {
+    LoadExercises()
+
+});
 
 
 </script>
