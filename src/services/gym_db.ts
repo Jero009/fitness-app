@@ -133,7 +133,12 @@ export async function addExerciseToTemplate(
 
   return result;
 }
+export async function getTemplates() {
+  if (!db) return [];
+  const result = await db.query('SELECT * FROM workout_template;');
+  return result.values || [];
 
+}
 
 export async function addExercise(name: string, muscleGroup: string, equipment: string, restSeconds: number) {
   if (!db) return;

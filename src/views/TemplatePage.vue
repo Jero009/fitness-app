@@ -83,9 +83,9 @@
           <ion-title size="large">Template</ion-title>
         </ion-toolbar>
       </ion-header>
-            <ion-card class="card-template">
+            <ion-card class="card-template" v-for="template in templates" :key="template.id">
                 <ion-card-header>
-                <ion-card-title>workout name 2</ion-card-title>
+                <ion-card-title>{{ template.name }}</ion-card-title>
                 <ion-card-subtitle>last preformed</ion-card-subtitle>
                 </ion-card-header>
 
@@ -106,7 +106,7 @@
 import { IonPage, IonHeader, IonToolbar, IonTitle, IonContent,IonCard,IonCardHeader,
 IonCardContent,IonCardSubtitle,IonCardTitle,IonList,IonItem,IonButton,IonIcon,IonButtons,IonModal,IonInput,onIonViewWillEnter,IonSelect,IonSelectOption } from '@ionic/vue';
 import { add} from 'ionicons/icons';
-import { createTemplate, getExercises,addExerciseToTemplate} from '@/services/gym_db'
+import { createTemplate, getExercises,addExerciseToTemplate,getTemplates } from '@/services/gym_db'
 import { ref ,onMounted} from 'vue';
 
 //modal
@@ -156,6 +156,20 @@ const confirm = async () => {
   TemplateName.value = '';
   isOpen.value = false;
 };
+// displaying templates
+const templates = ref<Template[]>([]);
+
+type Template = {
+  id: number;
+  name: string;
+  created_at: string;
+};
+
+const loadTemplates = async () => {
+  const data = await getTemplates();
+  templates.value = data;
+};
+
 
 
 // exercises 
@@ -207,10 +221,12 @@ const addSelectedExercise = (event: any) => {
 
 onMounted(() => {
     LoadExercises()
+    loadTemplates();
 });
 
 onIonViewWillEnter(() => {
     LoadExercises()
+    loadTemplates()
 
 });
 </script>
