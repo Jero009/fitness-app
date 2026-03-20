@@ -98,6 +98,11 @@ export async function initDB() {
 }
 
 
+
+
+
+
+
 export async function createTemplate(name: string) {
   if (!db) return;
 
@@ -152,10 +157,10 @@ export async function deleteExercise(id: number) {
   return result;
 }
 
-
 export async function getExercises() {
   if (!db) return [];
 
   const result = await db.query('SELECT * FROM exercise;');
   return result.values || [];
 }
+
