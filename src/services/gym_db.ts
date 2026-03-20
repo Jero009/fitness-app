@@ -128,3 +128,22 @@ export async function addExerciseToTemplate(
 
   return result;
 }
+
+export async function addExercise(name: string, muscleGroup: string, equipment: string, restSeconds: number) {
+  if (!db) return;
+
+  const result = await db.run(
+    `INSERT INTO exercise (name, muscle_group, equipment, rest_seconds) 
+    VALUES (?, ?, ?, ?);`,
+    [name, muscleGroup, equipment, restSeconds]
+  );
+
+  return result;
+}
+
+
+export async function getExercises() {
+  if (!db) return [];
+  const result = await db.query('SELECT * FROM exercise;');
+  return result.values || [];
+}
