@@ -92,5 +92,39 @@ export async function initDB() {
   `);
 
     console.log("✅ Tables created");
+
+
   return db;
+}
+
+
+export async function createTemplate(name: string) {
+  if (!db) return;
+
+  const result = await db.run(`
+    INSERT INTO workout_template (name) VALUES (?);
+  `, [name]);
+
+
+  return result.changes?.lastId ;
+
+}
+
+export async function addExerciseToTemplate(
+  templateId: number,
+  exerciseId: number,
+  setNumber: number,
+  defaultReps: number,
+  orderIndex: number
+) {
+  if (!db) return;
+
+  const result = await db.run(
+    `INSERT INTO workout_template_exercise 
+     (id_workout_template, id_exercise, set_number, default_reps, order_index)
+     VALUES (?, ?, ?, ?, ?);`,
+    [templateId, exerciseId, setNumber, defaultReps, orderIndex]
+  );
+
+  return result;
 }

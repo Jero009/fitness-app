@@ -18,6 +18,11 @@
           <ion-label>Template</ion-label>
         </ion-tab-button>
 
+        <ion-tab-button tab="Exercise" href="/tabs/Exercise" >
+          <ion-icon aria-hidden="true" :icon="body" />
+          <ion-label>Exercise</ion-label>
+        </ion-tab-button>
+
         <ion-tab-button tab="History" href="/tabs/History" >
           <ion-icon aria-hidden="true" :icon="time" />
           <ion-label>History</ion-label>
@@ -29,7 +34,7 @@
 
 <script setup lang="ts">
 import { IonTabBar, IonTabButton, IonTabs, IonLabel, IonIcon, IonPage, IonRouterOutlet } from '@ionic/vue';
-import {  home, barbellOutline, add, time } from 'ionicons/icons';
+import {  home, barbellOutline, add, time,body } from 'ionicons/icons';
 </script>
 <style>
 
