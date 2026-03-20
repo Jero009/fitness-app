@@ -24,14 +24,15 @@
                 </ion-card-header>
 
                 <ion-card-content>
+
+                </ion-card-content>
+            </ion-card>
+            
                 <ion-list>
                     <ion-item><span>exercise 1</span> <span>set: 3</span></ion-item>
                     <ion-item><span>exercise 2</span> <span>set: 3</span></ion-item>
                     <ion-item><span>exercise 3</span> <span>set: 3</span></ion-item>
                 </ion-list>
-                </ion-card-content>
-            </ion-card>
-
     </ion-content>
   </ion-page>
 </template>
