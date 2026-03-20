@@ -1,0 +1,75 @@
+:root {
+  /* Colors */
+  --ion-color-primary: #000000;       /* main accent */
+  --ion-color-primary-rgb: 0,0,0;
+  --ion-color-secondary: #ffffff;     /* background light */
+  --ion-color-secondary-rgb: 255,255,255;
+  --ion-color-tertiary: #f5f5f5;      /* subtle contrast */
+  --ion-color-dark: #111111;
+  --ion-color-medium: #292929;
+  --ion-color-light: #fafafa;
+
+    /* Signature accent colors */
+  --ion-color-accent-red: #D71921;   /* bright red pop */
+  --ion-color-accent-yellow: #ffcc00; /* bright yellow pop */
+
+    /*button*/
+    --ion-tab-button-color: var(--ion-color-medium); /* gray for inactive */
+    --ion-tab-button-color-selected: var(--ion-color-accent-red); /* red for active */
+    --ion-icon-color: var(--ion-color-medium); /* gray icons inactive */
+
+
+  /* Toolbar & background */
+  --ion-toolbar-background: var(--ion-color-light);
+  --ion-toolbar-color: var(--ion-color-light);
+  --ion-content-background: var(--ion-color-secondary);
+
+  /* Cards & items */
+  --ion-card-background: var(--ion-color-secondary);
+  --ion-card-color: var(--ion-color-light);
+  --ion-item-background: var(--ion-color-secondary);
+  --ion-item-color: var(--ion-color-dark);
+
+  /* Font */
+  --ion-font-family: 'Inter', sans-serif;
+  --ion-font-size: 16px;
+
+  /* Borders & spacing */
+  --ion-border-radius: 12px;
+  --ion-padding: 16px;
+  --ion-margin: 16px;
+}
+ion-tab-bar {
+  --color-selected: var(--ion-color-accent-red);  /* active tab text & icon */
+  --color: var(--ion-color-medium);              /* inactive tab text & icon */
+  --background: var(--ion-color-dark);         /* tab bar background */
+}
+ion-checkbox {
+  --size: 24px;                        /* checkbox size */
+  --border-color: var(--ion-color-accent-red); /* border when unchecked */
+  --background: #ffffff;               /* background when unchecked */
+
+  --border-color-checked: var(--ion-color-accent-red);
+  --checkbox-background-checked: var(--ion-color-accent-red); /* background when checked */
+  --checkmark-color: var(--ion-color-secondary);     /* tick color */
+}
+@font-face {
+  font-family: 'Doto';
+  src: url('@/components/assets/fonts/Doto_Rounded-Black.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}
+ion-card-subtitle, ion-label,ion-item {
+  font-family: 'Doto', sans-serif;
+  color: var(--ion-color-light);
+}
+
+ion-button {
+  --background: var(--ion-color-accent-red) !important;
+  --background-activated: var(--ion-color-accent-yellow) !important;
+  --color: #ffffff; 
+  --color-activated: #000000;
+  --border-radius: 5px !important;
+  font-family: Doto;
+
+}
