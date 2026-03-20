@@ -19,5 +19,78 @@ export async function initDB() {
 
   await db.open();
 
+  // ✅ enable foreign keys
+  await db.execute(`PRAGMA foreign_keys = ON;`);
+
+  await db.execute(`
+  CREATE TABLE IF NOT EXISTS workout_template (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT,
+    created_at TEXT DEFAULT CURRENT_TIMESTAMP
+  );
+
+  CREATE TABLE IF NOT EXISTS workout (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    id_workout_template INTEGER,
+    time_start TEXT DEFAULT CURRENT_TIMESTAMP,
+    time_end TEXT,
+    total_kg INTEGER,
+    FOREIGN KEY (id_workout_template)
+      REFERENCES workout_template(id)
+      ON DELETE SET NULL
+  );
+
+  CREATE TABLE IF NOT EXISTS exercise (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT,
+    muscle_group TEXT,
+    equipment TEXT,
+    rest_seconds INTEGER
+  );
+
+  CREATE TABLE IF NOT EXISTS workout_template_exercise (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    id_workout_template INTEGER,
+    id_exercise INTEGER,
+    set_number INTEGER,
+    default_reps INTEGER,
+    order_index INTEGER,
+    created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (id_workout_template)
+      REFERENCES workout_template(id)
+      ON DELETE CASCADE,
+    FOREIGN KEY (id_exercise)
+      REFERENCES exercise(id)
+      ON DELETE CASCADE
+  );
+
+  CREATE TABLE IF NOT EXISTS workout_exercise (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    workout_id INTEGER,
+    exercise_id INTEGER,
+    order_index INTEGER,
+    FOREIGN KEY (workout_id)
+      REFERENCES workout(id)
+      ON DELETE CASCADE,
+    FOREIGN KEY (exercise_id)
+      REFERENCES exercise(id)
+      ON DELETE CASCADE
+  );
+
+  CREATE TABLE IF NOT EXISTS workout_exercise_sets (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    workout_exercise_id INTEGER,
+    set_number INTEGER,
+    reps INTEGER,
+    weight INTEGER,
+    created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+    completed INTEGER DEFAULT 0,
+    FOREIGN KEY (workout_exercise_id)
+      REFERENCES workout_exercise(id)
+      ON DELETE CASCADE
+  );
+  `);
+
+    console.log("✅ Tables created");
   return db;
 }

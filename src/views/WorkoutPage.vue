@@ -8,8 +8,8 @@
 
         <div class="timer">00:12:34</div>
 
-        <ion-buttons  class="btn-quickstart" slot="end">
-          <ion-button class="btn-quickstart">Start</ion-button>
+        <ion-buttons  slot="end">
+          <ion-button >Start</ion-button>
         </ion-buttons>
       </ion-toolbar>
     </ion-header>
