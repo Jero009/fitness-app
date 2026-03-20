@@ -1,7 +1,7 @@
 import { CapacitorSQLite, SQLiteConnection } from '@capacitor-community/sqlite';
 import type { SQLiteDBConnection, SQLiteConnection as SQLiteConnType } from '@capacitor-community/sqlite';
 import { Capacitor } from '@capacitor/core';
-
+import { ref } from 'vue';
 const sqlite: SQLiteConnType = new SQLiteConnection(CapacitorSQLite);
 
 let db: SQLiteDBConnection | null = null;
@@ -100,7 +100,7 @@ export async function initDB() {
 
 
 
-
+// template functions
 
 
 export async function createTemplate(name: string) {
@@ -139,7 +139,25 @@ export async function getTemplates() {
   return result.values || [];
 
 }
+export async function getTemplateExercises(templateId: number) {
+  if (!db) return [];
 
+  const result = await db.query(`
+    SELECT 
+      wte.id,
+      e.name,
+      wte.set_number,
+      wte.default_reps,
+      wte.order_index
+    FROM workout_template_exercise wte
+    JOIN exercise e ON e.id = wte.id_exercise
+    WHERE wte.id_workout_template = ?
+    ORDER BY wte.order_index ASC;
+  `, [templateId]);
+
+  return result.values || [];
+}
+// exercise functions
 export async function addExercise(name: string, muscleGroup: string, equipment: string, restSeconds: number) {
   if (!db) return;
 

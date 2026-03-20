@@ -86,15 +86,21 @@
             <ion-card class="card-template" v-for="template in templates" :key="template.id">
                 <ion-card-header>
                 <ion-card-title>{{ template.name }}</ion-card-title>
-                <ion-card-subtitle>last preformed</ion-card-subtitle>
                 </ion-card-header>
 
                 <ion-card-content>
-                <ion-list>
-                    <ion-item><span>exercise 1</span> <span>set: 3</span></ion-item>
-                    <ion-item><span>exercise 2</span> <span>set: 3</span></ion-item>
-                    <ion-item><span>exercise 3</span> <span>set: 3</span></ion-item>
-                </ion-list>
+                  <ion-list>
+                    <ion-item
+                      v-for="ex in templateExercises"
+                      :key="ex.id"
+                    >
+                      <div style="flex: 1;">
+                        {{ ex.name }}
+                      </div>
+
+                      <span>{{ ex.set_number }} x {{ ex.default_reps }}</span>
+                    </ion-item>
+                  </ion-list>
                 </ion-card-content>
             </ion-card>
 
@@ -106,7 +112,7 @@
 import { IonPage, IonHeader, IonToolbar, IonTitle, IonContent,IonCard,IonCardHeader,
 IonCardContent,IonCardSubtitle,IonCardTitle,IonList,IonItem,IonButton,IonIcon,IonButtons,IonModal,IonInput,onIonViewWillEnter,IonSelect,IonSelectOption } from '@ionic/vue';
 import { add} from 'ionicons/icons';
-import { createTemplate, getExercises,addExerciseToTemplate,getTemplates } from '@/services/gym_db'
+import { createTemplate, getExercises,addExerciseToTemplate,getTemplates ,getTemplateExercises} from '@/services/gym_db'
 import { ref ,onMounted} from 'vue';
 
 //modal
@@ -163,11 +169,31 @@ type Template = {
   id: number;
   name: string;
   created_at: string;
+  exercises?: TemplateExercise[];
 };
 
 const loadTemplates = async () => {
   const data = await getTemplates();
+
+  if (!data) {
+    templates.value = [];
+    return;
+  }
+
+  for (let template of data) {
+    const exercises = await getTemplateExercises(template.id);
+    template.exercises = exercises || [];
+  }
+
   templates.value = data;
+};
+
+
+type TemplateExercise = {
+  id: number;
+  name: string;
+  set_number: number;
+  default_reps: number;
 };
 
 
@@ -227,6 +253,7 @@ onMounted(() => {
 onIonViewWillEnter(() => {
     LoadExercises()
     loadTemplates()
+
 
 });
 </script>
