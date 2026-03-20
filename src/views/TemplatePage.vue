@@ -38,17 +38,43 @@
           </ion-item>
 
           <!-- Exercise list -->
-          <ion-list>
-            <ion-item
-              v-for="ex in exercises"
-              :key="ex.id"
-              @click="toggleExercise(ex)"
-              button
-            >
-              {{ ex.name }}
+            <ion-item>
+              <ion-select
+                placeholder="Add exercise"
+                @ionChange="addSelectedExercise($event)"
+              >
+                <ion-select-option
+                  v-for="ex in exercises"
+                  :key="ex.id"
+                  :value="ex"
+                >
+                  {{ ex.name }}
+                </ion-select-option>
+              </ion-select>
             </ion-item>
-          </ion-list>
+            <ion-list>
+              <ion-item v-for="(ex, index) in selectedExercises" :key="ex.id">
+                
+                <div style="flex: 1;">
+                  {{ ex.name }}
+                </div>
 
+                <!-- sets -->
+                <ion-input
+                  type="number"
+                  v-model="ex.sets"
+                  style="width: 60px"
+                ></ion-input>
+
+                <!-- reps -->
+                <ion-input
+                  type="number"
+                  v-model="ex.reps"
+                  style="width: 60px"
+                ></ion-input>
+
+              </ion-item>
+            </ion-list>
         </ion-content>
       </ion-modal>
 
@@ -78,7 +104,7 @@
 
 <script setup lang="ts">
 import { IonPage, IonHeader, IonToolbar, IonTitle, IonContent,IonCard,IonCardHeader,
-IonCardContent,IonCardSubtitle,IonCardTitle,IonList,IonItem,IonButton,IonIcon,IonButtons,IonModal,IonInput,onIonViewWillEnter } from '@ionic/vue';
+IonCardContent,IonCardSubtitle,IonCardTitle,IonList,IonItem,IonButton,IonIcon,IonButtons,IonModal,IonInput,onIonViewWillEnter,IonSelect,IonSelectOption } from '@ionic/vue';
 import { add} from 'ionicons/icons';
 import { createTemplate, getExercises,addExerciseToTemplate} from '@/services/gym_db'
 import { ref ,onMounted} from 'vue';
@@ -110,14 +136,16 @@ const confirm = async () => {
     return;
   }
 
-  // 🔥 add selected exercises AFTER template is created
+  // 🔥 add each selected exercise
   for (let i = 0; i < selectedExercises.value.length; i++) {
+    const ex = selectedExercises.value[i];
+
     await addExerciseToTemplate(
       templateId,
-      selectedExercises.value[i],
-      3,
-      10,
-      i // order
+      ex.id,
+      ex.sets,
+      ex.reps,
+      i // order index
     );
   }
 
@@ -129,10 +157,18 @@ const confirm = async () => {
   isOpen.value = false;
 };
 
+
 // exercises 
 const exercises = ref<exercise[]>([])
-const selectedExercises = ref<number[]>([]);
 
+const selectedExercises = ref<SelectedExercise[]>([]);
+
+type SelectedExercise = {
+  id: number;
+  name: string;
+  reps: number;
+  sets: number;
+}
 
 type exercise = {
   id: number;
@@ -148,17 +184,18 @@ const LoadExercises = async () =>{
   
 };
 
+const addSelectedExercise = (event: any) => {
+  const ex = event.detail.value;
 
-const toggleExercise = (ex: exercise) => {
-  const index = selectedExercises.value.indexOf(ex.id);
+  if (selectedExercises.value.some(e => e.id === ex.id)) return;
 
-  if (index > -1) {
-    selectedExercises.value.splice(index, 1);
-  } else {
-    selectedExercises.value.push(ex.id);
-  }
+  selectedExercises.value.push({
+    id: ex.id,
+    name: ex.name,
+    sets: 3,
+    reps: 10
+  });
 };
-
 
 
 

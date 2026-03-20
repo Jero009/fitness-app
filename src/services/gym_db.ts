@@ -134,6 +134,7 @@ export async function addExerciseToTemplate(
   return result;
 }
 
+
 export async function addExercise(name: string, muscleGroup: string, equipment: string, restSeconds: number) {
   if (!db) return;
 
