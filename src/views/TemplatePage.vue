@@ -104,7 +104,7 @@
                       <ion-item
                         v-for="ex in template.exercises"
                         :key="ex.id"
-                      > <ion-button slot="end"  @click="deleteEx(ex.id)">Delete</ion-button>
+                      > <ion-button slot="end"  @click="deleteTemp(template.id)">Delete</ion-button>
                         <div style="flex: 1;">
                           {{ ex.name}} name 
                         </div>
@@ -126,7 +126,7 @@ import { IonPage, IonHeader, IonToolbar, IonTitle, IonContent, IonCard, IonCardH
 IonCardContent, IonCardSubtitle, IonCardTitle, IonList, IonItem, IonButton, IonIcon, IonButtons, IonModal, IonInput, onIonViewWillEnter, IonSelect, IonSelectOption, 
 IonRefresher, IonRefresherContent, RefresherCustomEvent } from '@ionic/vue';
 import { add} from 'ionicons/icons';
-import { createTemplate, getExercises,addExerciseToTemplate,getTemplates ,getTemplateExercises} from '@/services/gym_db'
+import { createTemplate, getExercises,addExerciseToTemplate,getTemplates ,getTemplateExercises, deleteTemplate } from '@/services/gym_db'
 import { ref ,onMounted} from 'vue';
 
 //modal
@@ -252,9 +252,9 @@ const addSelectedExercise = (event: any) => {
 };
 
 // delete template and template exercise
-const deleteEx = async (id: number) => {
-  await deleteExercise(id);
-  await LoadExercises();
+const deleteTemp = async (id: number) => {
+  await deleteTemplate(id);
+  await loadTemplates();
 };
 
 
