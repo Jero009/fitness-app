@@ -194,7 +194,7 @@ export async function deleteTemplate(id: number) {
 
   const result = await db.run(
     `DELETE FROM workout_template WHERE id = ? ;`,
-    [id, id]
+    [id]
   );
 
 

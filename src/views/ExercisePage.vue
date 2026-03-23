@@ -55,6 +55,7 @@
       </ion-header>
           <ion-refresher slot="fixed" @ionRefresh="handleRefresh($event)">
             <ion-refresher-content></ion-refresher-content>
+          </ion-refresher>
                 <ion-list class="exercise-list" lines="full"  >
                     <ion-item class="exercise-item"  v-for="ex in exercises" :key="ex.id">
                         {{ ex.name }}
@@ -62,7 +63,7 @@
                     </ion-item>
                 </ion-list>
             
-        </ion-refresher>
+        
   </ion-content>
   </ion-page>
 </template>

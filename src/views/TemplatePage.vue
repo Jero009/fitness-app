@@ -93,14 +93,17 @@
       <!-- templates -->
           <ion-refresher slot="fixed" @ionRefresh="handleRefresh($event)">
             <ion-refresher-content></ion-refresher-content>
+          </ion-refresher>
               <ion-card class="card-template" v-for="template in templates" :key="template.id">
                   <ion-card-header>
-                  <ion-card-title>{{ template.name }}</ion-card-title>
-                  <ion-card-subtitle>{{ template.created_at }}</ion-card-subtitle>
-                  <ion-button slot="end"  @click="deleteTemp(template.id)">Delete</ion-button>
+                      <ion-card-title>{{ template.name }}</ion-card-title>
+                      <ion-card-subtitle>{{ template.created_at }}</ion-card-subtitle>
                   </ion-card-header>
-
+                      <ion-item>
+                      <ion-button  @click="deleteTemp(template.id)">Delete</ion-button>
+                    </ion-item>
                   <ion-card-content>
+
                     <ion-list>
                       <ion-item
                         v-for="ex in template.exercises"
@@ -117,7 +120,7 @@
                   </ion-card-content>
               </ion-card>
               
-            </ion-refresher>
+            
     </ion-content>
   </ion-page>
 </template>
@@ -254,7 +257,9 @@ const addSelectedExercise = (event: any) => {
 
 // delete template and template exercise
 const deleteTemp = async (id: number) => {
-  await deleteTemplate(id);
+
+  const result = await deleteTemplate(id);
+
   await loadTemplates();
 };
 
@@ -296,5 +301,4 @@ onIonViewWillEnter(() => {
   margin: 10px auto ;
   width: 90%;
 }
-
 </style>
