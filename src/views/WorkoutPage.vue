@@ -5,7 +5,7 @@
         <ion-title slot="start" class="title">Workout</ion-title>
         <div class="timer">{{ formatTime() }}</div>
         <ion-buttons  slot="end">
-          <ion-button >Start</ion-button>
+          <ion-button >stop</ion-button>
         </ion-buttons>
       </ion-toolbar>
     </ion-header>
@@ -21,7 +21,7 @@
                 </ion-card-header>
                 <ion-card-content>
                   <div class="set" v-for="set in ex.sets" :key="set.id">
-                    <ion-checkbox slot="start" v-model="set.completed" @ion-change="() => saveSet(set)" class="checkbox"></ion-checkbox>
+                    <ion-checkbox slot="start" v-model="set.completed" @ionChange="() => saveSet(set)" class="checkbox"></ion-checkbox>
                     <div class="input-container"><ion-input fill="outline" type="number" placeholder="kg" v-model.number="set.weight" @ionBlur="() => saveSet(set)" class="input-small"></ion-input><span class="unit">Kg</span></div>
                     <div class="input-container"><ion-input fill="outline" type="number" placeholder="reps" v-model.number="set.reps" @ionBlur="() => saveSet(set)" class="input-small"></ion-input><span class="unit">reps</span></div>
                   </div>
@@ -35,7 +35,7 @@
 import { IonPage, IonHeader, IonToolbar, IonTitle, IonContent,IonButtons,IonButton,IonCard,IonCardHeader,IonCardContent,IonCheckbox,IonInput,IonCardTitle,onIonViewWillEnter } from '@ionic/vue';
 import { ref } from 'vue';
 import { useRoute } from 'vue-router';
-import { getWorkoutExercises,getWorkoutSets,updateWorkoutSet } from '@/services/gym_db';
+import { getWorkoutExercises,getWorkoutSets,updateWorkoutSet,getWorkoutById } from '@/services/gym_db';
 
 
 const set1 = ref({ completed: false, weight: null, reps: null });
@@ -73,7 +73,12 @@ const loadWorkout = async () => {
 
 
 const saveSet = async (set: any) => {
-  await updateWorkoutSet(set.id, set.completed, set.weight, set.reps);
+  await updateWorkoutSet(
+  set.id,
+  set.reps,
+  set.weight,
+  set.completed
+);
 };
 
 //timer 
@@ -83,6 +88,8 @@ let interval: any = null;
 
 const startTimer = () => {
   if (!startTime.value) return;
+
+  if (interval) return;
 
   interval = setInterval(() => {
     const start = new Date(startTime.value!).getTime();
@@ -101,8 +108,9 @@ const formatTime = () => {
 
 
 onIonViewWillEnter(() => {
-  startTimer();
+  
   loadWorkout()
+  startTimer()
 });
 
 
