@@ -97,6 +97,7 @@
                   <ion-card-header>
                   <ion-card-title>{{ template.name }}</ion-card-title>
                   <ion-card-subtitle>{{ template.created_at }}</ion-card-subtitle>
+                  <ion-button slot="end"  @click="deleteTemp(template.id)">Delete</ion-button>
                   </ion-card-header>
 
                   <ion-card-content>
@@ -104,7 +105,7 @@
                       <ion-item
                         v-for="ex in template.exercises"
                         :key="ex.id"
-                      > <ion-button slot="end"  @click="deleteTemp(template.id)">Delete</ion-button>
+                      > 
                         <div style="flex: 1;">
                           {{ ex.name}} name 
                         </div>
