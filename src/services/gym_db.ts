@@ -53,7 +53,7 @@ export async function initDB() {
     id_workout_template INTEGER,
     id_exercise INTEGER,
     set_number INTEGER,
-    default_reps INTEGER,
+    rep_number INTEGER,
     order_index INTEGER,
     created_at TEXT DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (id_workout_template)
@@ -119,16 +119,16 @@ export async function addExerciseToTemplate(
   templateId: number,
   exerciseId: number,
   setNumber: number,
-  defaultReps: number,
+  repNumber: number,
   orderIndex: number
 ) {
   if (!db) return;
 
   const result = await db.run(
     `INSERT INTO workout_template_exercise 
-     (id_workout_template, id_exercise, set_number, default_reps, order_index)
+     (id_workout_template, id_exercise, set_number, rep_number, order_index)
      VALUES (?, ?, ?, ?, ?);`,
-    [templateId, exerciseId, setNumber, defaultReps, orderIndex]
+    [templateId, exerciseId, setNumber, repNumber, orderIndex]
   );
 
   return result;
@@ -147,7 +147,7 @@ export async function getTemplateExercises(templateId: number) {
       wte.id,
       e.name,
       wte.set_number,
-      wte.default_reps,
+      wte.rep_number,
       wte.order_index
     FROM workout_template_exercise wte
     JOIN exercise e ON e.id = wte.id_exercise

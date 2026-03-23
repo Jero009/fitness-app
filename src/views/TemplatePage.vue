@@ -30,6 +30,7 @@
 
         <ion-content class="ion-padding">
 
+
           <!-- Template name -->
           <ion-item>
             <ion-input
@@ -63,19 +64,23 @@
                 <!-- sets -->
                 <ion-input
                   type="number"
-                  v-model="ex.sets"
+                  v-model="ex.set_number"
                   style="width: 60px"
+                  placeholder="Sets"
                 ></ion-input>
 
                 <!-- reps -->
                 <ion-input
                   type="number"
-                  v-model="ex.reps"
+                  v-model="ex.rep_number"
                   style="width: 60px"
+                  placeholder="Reps"
                 ></ion-input>
 
               </ion-item>
             </ion-list>
+
+
         </ion-content>
       </ion-modal>
         <!--modal-->
@@ -86,36 +91,40 @@
         </ion-toolbar>
       </ion-header>
       <!-- templates -->
-            <ion-card class="card-template" v-for="template in templates" :key="template.id">
-                <ion-card-header>
-                <ion-card-title>{{ template.name }}</ion-card-title>
-                <ion-card-subtitle>{{ template.created_at }}</ion-card-subtitle>
-                </ion-card-header>
+          <ion-refresher slot="fixed" @ionRefresh="handleRefresh($event)">
+            <ion-refresher-content></ion-refresher-content>
+              <ion-card class="card-template" v-for="template in templates" :key="template.id">
+                  <ion-card-header>
+                  <ion-card-title>{{ template.name }}</ion-card-title>
+                  <ion-card-subtitle>{{ template.created_at }}</ion-card-subtitle>
+                  </ion-card-header>
 
-                <ion-card-content>
-                  <ion-list>
-                    <ion-item
-                      v-for="ex in template.exercises"
-                      :key="ex.id"
-                    >
-                      <div style="flex: 1;">
-                        {{ ex.name}} name 
-                      </div>
+                  <ion-card-content>
+                    <ion-list>
+                      <ion-item
+                        v-for="ex in template.exercises"
+                        :key="ex.id"
+                      > <ion-button slot="end"  @click="deleteEx(ex.id)">Delete</ion-button>
+                        <div style="flex: 1;">
+                          {{ ex.name}} name 
+                        </div>
 
-                      <span>{{ ex.set_number }} x {{ ex.rep_number}}</span>
-                  
-                    </ion-item>
-                  </ion-list>
-                </ion-card-content>
-            </ion-card>
-
+                        <span>{{ ex.set_number }} x {{ ex.rep_number}}</span>
+                    
+                      </ion-item>
+                    </ion-list>
+                  </ion-card-content>
+              </ion-card>
+              
+            </ion-refresher>
     </ion-content>
   </ion-page>
 </template>
 
 <script setup lang="ts">
-import { IonPage, IonHeader, IonToolbar, IonTitle, IonContent,IonCard,IonCardHeader,
-IonCardContent,IonCardSubtitle,IonCardTitle,IonList,IonItem,IonButton,IonIcon,IonButtons,IonModal,IonInput,onIonViewWillEnter,IonSelect,IonSelectOption } from '@ionic/vue';
+import { IonPage, IonHeader, IonToolbar, IonTitle, IonContent, IonCard, IonCardHeader,
+IonCardContent, IonCardSubtitle, IonCardTitle, IonList, IonItem, IonButton, IonIcon, IonButtons, IonModal, IonInput, onIonViewWillEnter, IonSelect, IonSelectOption, 
+IonRefresher, IonRefresherContent, RefresherCustomEvent } from '@ionic/vue';
 import { add} from 'ionicons/icons';
 import { createTemplate, getExercises,addExerciseToTemplate,getTemplates ,getTemplateExercises} from '@/services/gym_db'
 import { ref ,onMounted} from 'vue';
@@ -154,8 +163,8 @@ const confirm = async () => {
     await addExerciseToTemplate(
       templateId,
       ex.id,
-      ex.sets,
-      ex.reps,
+      ex.set_number,
+      ex.rep_number,
       i // order index
     );
   }
@@ -211,8 +220,8 @@ const selectedExercises = ref<SelectedExercise[]>([]);
 type SelectedExercise = {
   id: number;
   name: string;
-  reps: number;
-  sets: number;
+  rep_number: number;
+  set_number: number;
 }
 
 type exercise = {
@@ -237,9 +246,15 @@ const addSelectedExercise = (event: any) => {
   selectedExercises.value.push({
     id: ex.id,
     name: ex.name,
-    sets: ex.set_number || 3, // default sets
-    reps: ex.reps || 10 // default reps
+    set_number: ex.set_number,
+    rep_number: ex.rep_number 
   });
+};
+
+// delete template and template exercise
+const deleteEx = async (id: number) => {
+  await deleteExercise(id);
+  await LoadExercises();
 };
 
 
@@ -247,6 +262,14 @@ const addSelectedExercise = (event: any) => {
 
 
 
+//refresh 
+
+ const handleRefresh = (event: RefresherCustomEvent) => {
+    setTimeout(() => {
+      // Any calls to load data go here
+      event.target.complete();
+    }, 200);
+  };
 
 
 

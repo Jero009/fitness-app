@@ -11,6 +11,8 @@
           <ion-title size="large">History</ion-title>
         </ion-toolbar>
       </ion-header>
+          <ion-refresher slot="fixed" @ionRefresh="handleRefresh($event)">
+            <ion-refresher-content></ion-refresher-content>
             <ion-card class="card-template">
                 <ion-card-header>
                 <ion-card-title>workout name 2</ion-card-title>
@@ -26,11 +28,26 @@
                 </ion-list>
                 </ion-card-content>
             </ion-card>
+            
+          </ion-refresher>
     </ion-content>
   </ion-page>
 </template>
 
 <script setup lang="ts">
-import { IonPage, IonHeader, IonToolbar, IonTitle, IonContent,IonCard,IonCardHeader,IonCardContent,IonCardSubtitle,IonCardTitle,IonList,IonItem } from '@ionic/vue';
+import { IonPage, IonHeader, IonToolbar, IonTitle, IonContent,IonCard,IonCardHeader,IonCardContent,IonCardSubtitle,IonCardTitle,IonList,IonItem, 
+IonRefresher, IonRefresherContent, RefresherCustomEvent } from '@ionic/vue';
+
+
+//refresh 
+
+ const handleRefresh = (event: RefresherCustomEvent) => {
+    setTimeout(() => {
+      // Any calls to load data go here
+      event.target.complete();
+    }, 200);
+  };
+
+
 
 </script>

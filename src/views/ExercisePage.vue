@@ -53,18 +53,23 @@
           <ion-title size="large">Exercises</ion-title>
         </ion-toolbar>
       </ion-header>
+          <ion-refresher slot="fixed" @ionRefresh="handleRefresh($event)">
+            <ion-refresher-content></ion-refresher-content>
                 <ion-list class="exercise-list" lines="full"  >
                     <ion-item class="exercise-item"  v-for="ex in exercises" :key="ex.id">
                         {{ ex.name }}
-                      <ion-button slot="end" color="danger" @click="deleteEx(ex.id)">Delete</ion-button>
+                      <ion-button slot="end"  @click="deleteEx(ex.id)">Delete</ion-button>
                     </ion-item>
                 </ion-list>
+            
+        </ion-refresher>
   </ion-content>
   </ion-page>
 </template>
 
 <script setup lang="ts">
-import { IonPage, IonHeader, IonToolbar, IonTitle, IonContent,IonList,IonItem,IonButton,IonIcon,IonButtons,IonModal,IonInput ,onIonViewWillEnter} from '@ionic/vue';
+import { IonPage, IonHeader, IonToolbar, IonTitle, IonContent,IonList,IonItem,IonButton,IonIcon,IonButtons,IonModal,IonInput ,onIonViewWillEnter,
+   IonRefresher, IonRefresherContent, RefresherCustomEvent } from '@ionic/vue';
 import { add} from 'ionicons/icons'
 import { ref,onMounted } from 'vue';
 import { addExercise, getExercises, deleteExercise} from '@/services/gym_db'
@@ -118,11 +123,27 @@ const LoadExercises = async () =>{
 };
 
 
+
+
 //delete exercise
 const deleteEx = async (id: number) => {
   await deleteExercise(id);
   await LoadExercises();
 };
+
+
+
+
+//refresh 
+
+ const handleRefresh = (event: RefresherCustomEvent) => {
+    setTimeout(() => {
+      // Any calls to load data go here
+      event.target.complete();
+    }, 200);
+  };
+
+
 
 onMounted(() => {
     LoadExercises()
