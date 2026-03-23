@@ -92,7 +92,7 @@ const startTimer = () => {
   if (interval) return;
 
   interval = setInterval(() => {
-    const start = new Date(startTime.value!).getTime();
+    const start = new Date(startTime.value! + 'Z').getTime();
     const now = Date.now();
 
     seconds.value = Math.floor((now - start) / 1000);
