@@ -170,12 +170,13 @@ export async function addExercise(name: string, muscleGroup: string, equipment: 
   return result;
 }
 
-export async function deleteExercise(id: number) {
+//rename
+export async function renameExercise(id: number, newName: string) {
   if (!db) return;
 
   const result = await db.run(
-    `DELETE FROM exercise WHERE id = ?`,
-    [id]
+    `UPDATE exercise SET name = ? WHERE id = ?`,
+    [newName, id]
   );
 
   return result;

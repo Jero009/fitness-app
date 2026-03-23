@@ -59,7 +59,7 @@
                 <ion-list class="exercise-list" lines="full"  >
                     <ion-item class="exercise-item"  v-for="ex in exercises" :key="ex.id">
                         {{ ex.name }}
-                      <ion-button slot="end"  @click="deleteEx(ex.id)">Delete</ion-button>
+                      <ion-button slot="end"  @click="renameEx(ex)" >Rename</ion-button>
                     </ion-item>
                 </ion-list>
             
@@ -70,10 +70,10 @@
 
 <script setup lang="ts">
 import { IonPage, IonHeader, IonToolbar, IonTitle, IonContent,IonList,IonItem,IonButton,IonIcon,IonButtons,IonModal,IonInput ,onIonViewWillEnter,
-   IonRefresher, IonRefresherContent, RefresherCustomEvent } from '@ionic/vue';
+   IonRefresher, IonRefresherContent, RefresherCustomEvent,alertController } from '@ionic/vue';
 import { add} from 'ionicons/icons'
 import { ref,onMounted } from 'vue';
-import { addExercise, getExercises, deleteExercise} from '@/services/gym_db'
+import { addExercise, getExercises,renameExercise} from '@/services/gym_db'
 
 //creqating exercise modal
     const isOpen = ref(false);
@@ -126,12 +126,39 @@ const LoadExercises = async () =>{
 
 
 
-//delete exercise
-const deleteEx = async (id: number) => {
-  await deleteExercise(id);
-  await LoadExercises();
-};
+//rename exercise
+const renameEx = async (ex: exercise) => {
+  const alert = await alertController.create({
+    header: 'Rename Exercise',
 
+    inputs: [
+      {
+        name: 'name',
+        type: 'text',
+        value: ex.name, 
+        placeholder: 'New name'
+      }
+    ],
+
+    buttons: [
+      {
+        text: 'Cancel',
+        role: 'cancel'
+      },
+      {
+        text: 'Save',
+        handler: async (data) => {
+          if (!data.name || !data.name.trim()) return;
+
+          await renameExercise(ex.id, data.name.trim());
+          await LoadExercises();
+        }
+      }
+    ]
+  });
+
+  await alert.present();
+};
 
 
 
