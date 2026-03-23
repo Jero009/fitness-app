@@ -12,6 +12,7 @@
       </ion-toolbar>
     </ion-header>
     <ion-content :fullscreen="true">
+      <!--modal-->
       <ion-modal :is-open="isOpen">
         <ion-header>
           <ion-toolbar>
@@ -77,28 +78,32 @@
             </ion-list>
         </ion-content>
       </ion-modal>
+        <!--modal-->
 
       <ion-header collapse="condense">
         <ion-toolbar>
           <ion-title size="large">Template</ion-title>
         </ion-toolbar>
       </ion-header>
+      <!-- templates -->
             <ion-card class="card-template" v-for="template in templates" :key="template.id">
                 <ion-card-header>
                 <ion-card-title>{{ template.name }}</ion-card-title>
+                <ion-card-subtitle>{{ template.created_at }}</ion-card-subtitle>
                 </ion-card-header>
 
                 <ion-card-content>
                   <ion-list>
                     <ion-item
-                      v-for="ex in templateExercises"
+                      v-for="ex in template.exercises"
                       :key="ex.id"
                     >
                       <div style="flex: 1;">
-                        {{ ex.name }}
+                        {{ ex.name}} name 
                       </div>
 
-                      <span>{{ ex.set_number }} x {{ ex.default_reps }}</span>
+                      <span>{{ ex.set_number }} x {{ ex.rep_number}}</span>
+                  
                     </ion-item>
                   </ion-list>
                 </ion-card-content>
@@ -193,7 +198,7 @@ type TemplateExercise = {
   id: number;
   name: string;
   set_number: number;
-  default_reps: number;
+  rep_number: number;
 };
 
 
@@ -232,8 +237,8 @@ const addSelectedExercise = (event: any) => {
   selectedExercises.value.push({
     id: ex.id,
     name: ex.name,
-    sets: 3,
-    reps: 10
+    sets: ex.set_number || 3, // default sets
+    reps: ex.reps || 10 // default reps
   });
 };
 
