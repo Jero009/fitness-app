@@ -41,9 +41,18 @@
 import { IonPage, IonHeader, IonToolbar, IonTitle, IonContent,IonButtons,IonButton,IonCard,IonCardHeader,IonCardContent,IonCheckbox,IonInput,IonCardTitle } from '@ionic/vue';
 import ExploreContainer from '@/components/ExploreContainer.vue';
 import { ref } from 'vue';
+import { useRoute } from 'vue-router';
+
 
 const set1 = ref({ completed: false, weight: null, reps: null });
-const set2 = ref({ completed: false, weight: null, reps: null });
+
+
+
+
+const route = useRoute();
+
+const workoutId = Number(route.params.id);
+console.log("Workout ID:", workoutId);
 
 </script>
 <style>

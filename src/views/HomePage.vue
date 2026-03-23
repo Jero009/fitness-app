@@ -31,6 +31,9 @@
                   <ion-card-content>
                     <ion-icon :icon="barbellSharp"></ion-icon>
                   </ion-card-content>
+                  <ion-button @click="startWorkout(template.id)">
+                    Start
+                  </ion-button>
               </ion-card>>
         </div>
 
@@ -39,10 +42,21 @@
 </template>
 
 <script setup lang="ts">
-import { IonPage, IonHeader, IonToolbar, IonTitle, IonContent,IonCard,IonCardHeader,IonCardSubtitle,IonCardContent,IonCardTitle,onIonViewWillEnter,IonIcon} from '@ionic/vue';
-import { getTemplates } from '@/services/gym_db'
+import { IonPage, IonHeader, IonToolbar, IonTitle, IonContent,IonCard,IonCardHeader,IonCardSubtitle,IonCardContent,IonCardTitle,onIonViewWillEnter,IonIcon,IonButton} from '@ionic/vue';
+import { getTemplates,startWorkoutFromTemplate } from '@/services/gym_db'
 import { ref ,onMounted } from 'vue';
 import { barbellSharp } from 'ionicons/icons';
+import { useRouter } from 'vue-router';
+
+
+// routing
+const router = useRouter();
+
+const startWorkout = async (templateId: number) => {
+  const workoutId = await startWorkoutFromTemplate(templateId);
+
+  router.push(`/Workout/${workoutId}`);
+};
 
 
 // displaying templates

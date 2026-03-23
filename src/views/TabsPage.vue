@@ -8,10 +8,6 @@
           <ion-label>Home</ion-label>
         </ion-tab-button>
 
-        <ion-tab-button tab="Workout" href="/tabs/Workout" >
-          <ion-icon aria-hidden="true" :icon="barbellOutline" />
-          <ion-label>Workout</ion-label>
-        </ion-tab-button>
 
         <ion-tab-button tab="Template" href="/tabs/Template" >
           <ion-icon aria-hidden="true" :icon="add" />

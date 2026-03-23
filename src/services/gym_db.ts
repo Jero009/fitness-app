@@ -146,6 +146,7 @@ export async function getTemplateExercises(templateId: number) {
     SELECT 
       wte.id,
       e.name,
+      wte.id_exercise,
       wte.set_number,
       wte.rep_number,
       wte.order_index
@@ -201,3 +202,16 @@ export async function deleteTemplate(id: number) {
 
   return result;
 }
+// workout functions
+
+export async function startWorkoutFromTemplate(templateId: number) {
+  if (!db) return;
+
+  const result = await db.run(
+    `INSERT INTO workout (id_workout_template) VALUES (?)`,
+    [templateId]
+  );
+  const workoutId = result.changes?.lastId;
+}
+
+// get exercises for this template
