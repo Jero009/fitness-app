@@ -3,7 +3,7 @@
     <ion-header>
       <ion-toolbar>
         <ion-title slot="start" class="title">Workout</ion-title>
-        <div class="timer">00:12:34</div>
+        <div class="timer">{{ formatTime() }}</div>
         <ion-buttons  slot="end">
           <ion-button >Start</ion-button>
         </ion-buttons>
@@ -51,10 +51,18 @@ const workoutExercises = ref<any[]>([]);
 
 
 const loadWorkout = async () => {
+  const workout = await getWorkoutById(workoutId);
+  startTime.value = workout?.time_start;
+
   const data = await getWorkoutExercises(workoutId);
 
   for (const ex of data) {
-    ex.sets = await getWorkoutSets(ex.id);
+      const sets = await getWorkoutSets(ex.id);
+
+      ex.sets = sets.map((s: any) => ({
+      ...s,
+      completed: !!s.completed
+    }));
   }
 
   workoutExercises.value = data;
@@ -68,8 +76,32 @@ const saveSet = async (set: any) => {
   await updateWorkoutSet(set.id, set.completed, set.weight, set.reps);
 };
 
-onIonViewWillEnter(() => {
+//timer 
+const startTime = ref<string | null>(null);
+const seconds = ref(0);
+let interval: any = null;
 
+const startTimer = () => {
+  if (!startTime.value) return;
+
+  interval = setInterval(() => {
+    const start = new Date(startTime.value!).getTime();
+    const now = Date.now();
+
+    seconds.value = Math.floor((now - start) / 1000);
+  }, 1000);
+};
+const formatTime = () => {
+  const hrs = Math.floor(seconds.value / 3600);
+  const mins = Math.floor((seconds.value % 3600) / 60);
+  const secs = seconds.value % 60;
+
+  return `${String(hrs).padStart(2, '0')}:${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+};
+
+
+onIonViewWillEnter(() => {
+  startTimer();
   loadWorkout()
 });
 

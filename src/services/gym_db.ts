@@ -272,3 +272,14 @@ export async function updateWorkoutSet(id: number, reps: number, weight: number,
   return result;
   
 }
+
+export async function getWorkoutById(id: number) {
+  if (!db) return null;
+
+  const result = await db.query(
+    'SELECT * FROM workout WHERE id = ?;'
+    , [id]
+  );
+  
+  return result.values?.[0] || null;
+}
