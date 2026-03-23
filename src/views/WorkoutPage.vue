@@ -22,8 +22,8 @@
                 <ion-card-content>
                   <div class="set" v-for="set in ex.sets" :key="set.id">
                     <ion-checkbox slot="start" v-model="set.completed" @ionChange="() => saveSet(set)" class="checkbox"></ion-checkbox>
-                    <div class="input-container"><ion-input fill="outline" type="number" placeholder="kg" v-model.number="set.weight" @ionBlur="() => saveSet(set)" class="input-small"></ion-input><span class="unit">Kg</span></div>
-                    <div class="input-container"><ion-input fill="outline" type="number" placeholder="reps" v-model.number="set.reps" @ionBlur="() => saveSet(set)" class="input-small"></ion-input><span class="unit">reps</span></div>
+                    <div class="input-container"><ion-input fill="outline" type="number" placeholder="kg" v-model.number="set.weight" @ionBlur="saveSet(set)" class="input-small"></ion-input><span class="unit">Kg</span></div>
+                    <div class="input-container"><ion-input fill="outline" type="number" placeholder="reps" v-model.number="set.reps" @ionBlur="saveSet(set)" class="input-small"></ion-input><span class="unit">reps</span></div>
                   </div>
                 </ion-card-content>
             </ion-card>
@@ -107,10 +107,9 @@ const formatTime = () => {
 };
 
 
-onIonViewWillEnter(() => {
-  
-  loadWorkout()
-  startTimer()
+onIonViewWillEnter(async () => {
+  await loadWorkout();
+  startTimer();
 });
 
 
