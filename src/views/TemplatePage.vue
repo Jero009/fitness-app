@@ -270,13 +270,11 @@ const deleteTemp = async (id: number) => {
 
 //refresh 
 
- const handleRefresh = (event: RefresherCustomEvent) => {
-    setTimeout(() => {
-      // Any calls to load data go here
-      event.target.complete();
-    }, 200);
-  };
-
+const handleRefresh = async (event: RefresherCustomEvent) => {
+  await LoadExercises();
+  await loadTemplates();
+  event.target.complete();
+};
 
 
 onMounted(() => {

@@ -23,26 +23,15 @@
                 </ion-card-content>
             </ion-card>
        <div class="card-container">
-            <ion-card class="card">
-                <ion-card-header>
-                <ion-card-title>workout name 1</ion-card-title>
-                <ion-card-subtitle>last preformed</ion-card-subtitle>
-                </ion-card-header>
-
-                <ion-card-content>
-                exercise list 
-                </ion-card-content>
-            </ion-card>
-            <ion-card class="card">
-                <ion-card-header>
-                <ion-card-title>workout name 2</ion-card-title>
-                <ion-card-subtitle>last preformed</ion-card-subtitle>
-                </ion-card-header>
-
-                <ion-card-content>
-                exercise list 
-                </ion-card-content>
-            </ion-card>
+              <ion-card class="card" v-for="template in templates" :key="template.id">
+                  <ion-card-header>
+                      <ion-card-title>{{ template.name }}</ion-card-title>
+                      <ion-card-subtitle>{{ template.created_at }}</ion-card-subtitle>
+                  </ion-card-header>
+                  <ion-card-content>
+                    <ion-icon :icon="barbellSharp"></ion-icon>
+                  </ion-card-content>
+              </ion-card>>
         </div>
 
     </ion-content>
@@ -50,10 +39,62 @@
 </template>
 
 <script setup lang="ts">
-import { IonPage, IonHeader, IonToolbar, IonTitle, IonContent,IonCard,IonCardHeader,IonCardSubtitle,IonCardContent,IonCardTitle  } from '@ionic/vue';
+import { IonPage, IonHeader, IonToolbar, IonTitle, IonContent,IonCard,IonCardHeader,IonCardSubtitle,IonCardContent,IonCardTitle,onIonViewWillEnter,IonIcon} from '@ionic/vue';
+import { getTemplates } from '@/services/gym_db'
+import { ref ,onMounted } from 'vue';
+import { barbellSharp } from 'ionicons/icons';
+
+
+// displaying templates
+const templates = ref<Template[]>([]);
+
+type Template = {
+  id: number;
+  name: string;
+  created_at: string;
+};
+
+const loadTemplates = async () => {
+  const data = await getTemplates();
+
+  if (!data) {
+    templates.value = [];
+    return;
+  }
+  templates.value = data;
+};
+
+
+
+onMounted(() => {
+
+    loadTemplates();
+});
+
+onIonViewWillEnter(() => {
+
+    loadTemplates()
+
+
+});
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 </script>
 <style>
+
+
 .card-container {
   height: 100vh;
 

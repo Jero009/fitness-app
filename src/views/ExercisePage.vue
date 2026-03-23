@@ -164,13 +164,10 @@ const renameEx = async (ex: exercise) => {
 
 //refresh 
 
- const handleRefresh = (event: RefresherCustomEvent) => {
-    setTimeout(() => {
-      // Any calls to load data go here
-      event.target.complete();
-    }, 200);
-  };
-
+const handleRefresh = async (event: RefresherCustomEvent) => {
+  await LoadExercises();
+  event.target.complete();
+};
 
 
 onMounted(() => {
