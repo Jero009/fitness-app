@@ -55,7 +55,7 @@ const router = useRouter();
 const startWorkout = async (templateId: number) => {
   const workoutId = await startWorkoutFromTemplate(templateId);
 
-  router.push(`/Workout/${workoutId}`);
+  router.push(`/workout/${workoutId}`);
 };
 
 

@@ -21,7 +21,7 @@
       </ion-header>
             <ion-card class="exercise-card">
                 <ion-card-header >
-                <ion-card-title>Exercise name</ion-card-title>
+                <ion-card-title>{{ workoutId }}</ion-card-title>
                 </ion-card-header>
                 <ion-card-content>
                   <div class="set">
@@ -38,21 +38,42 @@
 </template>
 
 <script setup lang="ts">
-import { IonPage, IonHeader, IonToolbar, IonTitle, IonContent,IonButtons,IonButton,IonCard,IonCardHeader,IonCardContent,IonCheckbox,IonInput,IonCardTitle } from '@ionic/vue';
-import ExploreContainer from '@/components/ExploreContainer.vue';
+import { IonPage, IonHeader, IonToolbar, IonTitle, IonContent,IonButtons,IonButton,IonCard,IonCardHeader,IonCardContent,IonCheckbox,IonInput,IonCardTitle
+   onIonViewWillEnter } from '@ionic/vue';
 import { ref } from 'vue';
 import { useRoute } from 'vue-router';
+import { getWorkoutExercises } from '@/services/gym_db';
 
 
 const set1 = ref({ completed: false, weight: null, reps: null });
-
-
-
-
+// id from route
 const route = useRoute();
 
 const workoutId = Number(route.params.id);
 console.log("Workout ID:", workoutId);
+
+// exercise data 
+
+const workoutExercises = ref<any[]>([]);
+
+
+const loadWorkout = async () => {
+  const data = await getWorkoutExercises(workoutId);
+  workoutExercises.value = data;
+
+  console.log(workoutExercises.value);
+};
+
+
+onIonViewWillEnter(() => {
+
+  loadWorkout()
+});
+
+
+
+
+
 
 </script>
 <style>

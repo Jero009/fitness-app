@@ -212,6 +212,38 @@ export async function startWorkoutFromTemplate(templateId: number) {
     [templateId]
   );
   const workoutId = result.changes?.lastId;
+
+  const templateExercises = await getTemplateExercises(templateId);
+
+  for (const ex of templateExercises) {
+    const resultWE = await db.run(
+      `INSERT INTO workout_exercise (workout_id, exercise_id, order_index) VALUES (?, ?, ?)`,
+      [workoutId, ex.id_exercise, ex.order_index]
+    );
+    const workoutExerciseId = resultWE.changes?.lastId;
+
+    for (let i = 0; i < ex.set_number; i++) {
+      await db.run(
+        'INSERT INTO workout_exercise_sets (workout_exercise_id,set_number,reps,weight) values(?, ?, ?, ?)',
+        [workoutExerciseId, i + 1, ex.rep_number, 0]
+      );
+    }
+  }
+  return workoutId;
 }
 
-// get exercises for this template
+export async function getWorkoutExercises(workoutId: number) {
+  if (!db) return [];
+
+  const result = await db.query(`
+    SELECT 
+      we.id,
+      e.name
+    FROM workout_exercise we
+    JOIN exercise e ON e.id = we.exercise_id
+    WHERE we.workout_id = ?
+    ORDER BY we.order_index
+  `, [workoutId]);
+
+  return result.values || [];
+}
