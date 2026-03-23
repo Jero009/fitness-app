@@ -247,3 +247,28 @@ export async function getWorkoutExercises(workoutId: number) {
 
   return result.values || [];
 }
+
+export async function getWorkoutSets(workoutExerciseId: number) {
+  if (!db) return [];
+
+  const result = await db.query(`
+    select id, set_number, reps,weight,completed from workout_exercise_sets
+    where workout_exercise_id = ?
+    order by set_number
+  `, [workoutExerciseId]);
+
+  return result.values || [];
+}
+
+// saving workout
+
+export async function updateWorkoutSet(id: number, reps: number, weight: number, completed: boolean) {
+  if (!db) return;
+
+  const result = await db.run(
+    'UPDATE workout_exercise_sets SET reps = ?, weight = ?, completed = ? WHERE id = ?',
+    [reps, weight, completed ? 1 : 0, id]
+  );  
+  return result;
+  
+}

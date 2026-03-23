@@ -2,12 +2,8 @@
   <ion-page>
     <ion-header>
       <ion-toolbar>
- 
         <ion-title slot="start" class="title">Workout</ion-title>
-
-
         <div class="timer">00:12:34</div>
-
         <ion-buttons  slot="end">
           <ion-button >Start</ion-button>
         </ion-buttons>
@@ -19,30 +15,27 @@
           <ion-title size="large">Workout</ion-title>
         </ion-toolbar>
       </ion-header>
-            <ion-card class="exercise-card">
+            <ion-card class="exercise-card"  v-for="ex in workoutExercises" :key="ex.id">
                 <ion-card-header >
-                <ion-card-title>{{ workoutId }}</ion-card-title>
+                <ion-card-title>{{ ex.name }}</ion-card-title>
                 </ion-card-header>
                 <ion-card-content>
-                  <div class="set">
-                    <ion-checkbox slot="start" v-model="set1.completed" class="checkbox"></ion-checkbox>
-                    <div class="input-container"><ion-input fill="outline" type="number" placeholder="kg" v-model.number="set1.weight" class="input-small"></ion-input><span class="unit">Kg</span></div>
-                    <div class="input-container"><ion-input fill="outline" type="number" placeholder="reps" v-model.number="set1.reps" class="input-small"></ion-input><span class="unit">reps</span></div>
+                  <div class="set" v-for="set in ex.sets" :key="set.id">
+                    <ion-checkbox slot="start" v-model="set.completed" @ion-change="() => saveSet(set)" class="checkbox"></ion-checkbox>
+                    <div class="input-container"><ion-input fill="outline" type="number" placeholder="kg" v-model.number="set.weight" @ionBlur="() => saveSet(set)" class="input-small"></ion-input><span class="unit">Kg</span></div>
+                    <div class="input-container"><ion-input fill="outline" type="number" placeholder="reps" v-model.number="set.reps" @ionBlur="() => saveSet(set)" class="input-small"></ion-input><span class="unit">reps</span></div>
                   </div>
                 </ion-card-content>
-
             </ion-card>
-
     </ion-content>
   </ion-page>
 </template>
 
 <script setup lang="ts">
-import { IonPage, IonHeader, IonToolbar, IonTitle, IonContent,IonButtons,IonButton,IonCard,IonCardHeader,IonCardContent,IonCheckbox,IonInput,IonCardTitle
-   onIonViewWillEnter } from '@ionic/vue';
+import { IonPage, IonHeader, IonToolbar, IonTitle, IonContent,IonButtons,IonButton,IonCard,IonCardHeader,IonCardContent,IonCheckbox,IonInput,IonCardTitle,onIonViewWillEnter } from '@ionic/vue';
 import { ref } from 'vue';
 import { useRoute } from 'vue-router';
-import { getWorkoutExercises } from '@/services/gym_db';
+import { getWorkoutExercises,getWorkoutSets,updateWorkoutSet } from '@/services/gym_db';
 
 
 const set1 = ref({ completed: false, weight: null, reps: null });
@@ -59,19 +52,26 @@ const workoutExercises = ref<any[]>([]);
 
 const loadWorkout = async () => {
   const data = await getWorkoutExercises(workoutId);
+
+  for (const ex of data) {
+    ex.sets = await getWorkoutSets(ex.id);
+  }
+
   workoutExercises.value = data;
 
   console.log(workoutExercises.value);
 };
+// saving
 
+
+const saveSet = async (set: any) => {
+  await updateWorkoutSet(set.id, set.completed, set.weight, set.reps);
+};
 
 onIonViewWillEnter(() => {
 
   loadWorkout()
 });
-
-
-
 
 
 
@@ -105,6 +105,7 @@ onIonViewWillEnter(() => {
   width: 100%;
   padding: 10px;
   border-radius: 10px;
+  margin-bottom: 5px;
   background-color: var(--ion-color-medium);
   display: flex;
   justify-content: space-between;
