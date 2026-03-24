@@ -22,6 +22,12 @@
                 
                 </ion-card-content>
             </ion-card>
+
+            <ion-card class="card-active-workout" v-if="activeWorkout"  @click="backToWorkout()">
+                <ion-card-header >
+                <ion-card-title>active workout</ion-card-title>
+                </ion-card-header>
+            </ion-card>
        <div class="card-container">
               <ion-card class="card" v-for="template in templates" :key="template.id">
                   <ion-card-header>
@@ -43,13 +49,13 @@
 
 <script setup lang="ts">
 import { IonPage, IonHeader, IonToolbar, IonTitle, IonContent,IonCard,IonCardHeader,IonCardSubtitle,IonCardContent,IonCardTitle,onIonViewWillEnter,IonIcon,IonButton} from '@ionic/vue';
-import { getTemplates,startWorkoutFromTemplate,hasActiveWorkout } from '@/services/gym_db'
+import { getTemplates,startWorkoutFromTemplate,hasActiveWorkout,getActiveWorkout } from '@/services/gym_db'
 import { ref ,onMounted } from 'vue';
 import { barbellSharp } from 'ionicons/icons';
 import { useRouter } from 'vue-router';
 
 
-const acticeWorkout = ref(false);
+const activeWorkout = ref(false);
 
 // routing
 const router = useRouter();
@@ -59,7 +65,14 @@ const startWorkout = async (templateId: number) => {
 
   router.push(`/workout/${workoutId}`);
 };
+// active workout id
+const backToWorkout = async () => {
+  const workout = await getActiveWorkout();
 
+  if (workout) {
+    router.push(`/workout/${workout.id}`);
+  }
+};
 
 // displaying templates
 const templates = ref<Template[]>([]);
@@ -84,18 +97,15 @@ const loadTemplates = async () => {
 
 onMounted(async () => {
   activeWorkout.value = await hasActiveWorkout();
+  console.log("Active workout:", activeWorkout.value);
   loadTemplates()
 });
 
-onIonViewWillEnter(() => {
-
-    loadTemplates()
-
-
+onIonViewWillEnter(async () => {
+  activeWorkout.value = await hasActiveWorkout();
+  console.log("Active workout:", activeWorkout.value);
+  loadTemplates();
 });
-
-
-
 
 
 
@@ -124,8 +134,13 @@ onIonViewWillEnter(() => {
   width: 48%;
   aspect-ratio: 1/1;
 }
-.top-card{
- margin: 10px 20px
+.card-active-workout{
+ margin: 10px 20px;
+ background-color: var(--ion-color-accent-yellow);
+ color: var(--ion-color-dark);
 }
-
+.top-card{
+  margin: 10px 20px;
+  background-color: var(--ion-color-accent-red);
+}
 </style>
