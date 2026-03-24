@@ -280,6 +280,15 @@ export async function getWorkoutById(id: number) {
     'SELECT * FROM workout WHERE id = ?;'
     , [id]
   );
-  
+
   return result.values?.[0] || null;
+}
+
+export async function endWorkout(id: number, time_end: number) {
+  if (!db) return;
+  const result = await db.run(
+    'UPDATE workout SET time_end = ? WHERE id = ?',
+    [time_end, id]
+  )
+  return result;
 }

@@ -5,7 +5,7 @@
         <ion-title slot="start" class="title">Workout</ion-title>
         <div class="timer">{{ formatTime() }}</div>
         <ion-buttons  slot="end">
-          <ion-button >stop</ion-button>
+          <ion-button @click="saveWorkout">stop</ion-button>
         </ion-buttons>
       </ion-toolbar>
     </ion-header>
@@ -34,14 +34,13 @@
 <script setup lang="ts">
 import { IonPage, IonHeader, IonToolbar, IonTitle, IonContent,IonButtons,IonButton,IonCard,IonCardHeader,IonCardContent,IonCheckbox,IonInput,IonCardTitle,onIonViewWillEnter } from '@ionic/vue';
 import { ref } from 'vue';
-import { useRoute } from 'vue-router';
-import { getWorkoutExercises,getWorkoutSets,updateWorkoutSet,getWorkoutById } from '@/services/gym_db';
+import { useRouter,useRoute } from 'vue-router';
 
+import { getWorkoutExercises,getWorkoutSets,updateWorkoutSet,getWorkoutById,endWorkout } from '@/services/gym_db';
 
-const set1 = ref({ completed: false, weight: null, reps: null });
+const router = useRouter();
 // id from route
 const route = useRoute();
-
 const workoutId = Number(route.params.id);
 console.log("Workout ID:", workoutId);
 
@@ -52,7 +51,7 @@ const workoutExercises = ref<any[]>([]);
 
 const loadWorkout = async () => {
   const workout = await getWorkoutById(workoutId);
-  startTime.value = workout?.time_start;
+  startTime.value = workout?.time_start.replace(' ', 'T') + 'Z';
 
   const data = await getWorkoutExercises(workoutId);
 
@@ -69,8 +68,8 @@ const loadWorkout = async () => {
 
   console.log(workoutExercises.value);
 };
-// saving
 
+// saving
 
 const saveSet = async (set: any) => {
   await updateWorkoutSet(
@@ -79,6 +78,15 @@ const saveSet = async (set: any) => {
   set.weight,
   set.completed
 );
+};
+
+
+const saveWorkout = async ()=>{
+  await endWorkout(workoutId, Date.now());
+  
+  console.log("Workout saved!");
+
+  router.push('/tabs/Home');
 };
 
 //timer 
@@ -92,7 +100,7 @@ const startTimer = () => {
   if (interval) return;
 
   interval = setInterval(() => {
-    const start = new Date(startTime.value! + 'Z').getTime();
+    const start = new Date(startTime.value!).getTime();
     const now = Date.now();
 
     seconds.value = Math.floor((now - start) / 1000);
@@ -105,6 +113,8 @@ const formatTime = () => {
 
   return `${String(hrs).padStart(2, '0')}:${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
 };
+
+
 
 
 onIonViewWillEnter(async () => {
