@@ -18,7 +18,7 @@
             <ion-card class="card-template">
                 <ion-card-header>
                   <ion-card-title>{{ w.name || 0 }}</ion-card-title>
-                  <ion-card-subtitle>{{ w.time_end - w.time_start }} seconds</ion-card-subtitle>
+                  <ion-card-subtitle>{{ formatDuration(w.time_start, w.time_end) }}</ion-card-subtitle>
                   <ion-card-subtitle>{{ w.total_kg }} kg</ion-card-subtitle>
                 </ion-card-header>
                 <ion-card-content>
@@ -54,22 +54,34 @@ const LoadHistory = async () =>{
   workouts.value = data;
 
 }
+//time calculation
+const formatDuration = (start:string, end:string) => {
+
+  const s = new Date(start.replace(' ', 'T') + 'Z').getTime();
+  const e = new Date(end.replace(' ', 'T') + 'Z').getTime();
+
+  const totalSeconds = Math.floor((e - s) / 1000);
+
+  const hours = Math.floor(totalSeconds / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+  const seconds = totalSeconds % 60;
+
+  return `${hours}h ${minutes}m ${seconds}s`;
+};
+
 //refresh 
 
  const handleRefresh = async  (event: RefresherCustomEvent) => {
-   await getWorkouts()
    await LoadHistory()
    event.target.complete();
   };
 
 
   onMounted(() => {
-    getWorkouts()
     LoadHistory()
   });
 
   onIonViewWillEnter(() => {
-    getWorkouts()
     LoadHistory()
 
 });

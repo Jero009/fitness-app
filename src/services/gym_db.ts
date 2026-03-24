@@ -348,3 +348,10 @@ export async function saveWorkoutTotalKg(workoutId: number,) {
   );
   return result;
 }
+
+
+export async function hasActiveWorkout() {
+  if (!db) return false;
+  const result = await db.query('SELECT id FROM workout WHERE time_end IS NULL LIMIT 1');
+  return result.values && result.values.length > 0;
+}
