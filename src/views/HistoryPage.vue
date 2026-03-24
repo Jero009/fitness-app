@@ -13,41 +13,71 @@
       </ion-header>
           <ion-refresher slot="fixed" @ionRefresh="handleRefresh($event)">
             <ion-refresher-content></ion-refresher-content>
+          </ion-refresher>
+          <div v-for="w in workouts" :key="w.id">
             <ion-card class="card-template">
                 <ion-card-header>
-                <ion-card-title>workout name 2</ion-card-title>
-                <ion-card-subtitle>preformed</ion-card-subtitle>
-                <ion-card-subtitle>duration weight</ion-card-subtitle>
+                <ion-card-title>{{ w.name }}</ion-card-title>
+                <ion-card-subtitle>{{ w.time_end - w.time_start }} seconds</ion-card-subtitle>
+                <ion-card-subtitle>{{ w.total_kg || 0 }} kg</ion-card-subtitle>
                 </ion-card-header>
 
                 <ion-card-content>
-                <ion-list>
-                    <ion-item><span>exercise 1</span> <span>set: 3</span></ion-item>
-                    <ion-item><span>exercise 2</span> <span>set: 3</span></ion-item>
-                    <ion-item><span>exercise 3</span> <span>set: 3</span></ion-item>
+                <ion-list >
+                    <ion-item v-for="ex in w.exercises" :key="ex.name">
+                      <span>{{ ex.name }}</span> <span>set: {{ ex.set_count }}</span>
+                    </ion-item>
                 </ion-list>
                 </ion-card-content>
             </ion-card>
-            
-          </ion-refresher>
+          </div>
+          
     </ion-content>
   </ion-page>
 </template>
 
 <script setup lang="ts">
 import { IonPage, IonHeader, IonToolbar, IonTitle, IonContent,IonCard,IonCardHeader,IonCardContent,IonCardSubtitle,IonCardTitle,IonList,IonItem, 
-IonRefresher, IonRefresherContent, RefresherCustomEvent } from '@ionic/vue';
+IonRefresher, IonRefresherContent, RefresherCustomEvent, onIonViewWillEnter } from '@ionic/vue';
+import { getWorkouts,getWorkoutHistoryExercises } from '@/services/gym_db'
+import { onMounted ,ref} from 'vue';
+
+
+
+const workouts = ref<any[]>([]);
+
+const LoadHistory = async () =>{
+  const data = await getWorkouts();
+
+  for (const workout of data) {
+    workout.exercises = await getWorkoutHistoryExercises(workout.id);
+  }
+
+  workouts.value = data;
+
+}
+
+
 
 
 //refresh 
 
- const handleRefresh = (event: RefresherCustomEvent) => {
-    setTimeout(() => {
-      // Any calls to load data go here
-      event.target.complete();
-    }, 200);
+ const handleRefresh = async  (event: RefresherCustomEvent) => {
+   await getWorkouts()
+   await loadHistory()
+   event.target.complete();
   };
 
 
+  onMounted(() => {
+    getWorkouts()
+    loadHistory()
+  });
+
+  onIonViewWillEnter(() => {
+    getWorkouts()
+    loadHistory()
+
+});
 
 </script>

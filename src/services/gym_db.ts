@@ -292,3 +292,38 @@ export async function endWorkout(id: number, time_end: number) {
   )
   return result;
 }
+export async function getWorkouts() {
+  if (!db) return [];
+
+  const result = await db.query(`
+    SELECT 
+      w.id,
+      wt.name,
+      w.time_start,
+      w.time_end
+    FROM workout w
+    LEFT JOIN workout_template wt 
+      ON wt.id = w.id_workout_template
+    ORDER BY w.time_start DESC
+  `);
+
+  return result.values || [];
+}
+
+export async function getWorkoutHistoryExercises(workoutId: number) {
+  if (!db) return [];
+
+  const result = await db.query(`
+    SELECT 
+      e.name,
+      COUNT(wes.id) as set_count
+    FROM workout_exercise we
+    JOIN exercise e ON e.id = we.exercise_id
+    LEFT JOIN workout_exercise_sets wes 
+      ON wes.workout_exercise_id = we.id
+    WHERE we.workout_id = ?
+    GROUP BY we.id
+  `, [workoutId]);
+
+  return result.values || [];
+}
