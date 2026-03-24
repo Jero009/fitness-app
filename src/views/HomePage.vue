@@ -34,7 +34,7 @@
                   <ion-button @click="startWorkout(template.id)">
                     Start
                   </ion-button>
-              </ion-card>>
+              </ion-card>
         </div>
 
     </ion-content>

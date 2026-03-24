@@ -36,7 +36,7 @@ import { IonPage, IonHeader, IonToolbar, IonTitle, IonContent,IonButtons,IonButt
 import { ref } from 'vue';
 import { useRouter,useRoute } from 'vue-router';
 
-import { getWorkoutExercises,getWorkoutSets,updateWorkoutSet,getWorkoutById,endWorkout } from '@/services/gym_db';
+import { getWorkoutExercises,getWorkoutSets,updateWorkoutSet,getWorkoutById,endWorkout,saveWorkoutTotalKg } from '@/services/gym_db';
 
 const router = useRouter();
 // id from route
@@ -83,7 +83,6 @@ const saveSet = async (set: any) => {
 
 const saveWorkout = async ()=>{
   await endWorkout(workoutId, Date.now());
-  
   console.log("Workout saved!");
 
   router.push('/tabs/Home');

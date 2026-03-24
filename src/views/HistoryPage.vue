@@ -19,12 +19,12 @@
                 <ion-card-header>
                   <ion-card-title>{{ w.name || 0 }}</ion-card-title>
                   <ion-card-subtitle>{{ w.time_end - w.time_start }} seconds</ion-card-subtitle>
-                  <ion-card-subtitle>{{ w.total_kg || 0 }} kg</ion-card-subtitle>
+                  <ion-card-subtitle>{{ w.total_kg }} kg</ion-card-subtitle>
                 </ion-card-header>
                 <ion-card-content>
                   <ion-list >
                       <ion-item v-for="ex in w.exercises" :key="ex.name">
-                        <span>{{ ex.name }}</span> <span>set: {{ ex.set_count }}</span>
+                        <span>{{ ex.name }} </span> <span> {{ ex.set_count }} x {{ ex.reps }} </span>
                       </ion-item>
                   </ion-list>
                 </ion-card-content>
@@ -54,7 +54,6 @@ const LoadHistory = async () =>{
   workouts.value = data;
 
 }
-
 //refresh 
 
  const handleRefresh = async  (event: RefresherCustomEvent) => {

@@ -290,6 +290,8 @@ export async function endWorkout(id: number, time_end: number) {
     'UPDATE workout SET time_end = ? WHERE id = ?',
     [time_end, id]
   )
+  await saveWorkoutTotalKg(id);
+
   return result;
 }
 export async function getWorkouts() {
@@ -300,7 +302,8 @@ export async function getWorkouts() {
       w.id,
       wt.name,
       w.time_start,
-      w.time_end
+      w.time_end,
+      w.total_kg
     FROM workout w
     LEFT JOIN workout_template wt 
       ON wt.id = w.id_workout_template
@@ -314,16 +317,34 @@ export async function getWorkoutHistoryExercises(workoutId: number) {
   if (!db) return [];
 
   const result = await db.query(`
-    SELECT 
-      e.name,
-      COUNT(wes.id) as set_count
-    FROM workout_exercise we
-    JOIN exercise e ON e.id = we.exercise_id
-    LEFT JOIN workout_exercise_sets wes 
-      ON wes.workout_exercise_id = we.id
-    WHERE we.workout_id = ?
-    GROUP BY we.id
+      SELECT 
+        e.name,
+        SUM(CASE WHEN wes.completed = 1 THEN 1 ELSE 0 END) as set_count,
+        wes.reps
+      FROM workout_exercise we
+      JOIN exercise e ON e.id = we.exercise_id
+      LEFT JOIN workout_exercise_sets wes 
+        ON wes.workout_exercise_id = we.id
+      WHERE we.workout_id = ?  
+      GROUP BY we.id
   `, [workoutId]);
 
   return result.values || [];
+}
+
+export async function saveWorkoutTotalKg(workoutId: number,) {
+  if (!db) return;
+  const totalKgResult = await db.query(`
+    SELECT sum(reps * weight) as total_kg 
+    FROM workout_exercise_sets wes
+    JOIN workout_exercise we ON we.id = wes.workout_exercise_id AND wes.completed = 1
+    WHERE we.workout_id = ?;
+  `, [workoutId]);
+  const totalKg = totalKgResult.values?.[0].total_kg || 0;
+
+  const result = await db.run(
+    'UPDATE workout SET total_kg = ? WHERE id = ?',
+    [totalKg, workoutId]
+  );
+  return result;
 }
