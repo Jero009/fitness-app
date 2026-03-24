@@ -17,21 +17,19 @@
           <div v-for="w in workouts" :key="w.id">
             <ion-card class="card-template">
                 <ion-card-header>
-                <ion-card-title>{{ w.name }}</ion-card-title>
-                <ion-card-subtitle>{{ w.time_end - w.time_start }} seconds</ion-card-subtitle>
-                <ion-card-subtitle>{{ w.total_kg || 0 }} kg</ion-card-subtitle>
+                  <ion-card-title>{{ w.name || 0 }}</ion-card-title>
+                  <ion-card-subtitle>{{ w.time_end - w.time_start }} seconds</ion-card-subtitle>
+                  <ion-card-subtitle>{{ w.total_kg || 0 }} kg</ion-card-subtitle>
                 </ion-card-header>
-
                 <ion-card-content>
-                <ion-list >
-                    <ion-item v-for="ex in w.exercises" :key="ex.name">
-                      <span>{{ ex.name }}</span> <span>set: {{ ex.set_count }}</span>
-                    </ion-item>
-                </ion-list>
+                  <ion-list >
+                      <ion-item v-for="ex in w.exercises" :key="ex.name">
+                        <span>{{ ex.name }}</span> <span>set: {{ ex.set_count }}</span>
+                      </ion-item>
+                  </ion-list>
                 </ion-card-content>
             </ion-card>
           </div>
-          
     </ion-content>
   </ion-page>
 </template>
@@ -57,26 +55,23 @@ const LoadHistory = async () =>{
 
 }
 
-
-
-
 //refresh 
 
  const handleRefresh = async  (event: RefresherCustomEvent) => {
    await getWorkouts()
-   await loadHistory()
+   await LoadHistory()
    event.target.complete();
   };
 
 
   onMounted(() => {
     getWorkouts()
-    loadHistory()
+    LoadHistory()
   });
 
   onIonViewWillEnter(() => {
     getWorkouts()
-    loadHistory()
+    LoadHistory()
 
 });
 
