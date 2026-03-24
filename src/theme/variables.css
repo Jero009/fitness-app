@@ -1,6 +1,6 @@
 :root {
   /* Colors */
-  --ion-color-primary: #000000;       /* main accent */
+  --ion-color-primary: #1B1B1D;       /* main accent */
   --ion-color-primary-rgb: 0,0,0;
   --ion-color-secondary: #ffffff;     /* background light */
   --ion-color-secondary-rgb: 255,255,255;
@@ -11,7 +11,7 @@
 
     /* Signature accent colors */
   --ion-color-accent-red: #D71921;   /* bright red pop */
-  --ion-color-accent-yellow: #ffcc00; /* bright yellow pop */
+  --ion-color-accent-yellow: #e2a704; /* bright yellow pop */
 
     /*button*/
     --ion-tab-button-color: var(--ion-color-medium); /* gray for inactive */

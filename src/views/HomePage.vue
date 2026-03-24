@@ -27,26 +27,22 @@
                 <ion-card-header >
                 <ion-card-title class="active-workout-title">active workout</ion-card-title>
                 <ion-card-subtitle>Click to continue</ion-card-subtitle>
-                <ion-card-content>
+                <ion-card-content class="active-workout-content">
                   <div class="timer-active">{{ formatTime() }}</div>
                 </ion-card-content>
                 </ion-card-header>
             </ion-card>
        <div class="card-container">
-              <ion-card class="card" v-for="template in templates" :key="template.id">
+              <ion-card class="card" v-for="template in templates" :key="template.id" :disabled="activeWorkout" @click="startWorkout(template.id)">
                   <ion-card-header>
-                      <ion-card-title>{{ template.name }}</ion-card-title>
+                      <ion-card-title class="card-title">{{ template.name }}</ion-card-title>
                       <ion-card-subtitle>{{ template.created_at }}</ion-card-subtitle>
                   </ion-card-header>
                   <ion-card-content>
                     <ion-icon :icon="barbellSharp"></ion-icon>
                   </ion-card-content>
-                  <ion-button :disabled="activeWorkout" @click="startWorkout(template.id)">
-                    Start
-                  </ion-button>
               </ion-card>
-        </div>
-
+              </div>
     </ion-content>
   </ion-page>
 </template>
@@ -160,31 +156,32 @@ onUnmounted(() => {
 
 
 
-
-
-
-
-
-
-
-
 </script>
 <style>
 
 
-.card-container {
-  height: 100vh;
 
+.card-container {
   display: flex;
-  justify-content: space-between; 
-  align-items: flex-start;  
-  padding: 10px;
+  flex-wrap: wrap;
+  column-gap: 8px; /* horizontal space between cards */
+  justify-content: center;
+
 }
-.card{
- 
-  width: 48%;
+
+.card {
+  flex: 0 1 calc(45% - 8px); /* 50% minus half the column-gap */
+  max-width: calc(45% - 8px);
   aspect-ratio: 1/1;
+  box-sizing: border-box;
+  text-align: center;
 }
+.card-title {
+  font-size: 3em;
+  font-weight: bold;
+}
+
+
 .card-active-workout{
  margin: 10px 20px;
  background-color: var(--ion-color-accent-yellow);
@@ -192,8 +189,7 @@ onUnmounted(() => {
 }
 .top-card{
   margin: 10px 20px;
-  background-color: var(--ion-color-accent-red);
-
+ 
 }
 .active-workout-title{
   color: var(--ion-color-dark);
@@ -202,5 +198,11 @@ onUnmounted(() => {
   font-family: 'Doto', sans-serif;
   pointer-events: none; 
   color: var(--ion-color-dark)
+}
+.active-workout-content{
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
 }
 </style>
