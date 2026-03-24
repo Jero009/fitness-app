@@ -13,9 +13,9 @@
       </ion-header>
 
             <ion-card class="top-card">
-                <ion-card-header >
-                <ion-card-title>Stats</ion-card-title>
-                <ion-card-subtitle>Stats for the last workout</ion-card-subtitle>
+                <ion-card-header > 
+                <ion-card-title >Stats</ion-card-title>
+                <ion-card-subtitle >Stats for the last workout</ion-card-subtitle>
                 </ion-card-header>
                   total_kg time
                 <ion-card-content>
@@ -25,7 +25,11 @@
 
             <ion-card class="card-active-workout" v-if="activeWorkout"  @click="backToWorkout()">
                 <ion-card-header >
-                <ion-card-title>active workout</ion-card-title>
+                <ion-card-title class="active-workout-title">active workout</ion-card-title>
+                <ion-card-subtitle>Click to continue</ion-card-subtitle>
+                <ion-card-content>
+                  <div class="timer-active">{{ formatTime() }}</div>
+                </ion-card-content>
                 </ion-card-header>
             </ion-card>
        <div class="card-container">
@@ -48,9 +52,9 @@
 </template>
 
 <script setup lang="ts">
-import { IonPage, IonHeader, IonToolbar, IonTitle, IonContent,IonCard,IonCardHeader,IonCardSubtitle,IonCardContent,IonCardTitle,onIonViewWillEnter,IonIcon,IonButton} from '@ionic/vue';
-import { getTemplates,startWorkoutFromTemplate,hasActiveWorkout,getActiveWorkout } from '@/services/gym_db'
-import { ref ,onMounted } from 'vue';
+import { IonPage, IonHeader, IonToolbar, IonTitle, IonContent, IonCard, IonCardHeader, IonCardSubtitle, IonCardContent, IonCardTitle, onIonViewWillEnter, IonIcon, IonButton } from '@ionic/vue';
+import { getTemplates, startWorkoutFromTemplate, hasActiveWorkout, getActiveWorkout, getWorkoutById } from '@/services/gym_db';
+import { ref, onMounted, onUnmounted } from 'vue';
 import { barbellSharp } from 'ionicons/icons';
 import { useRouter } from 'vue-router';
 
@@ -95,16 +99,63 @@ const loadTemplates = async () => {
 
 
 
+
+// Timer logic (refactored)
+const startTime = ref<string | null>(null);
+const seconds = ref(0);
+let interval: ReturnType<typeof setInterval> | null = null;
+
+const loadActiveWorkout = async () => {
+  const workout = await getActiveWorkout();
+  if (workout && workout.time_start) {
+    startTime.value = workout.time_start.replace(' ', 'T') + 'Z';
+    startTimer();
+    activeWorkout.value = true;
+  } else {
+    startTime.value = null;
+    seconds.value = 0;
+    activeWorkout.value = false;
+    clearTimer();
+  }
+};
+
+const startTimer = () => {
+  if (!startTime.value || interval) return;
+  interval = setInterval(() => {
+    const start = new Date(startTime.value!).getTime();
+    const now = Date.now();
+    seconds.value = Math.floor((now - start) / 1000);
+  }, 1000);
+};
+
+const clearTimer = () => {
+  if (interval) {
+    clearInterval(interval);
+    interval = null;
+  }
+};
+
+const formatTime = () => {
+  const hrs = Math.floor(seconds.value / 3600);
+  const mins = Math.floor((seconds.value % 3600) / 60);
+  const secs = seconds.value % 60;
+  return `${String(hrs).padStart(2, '0')}:${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+};
+
+
+
 onMounted(async () => {
-  activeWorkout.value = await hasActiveWorkout();
-  console.log("Active workout:", activeWorkout.value);
-  loadTemplates()
+  await loadActiveWorkout();
+  await loadTemplates();
 });
 
 onIonViewWillEnter(async () => {
-  activeWorkout.value = await hasActiveWorkout();
-  console.log("Active workout:", activeWorkout.value);
-  loadTemplates();
+  await loadActiveWorkout();
+  await loadTemplates();
+});
+
+onUnmounted(() => {
+  clearTimer();
 });
 
 
@@ -137,10 +188,19 @@ onIonViewWillEnter(async () => {
 .card-active-workout{
  margin: 10px 20px;
  background-color: var(--ion-color-accent-yellow);
- color: var(--ion-color-dark);
+ color: var(--ion-color-primary);
 }
 .top-card{
   margin: 10px 20px;
   background-color: var(--ion-color-accent-red);
+
+}
+.active-workout-title{
+  color: var(--ion-color-dark);
+}
+.timer-active {
+  font-family: 'Doto', sans-serif;
+  pointer-events: none; 
+  color: var(--ion-color-dark)
 }
 </style>
