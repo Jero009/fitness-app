@@ -56,6 +56,14 @@
           <ion-refresher slot="fixed" @ionRefresh="handleRefresh($event)">
             <ion-refresher-content></ion-refresher-content>
           </ion-refresher>
+            <ion-item>
+              <ion-select label="sort by" placeholder="muscle group">
+                <ion-select-option value="apple">chest</ion-select-option>
+                <ion-select-option value="banana">back</ion-select-option>
+                <ion-select-option value="orange">legs</ion-select-option>
+              </ion-select>
+            </ion-item>
+
                 <ion-list class="exercise-list" lines="full"  >
                     <ion-item class="exercise-item"  v-for="ex in exercises" :key="ex.id">
                         {{ ex.name }}

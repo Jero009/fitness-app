@@ -35,6 +35,10 @@ const routes: Array<RouteRecordRaw> = [
         path: 'History',
         component: () => import('@/views/HistoryPage.vue')
       }
+      {
+        path: 'ExercisePicker',
+        component: () => import('@/views/ExercisePickerPage.vue')
+      },
     ]
   }
 ]
