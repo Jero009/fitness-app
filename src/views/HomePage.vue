@@ -45,9 +45,9 @@
               </ion-card>
             </div>
               <ion-card class="chart-card">
-                <ion-select v-model="selectedWorkout" placeholder="Select template" interface="action-sheet">
-                  <ion-select-option v-for="w in workouts" :key="w.id" :value="w.id">
-                    {{ w.name }}
+                <ion-select v-model="selectedTemplateId" placeholder="Select template" interface="action-sheet">
+                  <ion-select-option v-for="t in templates" :key="t.id" :value="t.id">
+                    {{ t.name }}
                   </ion-select-option>
                 </ion-select>
                 <canvas ref="chartRef" ></canvas>
@@ -58,7 +58,7 @@
 
 <script setup lang="ts">
 import { IonPage, IonHeader, IonToolbar, IonTitle, IonContent, IonCard, IonCardHeader, IonCardSubtitle, IonCardContent, IonCardTitle, onIonViewWillEnter, IonIcon, IonButton } from '@ionic/vue';
-import { getTemplates, startWorkoutFromTemplate, hasActiveWorkout, getActiveWorkout, getWorkoutById,getLatestWorkout,getWorkoutsByTemplate,get } from '@/services/gym_db';
+import { getTemplates, startWorkoutFromTemplate, hasActiveWorkout, getActiveWorkout, getWorkoutById,getLatestWorkout,getWorkoutsByTemplate,getWorkoutsByName } from '@/services/gym_db';
 import { ref, onMounted, onUnmounted,computed,watch } from 'vue';
 import { barbellSharp } from 'ionicons/icons';
 import { useRouter } from 'vue-router';
@@ -200,6 +200,7 @@ const chartRef = ref<any>(null);
 let chart: any = null;
 
 const workouts = ref<any[]>([]);
+const selectedTemplateId = ref<number|null>(null);
 
 // prepare data
 const chartData = computed(() => {
@@ -232,7 +233,7 @@ const renderChart = () => {
 
 
           borderColor: '#D71921',
-          pointradius:4,
+          pointRadius: 4,
           pointBackgroundColor: '#D71921',
         }
       ]
@@ -244,20 +245,27 @@ const renderChart = () => {
   });
 };
 
-// update chart if data changes
-watch(chartData, () => {
-  renderChart();
+
+// Only update chart when selectedTemplateId changes and workouts are loaded
+watch(selectedTemplateId, async (templateId) => {
+  if (templateId) {
+    const data = await getWorkoutsByName(templateId);
+    workouts.value = data || [];
+  } else {
+    workouts.value = [];
+  }
+  // Wait for DOM update to ensure canvas is available
+  setTimeout(() => {
+    renderChart();
+  }, 0);
 });
 
 
-
+// Load all templates and latest workout on mount
 onMounted(async () => {
   await loadActiveWorkout();
   await loadTemplates();
   await loadLatestWorkout();
-
-  const data = await getWorkoutsByTemplate();
-  workouts.value = data || [];
   renderChart();
 });
 
@@ -265,11 +273,11 @@ onIonViewWillEnter(async () => {
   await loadActiveWorkout();
   await loadTemplates();
   await loadLatestWorkout();
-
-  const data = await getWorkoutsByTemplate();
-  workouts.value = data || [];
   renderChart();
 });
+
+// Watch for template selection and update chart data
+
 
 onUnmounted(() => {
   clearTimer();
@@ -280,9 +288,6 @@ onUnmounted(() => {
 
 </script>
 <style>
-
-
-
 .card-container {
   display: flex;
   flex-wrap: wrap;
@@ -327,11 +332,11 @@ onUnmounted(() => {
   align-items: center;
   height: 100%;
 }
-.card-chart {
+.chart-card {
   width: 90%;
   margin: auto;
   padding: 10px;
   border-radius: 10px;
-  background-color: var(--ion-color-medium);
+  background-color: var(--ion-color-primary);
 }
 </style>
