@@ -246,20 +246,27 @@ const renderChart = () => {
 };
 
 
-// Only update chart when selectedTemplateId changes and workouts are loaded
+
+// Watch for template selection and update chart data (only one watcher)
 watch(selectedTemplateId, async (templateId) => {
-  if (templateId) {
-    const data = await getWorkoutsByName(templateId);
+  console.log('Template selected:', templateId, typeof templateId);
+  if (templateId != null && templateId !== '') {
+
+    const numId = Number(templateId);
+
+    console.log('Fetching workouts for templateId:', numId);
+
+    const data = await getWorkoutsByName(numId);
+
+    console.log('Fetched workouts:', data);
     workouts.value = data || [];
   } else {
     workouts.value = [];
   }
-  // Wait for DOM update to ensure canvas is available
   setTimeout(() => {
     renderChart();
   }, 0);
 });
-
 
 // Load all templates and latest workout on mount
 onMounted(async () => {
@@ -276,7 +283,6 @@ onIonViewWillEnter(async () => {
   renderChart();
 });
 
-// Watch for template selection and update chart data
 
 
 onUnmounted(() => {
@@ -337,6 +343,6 @@ onUnmounted(() => {
   margin: auto;
   padding: 10px;
   border-radius: 10px;
-  background-color: var(--ion-color-primary);
+  background-color: var(--ion-color-dark);
 }
 </style>
