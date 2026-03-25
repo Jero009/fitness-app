@@ -25,6 +25,7 @@ const routes: Array<RouteRecordRaw> = [
       },
       {
         path: 'Template',
+        name: 'Template',
         component: () => import('@/views/TemplatePage.vue')
       },
       {
@@ -37,6 +38,7 @@ const routes: Array<RouteRecordRaw> = [
       },
       {
         path: 'ExercisePicker',
+        name: 'ExercisePicker',
         component: () => import('@/views/ExercisePickerPage.vue')
       },
     ]

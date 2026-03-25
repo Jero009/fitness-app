@@ -41,18 +41,7 @@
 
           <!-- Exercise list -->
             <ion-item>
-              <ion-select
-                placeholder="Add exercise"
-                @ionChange="addSelectedExercise($event)"
-              >
-                <ion-select-option
-                  v-for="ex in exercises"
-                  :key="ex.id"
-                  :value="ex"
-                >
-                  {{ ex.name }}
-                </ion-select-option>
-              </ion-select>
+              <ion-button @click="goToExercisePicker">Add exercise</ion-button>
             </ion-item>
             <ion-list>
               <ion-item v-for="(ex, index) in selectedExercises" :key="ex.id">
@@ -110,7 +99,7 @@
                         :key="ex.id"
                       > 
                         <div style="flex: 1;">
-                          {{ ex.name}} name 
+                          {{ ex.name}}
                         </div>
 
                         <span>{{ ex.set_number }} x {{ ex.rep_number}}</span>
@@ -132,6 +121,19 @@ IonRefresher, IonRefresherContent, RefresherCustomEvent } from '@ionic/vue';
 import { add} from 'ionicons/icons';
 import { createTemplate, getExercises,addExerciseToTemplate,getTemplates ,getTemplateExercises, deleteTemplate } from '@/services/gym_db'
 import { ref ,onMounted} from 'vue';
+import { useRouter } from 'vue-router';
+
+const router = useRouter();
+
+// exercise picker 
+const goToExercisePicker = () => {
+  // Save a flag in localStorage or a store
+  localStorage.setItem('reopenTemplateModal', 'true');
+  isOpen.value = false;
+  router.push({ name: 'ExercisePicker', query: { from: 'template' } });
+};
+
+
 
 //modal
 const isOpen = ref(false);
@@ -160,7 +162,7 @@ const confirm = async () => {
     return;
   }
 
-  // 🔥 add each selected exercise
+  //add each selected exercise
   for (let i = 0; i < selectedExercises.value.length; i++) {
     const ex = selectedExercises.value[i];
 
@@ -265,9 +267,6 @@ const deleteTemp = async (id: number) => {
 
 
 
-
-
-
 //refresh 
 
 const handleRefresh = async (event: RefresherCustomEvent) => {
@@ -283,10 +282,33 @@ onMounted(() => {
 });
 
 onIonViewWillEnter(() => {
-    LoadExercises()
-    loadTemplates()
+  if (localStorage.getItem('reopenTemplateModal') === 'true') {
+    isOpen.value = true;
+    localStorage.removeItem('reopenTemplateModal');
+  }
 
+  // Check for selected exercise from ExercisePicker
+  const selectedExerciseStr = localStorage.getItem('selectedExerciseForTemplate');
+  if (selectedExerciseStr) {
+    try {
+      const ex = JSON.parse(selectedExerciseStr);
+      // Prevent duplicates
+      if (!selectedExercises.value.some(e => e.id === ex.id)) {
+        selectedExercises.value.push({
+          id: ex.id,
+          name: ex.name,
+          set_number: ex.set_number || 0,
+          rep_number: ex.rep_number || 0
+        });
+      }
+    } catch (e) {
+      console.error('Failed to parse selected exercise:', e);
+    }
+    localStorage.removeItem('selectedExerciseForTemplate');
+  }
 
+  LoadExercises();
+  loadTemplates();
 });
 </script>
 
