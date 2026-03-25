@@ -43,9 +43,11 @@ export async function initDB() {
   CREATE TABLE IF NOT EXISTS exercise (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     name TEXT,
-    muscle_group TEXT,
-    equipment TEXT,
-    rest_seconds INTEGER
+    id_muscle_group INTEGER,
+    id_equipment INTEGER,
+    rest_seconds INTEGER,
+    FOREIGN KEY (id_muscle_group) REFERENCES muscle_group(id),
+    FOREIGN KEY (id_equipment) REFERENCES equipment(id)
   );
 
   CREATE TABLE IF NOT EXISTS workout_template_exercise (
@@ -89,6 +91,17 @@ export async function initDB() {
       REFERENCES workout_exercise(id)
       ON DELETE CASCADE
   );
+
+  CREATE TABLE IF NOT EXISTS muscle_group (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT UNIQUE
+  );
+
+  CREATE TABLE IF NOT EXISTS equipment (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT UNIQUE
+  );
+
   `);
 
     console.log("✅ Tables created");
