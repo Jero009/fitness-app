@@ -71,5 +71,29 @@ ion-button {
   --color-activated: #000000;
   --border-radius: 5px !important;
   font-family: Doto;
+}
+
+ion-select {
+  --background: var(--ion-color-medium);
+  --color: var(--ion-color-light);
+  --border-radius: 5px;
+  font-family: Doto;
+  margin:10px 0;
+}
+
+ion-select-option {
+  --background: var(--ion-color-medium);
+  --color: var(--ion-color-light);
+  font-family: Doto;
+}
+ion-action-sheet {
+  width: 100%;
+  --background: var(--ion-color-medium);
+  --color: var(--ion-color-light);
+  font-family: Doto,;
+}
+ion-list {
+  --background: var(--ion-color-medium);
+  --color: var(--ion-color-light);
 
 }

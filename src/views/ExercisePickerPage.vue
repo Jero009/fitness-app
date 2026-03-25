@@ -14,10 +14,9 @@
           <ion-refresher slot="fixed" @ionRefresh="handleRefresh($event)">
             <ion-refresher-content></ion-refresher-content>
           </ion-refresher>
-
+            <div class="card-template">
                 <ion-item>
-                  <ion-select v-model="selectedMuscleGroup" placeholder="Filter by muscle group">
-                    <ion-select-option value="">All</ion-select-option>
+                  <ion-select v-model="selectedMuscleGroup" placeholder="Filter by muscle group" interface="action-sheet">
                     <ion-select-option v-for="mg in muscleGroups" :key="mg.id" :value="mg.name">
                       {{ mg.name }}
                     </ion-select-option>
@@ -29,7 +28,7 @@
                           {{ ex.name }}
                         </ion-item>
                       </ion-list>
-            
+            </div>
         
   </ion-content>
   </ion-page>
