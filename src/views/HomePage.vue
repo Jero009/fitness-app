@@ -45,7 +45,7 @@
               </ion-card>
             </div>
               <ion-card class="chart-card">
-                <ion-select v-model="selectedTemplateId" placeholder="Select template" interface="action-sheet" @ionChange="onTemplateChange">
+                <ion-select v-model="selectedTemplateId" placeholder="Select template" interface="action-sheet" @ionChange="onTemplateChange"><!--this doesnt triger-->
                   <ion-select-option v-for="t in templates" :key="t.id" :value="t.id">
                     {{ t.name }}
                   </ion-select-option>
@@ -260,7 +260,7 @@ const renderChart = () => {
 
 // Watch for template selection and update chart data (only one watcher)
 watch(selectedTemplateId, async (templateId) => {
-  console.log('WATCHER TRIGGERED. Template selected:', templateId, typeof templateId);
+  console.log('WATCHER TRIGGERED. Template selected:', templateId, typeof templateId); /// this doesnt show------------------------------------
   if (!templateId) {
     workouts.value = [];
     renderChart();
