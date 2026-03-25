@@ -412,3 +412,10 @@ export async function getActiveWorkout() {
   const result = await db.query('SELECT * FROM workout WHERE time_end IS NULL LIMIT 1');
   return result.values?.[0] || null;
 }
+
+export async function getLatestWorkout() {
+  if (!db) return null;
+  const result = await db.query('SELECT * FROM workout ORDER BY time_start DESC LIMIT 1');
+  return result.values?.[0] || null;
+  
+}

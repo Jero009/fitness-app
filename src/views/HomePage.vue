@@ -14,12 +14,13 @@
 
             <ion-card class="top-card">
                 <ion-card-header > 
-                <ion-card-title >Stats</ion-card-title>
-                <ion-card-subtitle >Stats for the last workout</ion-card-subtitle>
+                <ion-card-title >Stats for the last workout</ion-card-title>
+
+                <ion-card-subtitle>{{ latestWorkout?.time_end}}</ion-card-subtitle>
                 </ion-card-header>
-                  total_kg time
                 <ion-card-content>
-                
+                <span>Total weight lifted: {{ latestWorkout?.total_kg || 0 }} kg</span>
+                <span>{{ formatDuration(latestWorkout?.time_start, latestWorkout?.time_end) }}</span>
                 </ion-card-content>
             </ion-card>
 
@@ -49,7 +50,7 @@
 
 <script setup lang="ts">
 import { IonPage, IonHeader, IonToolbar, IonTitle, IonContent, IonCard, IonCardHeader, IonCardSubtitle, IonCardContent, IonCardTitle, onIonViewWillEnter, IonIcon, IonButton } from '@ionic/vue';
-import { getTemplates, startWorkoutFromTemplate, hasActiveWorkout, getActiveWorkout, getWorkoutById } from '@/services/gym_db';
+import { getTemplates, startWorkoutFromTemplate, hasActiveWorkout, getActiveWorkout, getWorkoutById,getLatestWorkout } from '@/services/gym_db';
 import { ref, onMounted, onUnmounted } from 'vue';
 import { barbellSharp } from 'ionicons/icons';
 import { useRouter } from 'vue-router';
@@ -91,6 +92,43 @@ const loadTemplates = async () => {
     return;
   }
   templates.value = data;
+};
+//latest workout 
+
+const latestWorkout = ref<any>(null);
+
+const loadLatestWorkout = async () => {
+  const workout = await getLatestWorkout();
+  if (workout) {
+    latestWorkout.value = workout;
+  }
+};
+
+const formatDuration = (start: string, end: any) => {
+  if (!start || !end) return '0h 0m 0s';
+
+  // parse start (string)
+  const s = new Date(start.replace(' ', 'T')).getTime();
+
+  // parse end (can be string, number, or stringified number)
+  let e: number;
+  if (typeof end === 'number') {
+    e = end;
+  } else if (!isNaN(Number(end))) {
+    e = Number(end);
+  } else {
+    e = new Date(end.replace(' ', 'T')).getTime();
+  }
+
+  if (isNaN(s) || isNaN(e)) return 'Invalid time';
+
+  const diff = Math.max(0, e - s);
+  const totalSeconds = Math.floor(diff / 1000);
+  const hours = Math.floor(totalSeconds / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+
+
+  return `${hours}h ${minutes}m`;
 };
 
 
@@ -144,11 +182,13 @@ const formatTime = () => {
 onMounted(async () => {
   await loadActiveWorkout();
   await loadTemplates();
+  await loadLatestWorkout();
 });
 
 onIonViewWillEnter(async () => {
   await loadActiveWorkout();
   await loadTemplates();
+  await loadLatestWorkout();
 });
 
 onUnmounted(() => {
