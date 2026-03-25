@@ -45,7 +45,7 @@
               </ion-card>
             </div>
               <ion-card class="chart-card">
-                <ion-select v-model="selectedTemplateId" placeholder="Select template" interface="action-sheet">
+                <ion-select v-model="selectedTemplateId" placeholder="Select template" interface="action-sheet" @ionChange="onTemplateChange">
                   <ion-select-option v-for="t in templates" :key="t.id" :value="t.id">
                     {{ t.name }}
                   </ion-select-option>
@@ -57,6 +57,17 @@
 </template>
 
 <script setup lang="ts">
+// Log and force type conversion on template select change
+const onTemplateChange = (event: CustomEvent) => {
+  const value = event.detail.value;
+  console.log('ionChange emitted value:', value, typeof value);
+  // Always store as number or null
+  if (value === null || value === undefined || value === '') {
+    selectedTemplateId.value = null;
+  } else {
+    selectedTemplateId.value = Number(value);
+  }
+};
 import { IonPage, IonHeader, IonToolbar, IonTitle, IonContent, IonCard, IonCardHeader, IonCardSubtitle, IonCardContent, IonCardTitle, onIonViewWillEnter, IonIcon, IonButton } from '@ionic/vue';
 import { getTemplates, startWorkoutFromTemplate, hasActiveWorkout, getActiveWorkout, getWorkoutById,getLatestWorkout,getWorkoutsByTemplate,getWorkoutsByName } from '@/services/gym_db';
 import { ref, onMounted, onUnmounted,computed,watch } from 'vue';
@@ -200,7 +211,7 @@ const chartRef = ref<any>(null);
 let chart: any = null;
 
 const workouts = ref<any[]>([]);
-const selectedTemplateId = ref<number|null>(null);
+const selectedTemplateId = ref<number | null>(null);
 
 // prepare data
 const chartData = computed(() => {
@@ -249,23 +260,18 @@ const renderChart = () => {
 
 // Watch for template selection and update chart data (only one watcher)
 watch(selectedTemplateId, async (templateId) => {
-  console.log('Template selected:', templateId, typeof templateId);
-  if (templateId != null && templateId !== '') {
-
-    const numId = Number(templateId);
-
-    console.log('Fetching workouts for templateId:', numId);
-
-    const data = await getWorkoutsByName(numId);
-
-    console.log('Fetched workouts:', data);
-    workouts.value = data || [];
-  } else {
+  console.log('WATCHER TRIGGERED. Template selected:', templateId, typeof templateId);
+  if (!templateId) {
     workouts.value = [];
-  }
-  setTimeout(() => {
     renderChart();
-  }, 0);
+    return;
+  }
+  const numId = Number(templateId);
+  console.log('Fetching workouts for templateId:', numId);
+  const data = await getWorkoutsByName(numId);
+  console.log('Fetched workouts:', data);
+  workouts.value = data || [];
+  renderChart();
 });
 
 // Load all templates and latest workout on mount
