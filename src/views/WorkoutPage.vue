@@ -82,7 +82,7 @@ const saveSet = async (set: any) => {
 
 
 const saveWorkout = async ()=>{
-  await endWorkout(workoutId, Date.now());
+  await endWorkout(workoutId, new Date().toISOString().slice(0, 19).replace('T', ' '));
   console.log("Workout saved!");
 
   router.push('/tabs/Home');
@@ -94,22 +94,17 @@ const seconds = ref(0);
 let interval: any = null;
 
 const startTimer = () => {
-  if (!startTime.value) return;
-
-  if (interval) return;
-
+  if (!startTime.value || interval) return;
   interval = setInterval(() => {
     const start = new Date(startTime.value!).getTime();
     const now = Date.now();
-
-    seconds.value = Math.floor((now - start) / 1000);
+    seconds.value = Math.max(0, Math.floor((now - start) / 1000));
   }, 1000);
 };
 const formatTime = () => {
   const hrs = Math.floor(seconds.value / 3600);
   const mins = Math.floor((seconds.value % 3600) / 60);
   const secs = seconds.value % 60;
-
   return `${String(hrs).padStart(2, '0')}:${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
 };
 

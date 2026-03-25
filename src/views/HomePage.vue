@@ -115,12 +115,13 @@ const loadActiveWorkout = async () => {
   }
 };
 
+
 const startTimer = () => {
   if (!startTime.value || interval) return;
   interval = setInterval(() => {
     const start = new Date(startTime.value!).getTime();
     const now = Date.now();
-    seconds.value = Math.floor((now - start) / 1000);
+    seconds.value = Math.max(0, Math.floor((now - start) / 1000));
   }, 1000);
 };
 

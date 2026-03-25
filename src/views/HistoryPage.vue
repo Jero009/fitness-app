@@ -23,7 +23,7 @@
                 </ion-card-header>
                 <ion-card-content>
                   <ion-list >
-                      <ion-item v-for="ex in w.exercises" :key="ex.name">
+                      <ion-item v-for="ex in w.exercises" :key="ex.id">
                         <span>{{ ex.name }} </span> <span> {{ ex.set_count }} x {{ ex.reps }} </span>
                       </ion-item>
                   </ion-list>
@@ -49,26 +49,41 @@ const LoadHistory = async () =>{
 
   for (const workout of data) {
     workout.exercises = await getWorkoutHistoryExercises(workout.id);
+
+    if (workout.time_start && workout.time_end) {
+
+    }
   }
 
   workouts.value = data;
-
 }
 //time calculation
-const formatDuration = (start:string, end:string) => {
+const formatDuration = (start: string, end: any) => {
+  if (!start || !end) return '0h 0m 0s';
 
-  const s = new Date(start.replace(' ', 'T') + 'Z').getTime();
-  const e = new Date(end.replace(' ', 'T') + 'Z').getTime();
+  // parse start (string)
+  const s = new Date(start.replace(' ', 'T')).getTime();
 
-  const totalSeconds = Math.floor((e - s) / 1000);
+  // parse end (can be string, number, or stringified number)
+  let e: number;
+  if (typeof end === 'number') {
+    e = end;
+  } else if (!isNaN(Number(end))) {
+    e = Number(end);
+  } else {
+    e = new Date(end.replace(' ', 'T')).getTime();
+  }
 
+  if (isNaN(s) || isNaN(e)) return 'Invalid time';
+
+  const diff = Math.max(0, e - s);
+  const totalSeconds = Math.floor(diff / 1000);
   const hours = Math.floor(totalSeconds / 3600);
   const minutes = Math.floor((totalSeconds % 3600) / 60);
   const seconds = totalSeconds % 60;
 
   return `${hours}h ${minutes}m ${seconds}s`;
 };
-
 //refresh 
 
  const handleRefresh = async  (event: RefresherCustomEvent) => {
