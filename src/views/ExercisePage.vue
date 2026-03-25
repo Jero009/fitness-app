@@ -1,6 +1,3 @@
-
-
-
 <template>
 <ion-page>
   <ion-header>
@@ -34,17 +31,18 @@
           ></ion-input>
         </ion-item>
         <ion-item>
-            <ion-input
-            v-model="muscleGroup"
-            placeholder="Enter muscle group "
-          ></ion-input>
-
+          <ion-select v-model="muscleGroup" placeholder="Select muscle group">
+            <ion-select-option v-for="mg in muscleGroups" :key="mg.id" :value="mg.id">
+              {{ mg.name }}
+            </ion-select-option>
+          </ion-select>
         </ion-item>
         <ion-item>
-            <ion-input
-            v-model="equipment"
-            placeholder="Enter equipment "
-          ></ion-input>
+          <ion-select v-model="equipment" placeholder="Select equipment">
+            <ion-select-option v-for="eq in equipmentList" :key="eq.id" :value="eq.id">
+              {{ eq.name }}
+            </ion-select-option>
+          </ion-select>
         </ion-item>
       </ion-content>
     </ion-modal>
@@ -56,20 +54,22 @@
           <ion-refresher slot="fixed" @ionRefresh="handleRefresh($event)">
             <ion-refresher-content></ion-refresher-content>
           </ion-refresher>
-            <ion-item>
-              <ion-select label="sort by" placeholder="muscle group">
-                <ion-select-option value="apple">chest</ion-select-option>
-                <ion-select-option value="banana">back</ion-select-option>
-                <ion-select-option value="orange">legs</ion-select-option>
-              </ion-select>
-            </ion-item>
 
-                <ion-list class="exercise-list" lines="full"  >
-                    <ion-item class="exercise-item"  v-for="ex in exercises" :key="ex.id">
-                        {{ ex.name }}
-                      <ion-button slot="end"  @click="renameEx(ex)" >Rename</ion-button>
-                    </ion-item>
-                </ion-list>
+                <ion-item>
+                  <ion-select v-model="selectedMuscleGroup" placeholder="Filter by muscle group">
+                    <ion-select-option value="">All</ion-select-option>
+                    <ion-select-option v-for="mg in muscleGroups" :key="mg.id" :value="mg.name">
+                      {{ mg.name }}
+                    </ion-select-option>
+                  </ion-select>
+                </ion-item>
+
+                      <ion-list class="exercise-list" lines="full">
+                        <ion-item class="exercise-item" v-for="ex in filteredExercises" :key="ex.id">
+                          {{ ex.name }}
+                          <ion-button slot="end" @click="renameEx(ex)">Rename</ion-button>
+                        </ion-item>
+                      </ion-list>
             
         
   </ion-content>
@@ -78,10 +78,10 @@
 
 <script setup lang="ts">
 import { IonPage, IonHeader, IonToolbar, IonTitle, IonContent,IonList,IonItem,IonButton,IonIcon,IonButtons,IonModal,IonInput ,onIonViewWillEnter,
-   IonRefresher, IonRefresherContent, RefresherCustomEvent,alertController } from '@ionic/vue';
+   IonRefresher, IonRefresherContent, RefresherCustomEvent,alertController,IonSelect,IonSelectOption  } from '@ionic/vue';
 import { add} from 'ionicons/icons'
-import { ref,onMounted } from 'vue';
-import { addExercise, getExercises,renameExercise} from '@/services/gym_db'
+import { ref,onMounted,computed  } from 'vue';
+import { addExercise, getExercises,renameExercise,getMuscleGroups, getEquipment } from '@/services/gym_db'
 
 //creqating exercise modal
     const isOpen = ref(false);
@@ -89,7 +89,9 @@ import { addExercise, getExercises,renameExercise} from '@/services/gym_db'
     const muscleGroup = ref('')
     const equipment = ref('')
 
-    const exercises = ref<exercise[]>([])
+const exercises = ref<exercise[]>([])
+const selectedMuscleGroup = ref('');
+
 //modal opening 
 
 const openModal = () => {
@@ -102,9 +104,8 @@ const cancel = () => {
 
 
 const confirm = async () => {
-  if (!name.value) return;
-  
-  await addExercise(name.value, muscleGroup.value, equipment.value, 60);
+  if (!name.value || !muscleGroup.value || !equipment.value) return;
+  await addExercise(name.value, Number(muscleGroup.value), Number(equipment.value), 60);
 
   await LoadExercises();
 
@@ -130,6 +131,21 @@ const LoadExercises = async () =>{
   exercises.value = data;
   
 };
+// get muscle group and equipment for select options
+const muscleGroups = ref<any[]>([]);
+const equipmentList = ref<any[]>([]);
+
+
+
+//exercise sort
+
+
+const filteredExercises = computed(() => {
+  return exercises.value
+    .filter(ex => !selectedMuscleGroup.value || ex.muscle_group === selectedMuscleGroup.value)
+    .sort((a, b) => a.muscle_group.localeCompare(b.muscle_group));
+});
+
 
 
 
@@ -180,10 +196,14 @@ const handleRefresh = async (event: RefresherCustomEvent) => {
 
 onMounted(() => {
     LoadExercises()
+    getMuscleGroups().then(data => muscleGroups.value = data);
+    getEquipment().then(data => equipmentList.value = data);
 });
 
 onIonViewWillEnter(() => {
     LoadExercises()
+    getMuscleGroups().then(data => muscleGroups.value = data);
+    getEquipment().then(data => equipmentList.value = data);
 
 });
 
@@ -192,7 +212,7 @@ onIonViewWillEnter(() => {
 <style>
 .exercise-list {
   margin: 10px auto ;
-  width: 90%;
+  width: 100%;
 }
 
 </style>

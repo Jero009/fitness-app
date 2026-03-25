@@ -101,6 +101,22 @@ export async function initDB() {
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     name TEXT UNIQUE
   );
+  
+  INSERT OR IGNORE INTO muscle_group (name) VALUES
+    ('chest'),
+    ('back'),
+    ('legs'),
+    ('shoulders'),
+    ('arms'),
+    ('core');
+
+  INSERT OR IGNORE INTO equipment (name) VALUES
+    ('barbell'),
+    ('dumbbell'),
+    ('machine'),
+    ('bodyweight'),
+    ('cables'),
+    ('other');
 
   `);
 
@@ -109,7 +125,19 @@ export async function initDB() {
 
   return db;
 }
+// get muscle groups and equpment
 
+export async function getMuscleGroups() {
+  if (!db) return [];
+  const result = await db.query('SELECT * FROM muscle_group;');
+  return result.values || [];
+}
+
+export async function getEquipment() {
+  if (!db) return [];
+  const result = await db.query('SELECT * FROM equipment;');
+  return result.values || [];
+}
 
 
 
@@ -172,13 +200,13 @@ export async function getTemplateExercises(templateId: number) {
   return result.values || [];
 }
 // exercise functions
-export async function addExercise(name: string, muscleGroup: string, equipment: string, restSeconds: number) {
+export async function addExercise(name: string, muscleGroupId: number, equipmentId: number, restSeconds: number) {
   if (!db) return;
 
   const result = await db.run(
-    `INSERT INTO exercise (name, muscle_group, equipment, rest_seconds) 
+    `INSERT INTO exercise (name, id_muscle_group, id_equipment, rest_seconds) 
     VALUES (?, ?, ?, ?);`,
-    [name, muscleGroup, equipment, restSeconds]
+    [name, muscleGroupId, equipmentId, restSeconds]
   );
 
   return result;
@@ -199,7 +227,17 @@ export async function renameExercise(id: number, newName: string) {
 export async function getExercises() {
   if (!db) return [];
 
-  const result = await db.query('SELECT * FROM exercise;');
+    const result = await db.query(`
+    SELECT 
+      e.id,
+      e.name,
+      mg.name AS muscle_group,
+      eq.name AS equipment,
+      e.rest_seconds
+    FROM exercise e
+    LEFT JOIN muscle_group mg ON e.id_muscle_group = mg.id
+    LEFT JOIN equipment eq ON e.id_equipment = eq.id
+  `);
   return result.values || [];
 }
 
