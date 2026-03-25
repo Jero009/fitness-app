@@ -419,3 +419,43 @@ export async function getLatestWorkout() {
   return result.values?.[0] || null;
   
 }
+
+export async function getWorkoutsByTemplate() {
+  if (!db) return [];
+
+  const result = await db.query(`
+    SELECT 
+      w.id,
+      wt.name,
+      w.time_start,
+      w.time_end,
+      w.total_kg
+    FROM workout w
+    LEFT JOIN workout_template wt 
+      ON wt.id = w.id_workout_template
+    GROUP BY wt.id
+    ORDER BY w.time_start DESC
+  `);
+
+  return result.values || [];
+}
+
+
+export async function getWorkoutsByName(id:number) {
+  if (!db) return [];
+
+  const result = await db.query(`
+    SELECT 
+      w.id,
+      wt.name,
+      w.time_start,
+      w.time_end,
+      w.total_kg
+    FROM workout w
+    LEFT JOIN workout_template wt 
+      ON wt.id = w.id_workout_template
+    WHERE wt.id = ?
+    ORDER BY w.time_start DESC
+  `, [id]);
+  return result.values || [];
+}

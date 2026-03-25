@@ -33,7 +33,7 @@
                 </ion-card-content>
                 </ion-card-header>
             </ion-card>
-       <div class="card-container">
+            <div class="card-container">
               <ion-card class="card" v-for="template in templates" :key="template.id" :disabled="activeWorkout" @click="startWorkout(template.id)">
                   <ion-card-header>
                       <ion-card-title class="card-title">{{ template.name }}</ion-card-title>
@@ -43,17 +43,26 @@
                     <ion-icon :icon="barbellSharp"></ion-icon>
                   </ion-card-content>
               </ion-card>
-              </div>
+            </div>
+              <ion-card class="chart-card">
+                <ion-select v-model="selectedWorkout" placeholder="Select template" interface="action-sheet">
+                  <ion-select-option v-for="w in workouts" :key="w.id" :value="w.id">
+                    {{ w.name }}
+                  </ion-select-option>
+                </ion-select>
+                <canvas ref="chartRef" ></canvas>
+              </ion-card>
     </ion-content>
   </ion-page>
 </template>
 
 <script setup lang="ts">
 import { IonPage, IonHeader, IonToolbar, IonTitle, IonContent, IonCard, IonCardHeader, IonCardSubtitle, IonCardContent, IonCardTitle, onIonViewWillEnter, IonIcon, IonButton } from '@ionic/vue';
-import { getTemplates, startWorkoutFromTemplate, hasActiveWorkout, getActiveWorkout, getWorkoutById,getLatestWorkout } from '@/services/gym_db';
-import { ref, onMounted, onUnmounted } from 'vue';
+import { getTemplates, startWorkoutFromTemplate, hasActiveWorkout, getActiveWorkout, getWorkoutById,getLatestWorkout,getWorkoutsByTemplate,get } from '@/services/gym_db';
+import { ref, onMounted, onUnmounted,computed,watch } from 'vue';
 import { barbellSharp } from 'ionicons/icons';
 import { useRouter } from 'vue-router';
+import {Chart,LineController,LineElement,PointElement,LinearScale,CategoryScale} from 'chart.js';
 
 
 const activeWorkout = ref(false);
@@ -142,7 +151,7 @@ let interval: ReturnType<typeof setInterval> | null = null;
 const loadActiveWorkout = async () => {
   const workout = await getActiveWorkout();
   if (workout && workout.time_start) {
-    startTime.value = workout.time_start.replace(' ', 'T') + 'Z';
+    startTime.value = workout.time_start.replace(' ', 'T');
     startTimer();
     activeWorkout.value = true;
   } else {
@@ -177,22 +186,94 @@ const formatTime = () => {
   return `${String(hrs).padStart(2, '0')}:${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
 };
 
+// chart 
+
+Chart.register(
+  LineController,
+  LineElement,
+  PointElement,
+  LinearScale,
+  CategoryScale
+);
+
+const chartRef = ref<any>(null);
+let chart: any = null;
+
+const workouts = ref<any[]>([]);
+
+// prepare data
+const chartData = computed(() => {
+  return workouts.value
+    .map(w => ({
+      date: new Date(w.time_start.replace(' ', 'T')).toLocaleDateString(),
+      kg: w.total_kg || 0
+    }))
+    .reverse(); // oldest → newest
+});
+
+// draw chart
+const renderChart = () => {
+  if (!chartRef.value) return;
+
+  if (chart) {
+    chart.destroy(); // prevent duplicates
+  }
+
+  chart = new Chart(chartRef.value, {
+    type: 'line',
+    data: {
+      labels: chartData.value.map(d => d.date),
+      datasets: [
+        {
+          label: 'Total KG',
+          data: chartData.value.map(d => d.kg),
+          borderWidth: 2,
+          tension: 0.3,
+
+
+          borderColor: '#D71921',
+          pointradius:4,
+          pointBackgroundColor: '#D71921',
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      animation: false 
+    }
+  });
+};
+
+// update chart if data changes
+watch(chartData, () => {
+  renderChart();
+});
+
 
 
 onMounted(async () => {
   await loadActiveWorkout();
   await loadTemplates();
   await loadLatestWorkout();
+
+  const data = await getWorkoutsByTemplate();
+  workouts.value = data || [];
+  renderChart();
 });
 
 onIonViewWillEnter(async () => {
   await loadActiveWorkout();
   await loadTemplates();
   await loadLatestWorkout();
+
+  const data = await getWorkoutsByTemplate();
+  workouts.value = data || [];
+  renderChart();
 });
 
 onUnmounted(() => {
   clearTimer();
+  if (chart) chart.destroy();
 });
 
 
@@ -245,5 +326,12 @@ onUnmounted(() => {
   justify-content: center;
   align-items: center;
   height: 100%;
+}
+.card-chart {
+  width: 90%;
+  margin: auto;
+  padding: 10px;
+  border-radius: 10px;
+  background-color: var(--ion-color-medium);
 }
 </style>
