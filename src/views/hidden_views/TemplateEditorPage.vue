@@ -157,12 +157,6 @@ type TemplateExercise = {
   rep_number: number;
   order_index: number;
 }
-
-const LoadExercises = async () => {
-  const data = await getTemplateExercisesByTemplateId(Number(route.params.id));
-  exercises.value = data || [];
-};
-
 // refresh
 
 
@@ -176,8 +170,13 @@ onIonViewWillEnter(async () => {
   }
 
   // ✅ Load existing exercises FIRST
+
   const data = await getTemplateExercisesByTemplateId(id);
-  exercises.value = data || [];
+
+  // Only set if empty (first load)
+  if (exercises.value.length === 0) {
+    exercises.value = data || [];
+  }
 
   // ✅ Then check if new exercise was selected
   const selectedExerciseStr = localStorage.getItem('selectedExerciseForTemplate');
@@ -210,22 +209,7 @@ onIonViewWillEnter(async () => {
 
 
 
-
-onIonViewWillEnter(() => {
-  // Check for selected exercise from ExercisePicker
-
-
-
-  LoadExercises();
-
-});
-
 </script>
-
-
-
-
-
 <style>
 .card-template{
   margin: 10px auto ;
