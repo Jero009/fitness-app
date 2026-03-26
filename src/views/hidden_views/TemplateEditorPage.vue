@@ -159,41 +159,57 @@ const LoadExercises = async () => {
 onIonViewWillEnter(async () => {
   const id = Number(route.params.id);
 
+  // ✅ Load template name
   const template = await getTemplateById(id);
   if (template) {
     TemplateName.value = template.name;
   }
 
-  await LoadExercises();
-});
+  // ✅ Load existing exercises FIRST
+  const data = await getTemplateExercisesByTemplateId(id);
+  exercises.value = data || [];
 
-/*
-onIonViewWillEnter(() => {
-  // Check for selected exercise from ExercisePicker
-  const templateId = Number(route.params.id);
+  // ✅ Then check if new exercise was selected
   const selectedExerciseStr = localStorage.getItem('selectedExerciseForTemplate');
+
   if (selectedExerciseStr) {
     try {
       const ex = JSON.parse(selectedExerciseStr);
-      // Prevent duplicates
-      if (!selectedExercises.value.some(e => e.id === ex.id)) {
-        selectedExercises.value.push({
-          id: ex.id,
+
+      // ✅ prevent duplicates (use id_exercise!)
+      const exists = exercises.value.some(e => e.id_exercise === ex.id);
+
+      if (!exists) {
+        exercises.value.push({
+          id: 0, // 🔥 IMPORTANT (new row, not in DB yet)
+          id_exercise: ex.id,
           name: ex.name,
-          set_number: ex.set_number || 0,
-          rep_number: ex.rep_number || 0
+          set_number: 0,
+          rep_number: 0,
+          order_index: exercises.value.length
         });
       }
+
     } catch (e) {
       console.error('Failed to parse selected exercise:', e);
     }
+
     localStorage.removeItem('selectedExerciseForTemplate');
   }
+});
+
+
+
+
+onIonViewWillEnter(() => {
+  // Check for selected exercise from ExercisePicker
+
+
 
   LoadExercises();
 
 });
-*/
+
 </script>
 
 
