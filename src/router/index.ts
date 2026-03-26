@@ -41,6 +41,11 @@ const routes: Array<RouteRecordRaw> = [
         name: 'ExercisePicker',
         component: () => import('@/views/ExercisePickerPage.vue')
       },
+            {
+        path: 'TemplateBuilder',
+        name: 'TemplateBuilder',
+        component: () => import('@/views/TemplateBuilderPage.vue')
+      },
     ]
   }
 ]

@@ -459,3 +459,40 @@ export async function getWorkoutsByName(id:number) {
   `, [id]);
   return result.values || [];
 }
+
+// edit template
+
+
+type ExerciseUpdate = {
+  id: number;
+  order_index: number;
+  set_number: number;
+  rep_number: number;
+};
+
+const updateTemplate = async (id: number, newName: string,exercises: ExerciseUpdate[]) => {
+  if (!db) return;
+  try{
+    await db.execute('BEGIN TRANSACTION');
+
+    await db.run(
+      'UPDATE workout_template SET name = ? WHERE id = ?',
+      [newName, id]
+    );
+
+    for (const ex of exercises) {
+      await db.run(
+        `UPDATE workout_template_exercise 
+         SET order_index = ?, set_number = ?, rep_number = ?
+         WHERE id = ?`,
+        [ex.order_index, ex.set_number, ex.rep_number, ex.id]
+      );
+    }
+  
+  await db.execute('COMMIT');
+  console.log("Template updated successfully");
+  } catch (error) {
+    await db.execute('ROLLBACK');
+    console.error("Error updating template:", error);
+  }
+};
