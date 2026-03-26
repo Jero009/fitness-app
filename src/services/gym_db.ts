@@ -485,7 +485,7 @@ export async function editTemplateExercises(
      WHERE id_workout_template = ? AND id_exercise = ?`,
     [setNumber, repNumber, orderIndex, templateId, exerciseId]
   );
-
+  console.log("Rows affected:", result.changes);
   return result;
 }
 

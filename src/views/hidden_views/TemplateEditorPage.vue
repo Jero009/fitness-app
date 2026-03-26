@@ -1,12 +1,5 @@
 <template>
   <ion-page>
-      <ion-header collapse="condense">
-        <ion-toolbar>
-          <ion-title size="large">Edit  Template</ion-title>
-        </ion-toolbar>
-      </ion-header>
-    <ion-content :fullscreen="true">
-
         <ion-header>
           <ion-toolbar>
             <ion-buttons slot="start">
@@ -20,7 +13,7 @@
             </ion-buttons>
           </ion-toolbar>
         </ion-header>
-
+  <ion-content :fullscreen="true">
           <!-- Template name -->
           <ion-item>
             <ion-input
@@ -179,19 +172,13 @@ const LoadExercises = async () =>{
 };
 
 
-
-
-
-
 //refresh 
 
 onMounted(() => {
   LoadExercises();
   const id = Number(route.params.id);
   loadTemplateData(id);
-  const templateId = Number(route.params.id);
 });
-
 
 
 onIonViewWillEnter(() => {
