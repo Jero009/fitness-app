@@ -123,7 +123,7 @@ const confirm = async () => {
   if (!TemplateName.value) return;
 
   await renameTemplate(templateId, TemplateName.value);
-
+  console.log("✅ Template renamed");
   //add each selected exercise
   for (let i = 0; i < selectedExercises.value.length; i++) {
     const ex = selectedExercises.value[i];
@@ -217,7 +217,6 @@ onIonViewWillEnter(() => {
 });
 onIonViewWillLeave(() => {
   // Clear selected exercise when leaving the page
-  selectedExercises.value = [];
 
 });
 </script>
