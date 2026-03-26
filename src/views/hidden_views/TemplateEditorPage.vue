@@ -74,8 +74,12 @@ const route = useRoute();
 
 // exercise picker 
 const goToExercisePicker = () => {
-
-  router.push({ name: 'ExercisePicker', query: { from: 'template' } });
+  router.push({
+    name: 'ExercisePicker',
+    query: {
+      templateId: route.params.id // ✅ THIS IS REQUIRED
+    }
+  });
 };
 
 const onDragEnd = () => {

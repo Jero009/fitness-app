@@ -39,20 +39,27 @@ import { IonPage, IonHeader, IonToolbar, IonTitle, IonContent,IonList,IonItem ,o
    IonRefresher, IonRefresherContent, RefresherCustomEvent,IonSelect,IonSelectOption  } from '@ionic/vue';
 import { ref,onMounted,computed  } from 'vue';
 import {  getExercises,getMuscleGroups, getEquipment } from '@/services/gym_db'
-import { useRouter } from 'vue-router';
+import { useRouter,useRoute } from 'vue-router';
 const router = useRouter();
 
-
-
-
+// template id 
+const route = useRoute();
 
 
 // exercise selection for template creation
 const selectExercise = (exercise: exercise) => {
-  // Store the selected exercise in localStorage
   localStorage.setItem('selectedExerciseForTemplate', JSON.stringify(exercise));
-  // Navigate back to TemplatePage
-  router.push({ name: 'TemplateBuilder' });
+
+  const templateId = Number(route.query.templateId);
+
+  if (!isNaN(templateId)) {
+    router.push({
+      name: 'TemplateEditor',
+      params: { id: templateId }
+    });
+  } else {
+    router.push({ name: 'TemplateBuilder' });
+  }
 };
 
 

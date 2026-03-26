@@ -77,10 +77,10 @@ const router = useRouter();
 
 // exercise picker 
 const goToExercisePicker = () => {
-
-  router.push({ name: 'ExercisePicker', query: { from: 'template' } });
+  router.push({
+    name: 'ExercisePicker'
+  });
 };
-
 
 
 //modal
