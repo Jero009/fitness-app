@@ -104,19 +104,19 @@ const confirm = async () => {
   console.log("✅ Template renamed");
 
 
-  //add each selected exercise
+  //add each selected exercise  
   for (let i = 0; i < exercises.value.length; i++) {
     const ex = exercises.value[i];
-    console.log("Saving exercise:", ex);
+
+    console.log("Saving:", ex);
+
     await editTemplateExercises(
-      templateId,
-      ex.id,
-      ex.set_number,
-      ex.rep_number,
-  
+      ex.id, // ✅ correct row ID
+      Number(ex.set_number),
+      Number(ex.rep_number),
+      i // ✅ order index
     );
   }
-
   console.log("✅ Template + exercises saved");
 
   // reset state
@@ -126,6 +126,10 @@ const confirm = async () => {
   router.push({ name: 'Template' });
 
 };
+// get teplate name
+
+
+
 
 
 // exercises 
@@ -146,8 +150,17 @@ const LoadExercises = async () => {
 };
 
 // refresh
-onMounted(() => {
-  LoadExercises();
+
+
+onIonViewWillEnter(async () => {
+  const id = Number(route.params.id);
+
+  const template = await getTemplateById(id);
+  if (template) {
+    TemplateName.value = template.name;
+  }
+
+  await LoadExercises();
 });
 
 /*
