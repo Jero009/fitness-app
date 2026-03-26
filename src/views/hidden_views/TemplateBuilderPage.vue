@@ -127,39 +127,7 @@ const confirm = async () => {
   router.push({ name: 'Template' });
 
 };
-// displaying templates
-const templates = ref<Template[]>([]);
 
-type Template = {
-  id: number;
-  name: string;
-  created_at: string;
-  exercises?: TemplateExercise[];
-};
-
-const loadTemplates = async () => {
-  const data = await getTemplates();
-
-  if (!data) {
-    templates.value = [];
-    return;
-  }
-
-  for (let template of data) {
-    const exercises = await getTemplateExercises(template.id);
-    template.exercises = exercises || [];
-  }
-
-  templates.value = data;
-};
-
-
-type TemplateExercise = {
-  id: number;
-  name: string;
-  set_number: number;
-  rep_number: number;
-};
 
 
 
@@ -189,18 +157,6 @@ const LoadExercises = async () =>{
   
 };
 
-const addSelectedExercise = (event: any) => {
-  const ex = event.detail.value;
-
-  if (selectedExercises.value.some(e => e.id === ex.id)) return;
-
-  selectedExercises.value.push({
-    id: ex.id,
-    name: ex.name,
-    set_number: ex.set_number,
-    rep_number: ex.rep_number 
-  });
-};
 
 
 
@@ -209,14 +165,14 @@ const addSelectedExercise = (event: any) => {
 
 const handleRefresh = async (event: RefresherCustomEvent) => {
   await LoadExercises();
-  await loadTemplates();
+
   event.target.complete();
 };
 
 
 onMounted(() => {
     LoadExercises()
-    loadTemplates();
+
 });
 
 onIonViewWillEnter(() => {
@@ -241,7 +197,7 @@ onIonViewWillEnter(() => {
   }
 
   LoadExercises();
-  loadTemplates();
+
 });
 </script>
 

@@ -2,7 +2,7 @@
   <ion-page>
       <ion-header collapse="condense">
         <ion-toolbar>
-          <ion-title size="large">Template</ion-title>
+          <ion-title size="large">Edit  Template</ion-title>
         </ion-toolbar>
       </ion-header>
     <ion-content :fullscreen="true">
@@ -13,7 +13,7 @@
               <ion-button @click="cancel()">Cancel</ion-button>
             </ion-buttons>
 
-            <ion-title>Create Template</ion-title>
+            <ion-title>Edit Template</ion-title>
 
             <ion-buttons slot="end">
               <ion-button @click="confirm()">Save</ion-button>
@@ -26,6 +26,7 @@
             <ion-input
               v-model="TemplateName"
               placeholder="Template name"
+              :clear-on-edit="true"
             />
           </ion-item>
 
@@ -65,10 +66,10 @@
 
 <script setup lang="ts">
 import { IonPage, IonHeader, IonToolbar, IonTitle, IonContent, IonCard, IonCardHeader,
-IonCardContent, IonCardSubtitle, IonCardTitle, IonList, IonItem, IonButton, IonIcon, IonButtons, IonModal, IonInput, onIonViewWillEnter, IonSelect, IonSelectOption, 
-IonRefresher, IonRefresherContent, RefresherCustomEvent } from '@ionic/vue';
+IonCardContent, IonCardSubtitle, IonCardTitle, IonList, IonItem, IonButton, IonIcon, IonButtons, IonModal, IonInput, onIonViewWillEnter, 
+onIonViewWillLeave} from '@ionic/vue';
 import { add, swapVerticalOutline } from 'ionicons/icons';
-import { createTemplate, getExercises,addExerciseToTemplate,getTemplates ,getTemplateExercises, deleteTemplate } from '@/services/gym_db'
+import { createTemplate, getExercises,addExerciseToTemplate ,getTemplateExercises,getTemplateById, renameTemplate,editTemplateExercises } from '@/services/gym_db'
 import { ref ,onMounted} from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import Draggable from 'vuedraggable';
@@ -81,38 +82,53 @@ const goToExercisePicker = () => {
   router.push({ name: 'ExercisePicker', query: { from: 'template' } });
 };
 
-//get template id
-
-const workoutId = Number(route.params.id);
-console.log("Workout ID:", workoutId);
-
-//modal
-
-//create template
-const TemplateName = ref('');
-const selectedTemplateId = ref<number | null>(null);
-
 
 const cancel = () => {
   router.push({ name: 'Template' });
 };
 
 
+const TemplateName = ref('');
+
+// Always load template data for the current id
+const loadTemplateData = async (id: number) => {
+  TemplateName.value = '';
+  selectedExercises.value = [];
+  const template = await getTemplateById(id);
+  if (template) TemplateName.value = template.name;
+  const exercises = await getTemplateExercises(id);
+  if (exercises) selectedExercises.value = exercises;
+};
+
+// Initial load
+
+
+// Reload when route param changes
+import { watch } from 'vue';
+watch(
+  () => route.params.id,
+  (newId) => {
+    const id = Number(newId);
+    loadTemplateData(id);
+  }
+);
+
+
+
+
+// saving changes
+
 const confirm = async () => {
+  const templateId = Number(route.params.id)
   if (!TemplateName.value) return;
 
-  const templateId = await createTemplate(TemplateName.value);
-
-  if (!templateId) {
-    console.error("❌ No ID returned");
-    return;
-  }
+  await renameTemplate(templateId, TemplateName.value);
 
   //add each selected exercise
   for (let i = 0; i < selectedExercises.value.length; i++) {
     const ex = selectedExercises.value[i];
-
-    await addExerciseToTemplate(
+    console.log("Saving exercise:", ex);
+    await editTemplateExercises(
       templateId,
       ex.id,
       ex.set_number,
@@ -130,40 +146,6 @@ const confirm = async () => {
   router.push({ name: 'Template' });
 
 };
-// displaying templates
-const templates = ref<Template[]>([]);
-
-type Template = {
-  id: number;
-  name: string;
-  created_at: string;
-  exercises?: TemplateExercise[];
-};
-
-const loadTemplates = async () => {
-  const data = await getTemplates();
-
-  if (!data) {
-    templates.value = [];
-    return;
-  }
-
-  for (let template of data) {
-    const exercises = await getTemplateExercises(template.id);
-    template.exercises = exercises || [];
-  }
-
-  templates.value = data;
-};
-
-
-type TemplateExercise = {
-  id: number;
-  name: string;
-  set_number: number;
-  rep_number: number;
-};
-
 
 
 // exercises 
@@ -192,38 +174,25 @@ const LoadExercises = async () =>{
   
 };
 
-const addSelectedExercise = (event: any) => {
-  const ex = event.detail.value;
 
-  if (selectedExercises.value.some(e => e.id === ex.id)) return;
-
-  selectedExercises.value.push({
-    id: ex.id,
-    name: ex.name,
-    set_number: ex.set_number,
-    rep_number: ex.rep_number 
-  });
-};
 
 
 
 
 //refresh 
 
-const handleRefresh = async (event: RefresherCustomEvent) => {
-  await LoadExercises();
-  await loadTemplates();
-  event.target.complete();
-};
-
-
 onMounted(() => {
-    LoadExercises()
-    loadTemplates();
+  LoadExercises();
+  const id = Number(route.params.id);
+  loadTemplateData(id);
+  const templateId = Number(route.params.id);
 });
+
+
 
 onIonViewWillEnter(() => {
   // Check for selected exercise from ExercisePicker
+  const templateId = Number(route.params.id);
   const selectedExerciseStr = localStorage.getItem('selectedExerciseForTemplate');
   if (selectedExerciseStr) {
     try {
@@ -244,7 +213,12 @@ onIonViewWillEnter(() => {
   }
 
   LoadExercises();
-  loadTemplates();
+
+});
+onIonViewWillLeave(() => {
+  // Clear selected exercise when leaving the page
+  selectedExercises.value = [];
+
 });
 </script>
 

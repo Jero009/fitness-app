@@ -488,3 +488,11 @@ export async function editTemplateExercises(
 
   return result;
 }
+
+
+export async function getTemplateById(templateId: number) {
+  if (!db) return null;
+  const result = await db.query('SELECT * FROM workout_template WHERE id = ?', [templateId]);
+  return result.values?.[0] || null;
+}
+
