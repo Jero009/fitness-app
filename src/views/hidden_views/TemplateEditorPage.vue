@@ -112,14 +112,24 @@ const confirm = async () => {
   for (let i = 0; i < exercises.value.length; i++) {
     const ex = exercises.value[i];
 
-    console.log("Saving:", ex);
-
-    await editTemplateExercises(
-      ex.id, // ✅ correct row ID
-      Number(ex.set_number),
-      Number(ex.rep_number),
-      i // ✅ order index
-    );
+    if (ex.id === 0) {
+      // 🆕 NEW → INSERT
+      await addExerciseToTemplate(
+        templateId,
+        ex.id_exercise,
+        Number(ex.set_number),
+        Number(ex.rep_number),
+        i
+      );
+    } else {
+      // 🔁 EXISTING → UPDATE
+      await editTemplateExercises(
+        ex.id,
+        Number(ex.set_number),
+        Number(ex.rep_number),
+        i
+      );
+    }
   }
   console.log("✅ Template + exercises saved");
 
