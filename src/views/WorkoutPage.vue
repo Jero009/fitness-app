@@ -135,7 +135,7 @@ onIonViewWillEnter(async () => {
   --background: var(--ion-color-accent-red);        
   --background-activated: var(--ion-color-accent-yellow); 
   --color: #ffffff;                                 
-  --color-activated: #000000;                       
+  --color-activated: #000100;                       
   border-radius: 12px;
   padding: 0 16px;
 }

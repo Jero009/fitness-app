@@ -72,6 +72,9 @@ import Draggable from 'vuedraggable';
 const router = useRouter();
 const route = useRoute();
 
+
+
+
 // exercise picker 
 const goToExercisePicker = () => {
   router.push({
@@ -91,11 +94,7 @@ const cancel = () => {
   router.push({ name: 'Template' });
 };
 
-
 const TemplateName = ref('');
-
-
-
 
 // saving changes doesnt work
 
@@ -140,12 +139,6 @@ const confirm = async () => {
   router.push({ name: 'Template' });
 
 };
-// get teplate name
-
-
-
-
-
 // exercises 
 const exercises = ref<TemplateExercise[]>([])
 
@@ -158,8 +151,6 @@ type TemplateExercise = {
   order_index: number;
 }
 // refresh
-
-
 onIonViewWillEnter(async () => {
   const id = Number(route.params.id);
 
