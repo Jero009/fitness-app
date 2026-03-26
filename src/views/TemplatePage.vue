@@ -43,33 +43,27 @@
             <ion-item>
               <ion-button @click="goToExercisePicker">Add exercise</ion-button>
             </ion-item>
-            <ion-list>
-              <ion-item v-for="(ex, index) in selectedExercises" :key="ex.id">
-                
-                <div style="flex: 1;">
-                  {{ ex.name }}
-                </div>
-
-                <!-- sets -->
-                <ion-input
-                  type="number"
-                  v-model="ex.set_number"
-                  style="width: 60px"
-                  placeholder="Sets"
-                ></ion-input>
-
-                <!-- reps -->
-                <ion-input
-                  type="number"
-                  v-model="ex.rep_number"
-                  style="width: 60px"
-                  placeholder="Reps"
-                ></ion-input>
-
-              </ion-item>
-            </ion-list>
-
-
+                <Draggable v-model="selectedExercises" item-key="id">
+                  <template #item="{ element: ex, index }">
+                    <ion-item class="exercise-item">
+                      <div style="flex: 1;">
+                        {{ ex.name }}
+                      </div>
+                      <ion-input
+                        type="number"
+                        v-model="ex.set_number"
+                        style="width: 60px"
+                        placeholder="Sets"
+                      ></ion-input>
+                      <ion-input
+                        type="number"
+                        v-model="ex.rep_number"
+                        style="width: 60px"
+                        placeholder="Reps"
+                      ></ion-input>
+                    </ion-item>
+                  </template>
+                </Draggable>
         </ion-content>
       </ion-modal>
         <!--modal-->
@@ -118,10 +112,11 @@
 import { IonPage, IonHeader, IonToolbar, IonTitle, IonContent, IonCard, IonCardHeader,
 IonCardContent, IonCardSubtitle, IonCardTitle, IonList, IonItem, IonButton, IonIcon, IonButtons, IonModal, IonInput, onIonViewWillEnter, IonSelect, IonSelectOption, 
 IonRefresher, IonRefresherContent, RefresherCustomEvent } from '@ionic/vue';
-import { add} from 'ionicons/icons';
+import { add, swapVerticalOutline } from 'ionicons/icons';
 import { createTemplate, getExercises,addExerciseToTemplate,getTemplates ,getTemplateExercises, deleteTemplate } from '@/services/gym_db'
 import { ref ,onMounted} from 'vue';
 import { useRouter } from 'vue-router';
+import Draggable from 'vuedraggable';
 
 const router = useRouter();
 
@@ -321,4 +316,10 @@ onIonViewWillEnter(() => {
   margin: 10px auto ;
   width: 90%;
 }
+
+.sortable-chosen {
+  background: var(--ion-color-primary-medium) !important; /* Light blue */
+  transition: background 0.2s;
+}
+
 </style>

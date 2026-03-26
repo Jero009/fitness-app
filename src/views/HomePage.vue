@@ -45,7 +45,7 @@
               </ion-card>
             </div>
               <ion-card class="chart-card">
-                <ion-select v-model="selectedTemplateId" placeholder="Select template" interface="action-sheet" @ionChange="onTemplateChange"><!--this doesnt triger-->
+                <ion-select placeholder="Select template" interface="action-sheet" @ionChange="onTemplateChange"><!--this doesnt triger-->
                   <ion-select-option v-for="t in templates" :key="t.id" :value="t.id">
                     {{ t.name }}
                   </ion-select-option>
@@ -297,7 +297,6 @@ onUnmounted(() => {
 });
 
 
-
 </script>
 <style>
 .card-container {
@@ -305,9 +304,7 @@ onUnmounted(() => {
   flex-wrap: wrap;
   column-gap: 8px; /* horizontal space between cards */
   justify-content: center;
-
 }
-
 .card {
   flex: 0 1 calc(45% - 8px); /* 50% minus half the column-gap */
   max-width: calc(45% - 8px);
@@ -319,8 +316,6 @@ onUnmounted(() => {
   font-size: 3em;
   font-weight: bold;
 }
-
-
 .card-active-workout{
  margin: 10px 20px;
  background-color: var(--ion-color-accent-yellow);
@@ -349,6 +344,6 @@ onUnmounted(() => {
   margin: auto;
   padding: 10px;
   border-radius: 10px;
-  background-color: var(--ion-color-dark);
+  background-color: var(--ion-color-medioum);
 }
 </style>

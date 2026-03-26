@@ -35,11 +35,10 @@
 </template>
 
 <script setup lang="ts">
-import { IonPage, IonHeader, IonToolbar, IonTitle, IonContent,IonList,IonItem,IonButton,IonIcon,IonButtons,IonModal,IonInput ,onIonViewWillEnter,
-   IonRefresher, IonRefresherContent, RefresherCustomEvent,alertController,IonSelect,IonSelectOption  } from '@ionic/vue';
-import { add} from 'ionicons/icons'
+import { IonPage, IonHeader, IonToolbar, IonTitle, IonContent,IonList,IonItem ,onIonViewWillEnter,
+   IonRefresher, IonRefresherContent, RefresherCustomEvent,IonSelect,IonSelectOption  } from '@ionic/vue';
 import { ref,onMounted,computed  } from 'vue';
-import { addExercise, getExercises,renameExercise,getMuscleGroups, getEquipment } from '@/services/gym_db'
+import {  getExercises,getMuscleGroups, getEquipment } from '@/services/gym_db'
 import { useRouter } from 'vue-router';
 const router = useRouter();
 
@@ -49,15 +48,12 @@ const router = useRouter();
 
 
 // exercise selection for template creation
-const selectExercise = (exercise) => {
+const selectExercise = (exercise: exercise) => {
   // Store the selected exercise in localStorage
   localStorage.setItem('selectedExerciseForTemplate', JSON.stringify(exercise));
   // Navigate back to TemplatePage
   router.push({ name: 'Template' });
 };
-
-
-
 
 
 const exercises = ref<exercise[]>([])
@@ -114,7 +110,6 @@ onIonViewWillEnter(() => {
     getEquipment().then(data => equipmentList.value = data);
 
 });
-
 
 </script>
 <style>

@@ -82,7 +82,7 @@ const saveSet = async (set: any) => {
 
 
 const saveWorkout = async ()=>{
-  await endWorkout(workoutId, new Date().toISOString().slice(0, 19).replace('T', ' '));
+  await endWorkout(workoutId, Date.now());
   console.log("Workout saved!");
 
   router.push('/tabs/Home');
