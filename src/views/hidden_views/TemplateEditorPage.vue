@@ -27,7 +27,7 @@
             <ion-item>
               <ion-button @click="goToExercisePicker">Add exercise</ion-button>
             </ion-item>
-                <Draggable v-model="selectedExercises" item-key="id" @end="onDragEnd">
+                <Draggable v-model="exercises" item-key="id" @end="onDragEnd">
                   <template #item="{ element: ex, index }">
                     <ion-item class="exercise-item">
                       <div style="flex: 1;">
@@ -40,6 +40,7 @@
                         v-model="ex.set_number"
                         style="width: 60px"
                         placeholder="Sets"
+                        @ionInput="ex.set_number = Number($event.target.value)"
                       ></ion-input>
                       
                       <ion-input
@@ -49,6 +50,7 @@
                         v-model="ex.rep_number"
                         style="width: 60px"
                         placeholder="Reps"
+                        @ionInput="ex.rep_number = Number($event.target.value)"
                       ></ion-input>
                     </ion-item>
                   </template>
@@ -62,13 +64,14 @@ import { IonPage, IonHeader, IonToolbar, IonTitle, IonContent, IonCard, IonCardH
 IonCardContent, IonCardSubtitle, IonCardTitle, IonList, IonItem, IonButton, IonIcon, IonButtons, IonModal, IonInput, onIonViewWillEnter, 
 onIonViewWillLeave} from '@ionic/vue';
 import { add, swapVerticalOutline } from 'ionicons/icons';
-import { createTemplate, getExercises,addExerciseToTemplate ,getTemplateExercises,getTemplateById, renameTemplate,editTemplateExercises } from '@/services/gym_db'
+import { createTemplate, getExercises,addExerciseToTemplate ,getTemplateExercises,getTemplateById, renameTemplate,editTemplateExercises, getTemplateExercisesByTemplateId } from '@/services/gym_db'
 import { ref ,onMounted} from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import Draggable from 'vuedraggable';
 
 const router = useRouter();
 const route = useRoute();
+
 // exercise picker 
 const goToExercisePicker = () => {
 
@@ -76,7 +79,7 @@ const goToExercisePicker = () => {
 };
 
 const onDragEnd = () => {
-  console.log('New order:', selectedExercises.value.map(e => e.name));
+  console.log('New order:', exercises.value.map(e => e.name));
 };
 
 
@@ -87,57 +90,37 @@ const cancel = () => {
 
 const TemplateName = ref('');
 
-// Always load template data for the current id
-const loadTemplateData = async (id: number) => {
-  TemplateName.value = '';
-  selectedExercises.value = [];
-  const template = await getTemplateById(id);
-  if (template) TemplateName.value = template.name;
-  const exercises = await getTemplateExercises(id);
-  if (exercises) selectedExercises.value = exercises;
-};
-
-// Initial load
-
-
-// Reload when route param changes
-import { watch } from 'vue';
-watch(
-  () => route.params.id,
-  (newId) => {
-    const id = Number(newId);
-    loadTemplateData(id);
-  }
-);
 
 
 
-
-// saving changes
+// saving changes doesnt work
 
 const confirm = async () => {
+  console.log("🔥 SAVE CLICKED");
   const templateId = Number(route.params.id)
   if (!TemplateName.value) return;
 
   await renameTemplate(templateId, TemplateName.value);
   console.log("✅ Template renamed");
+
+
   //add each selected exercise
-  for (let i = 0; i < selectedExercises.value.length; i++) {
-    const ex = selectedExercises.value[i];
+  for (let i = 0; i < exercises.value.length; i++) {
+    const ex = exercises.value[i];
     console.log("Saving exercise:", ex);
     await editTemplateExercises(
       templateId,
       ex.id,
       ex.set_number,
       ex.rep_number,
-      i // order index
+  
     );
   }
 
   console.log("✅ Template + exercises saved");
 
   // reset state
-  selectedExercises.value = [];
+  exercises.value = [];
   TemplateName.value = '';
 
   router.push({ name: 'Template' });
@@ -146,41 +129,28 @@ const confirm = async () => {
 
 
 // exercises 
-const exercises = ref<exercise[]>([])
+const exercises = ref<TemplateExercise[]>([])
 
-const selectedExercises = ref<SelectedExercise[]>([]);
-
-type SelectedExercise = {
+type TemplateExercise = {
   id: number;
   name: string;
-  rep_number: number;
+  id_exercise: number;
   set_number: number;
+  rep_number: number;
+  order_index: number;
 }
 
-type exercise = {
-  id: number;
-  name: string;
-  muscle_group: string;
-  equipment: string;
-}
-
-
-const LoadExercises = async () =>{
-  const data = await getExercises();
-  exercises.value = data;
-  
+const LoadExercises = async () => {
+  const data = await getTemplateExercisesByTemplateId(Number(route.params.id));
+  exercises.value = data || [];
 };
 
-
-//refresh 
-
+// refresh
 onMounted(() => {
   LoadExercises();
-  const id = Number(route.params.id);
-  loadTemplateData(id);
 });
 
-
+/*
 onIonViewWillEnter(() => {
   // Check for selected exercise from ExercisePicker
   const templateId = Number(route.params.id);
@@ -206,10 +176,7 @@ onIonViewWillEnter(() => {
   LoadExercises();
 
 });
-onIonViewWillLeave(() => {
-  // Clear selected exercise when leaving the page
-
-});
+*/
 </script>
 
 

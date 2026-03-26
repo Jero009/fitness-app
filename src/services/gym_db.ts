@@ -471,8 +471,7 @@ export async function renameTemplate(id: number, newName: string) {
 }
 
 export async function editTemplateExercises(
-  templateId: number,
-  exerciseId: number,
+  rowId: number,
   setNumber: number,
   repNumber: number,
   orderIndex: number
@@ -482,17 +481,35 @@ export async function editTemplateExercises(
   const result = await db.run(
     `UPDATE workout_template_exercise 
      SET set_number = ?, rep_number = ?, order_index = ?
-     WHERE id_workout_template = ? AND id_exercise = ?`,
-    [setNumber, repNumber, orderIndex, templateId, exerciseId]
+     WHERE id = ?`,
+    [setNumber, repNumber, orderIndex, rowId]
   );
+
   console.log("Rows affected:", result.changes);
+
   return result;
 }
 
 
 export async function getTemplateById(templateId: number) {
-  if (!db) return null;
+  if (!db) return;
   const result = await db.query('SELECT * FROM workout_template WHERE id = ?', [templateId]);
   return result.values?.[0] || null;
 }
 
+export async function getTemplateExercisesByTemplateId(templateId: number) {
+  if (!db) return;
+  const result = await db.query(`
+    SELECT
+      wte.id,
+      e.name,
+      wte.id_exercise,
+      wte.set_number,
+      wte.rep_number,
+      wte.order_index
+    FROM workout_template_exercise wte
+    JOIN exercise e ON e.id = wte.id_exercise
+    WHERE wte.id_workout_template = ?
+  `, [templateId]);
+  return result.values || [];
+}
