@@ -45,7 +45,7 @@
               </ion-card>
             </div>
               <ion-card class="chart-card">
-                <ion-select placeholder="Select template" interface="action-sheet" @ionChange="onTemplateChange"><!--this doesnt triger-->
+                <ion-select placeholder="Select template" interface="action-sheet" v-model="selectedTemplateId"><!--this doesnt triger-->
                   <ion-select-option v-for="t in templates" :key="t.id" :value="t.id">
                     {{ t.name }}
                   </ion-select-option>
@@ -57,18 +57,7 @@
 </template>
 
 <script setup lang="ts">
-// Log and force type conversion on template select change
-const onTemplateChange = (event: CustomEvent) => {
-  const value = event.detail.value;
-  console.log('ionChange emitted value:', value, typeof value);
-  // Always store as number or null
-  if (value === null || value === undefined || value === '') {
-    selectedTemplateId.value = null;
-  } else {
-    selectedTemplateId.value = Number(value);
-  }
-};
-import { IonPage, IonHeader, IonToolbar, IonTitle, IonContent, IonCard, IonCardHeader, IonCardSubtitle, IonCardContent, IonCardTitle, onIonViewWillEnter, IonIcon, IonButton } from '@ionic/vue';
+import { IonPage, IonHeader, IonToolbar, IonTitle, IonContent, IonCard, IonCardHeader, IonCardSubtitle, IonCardContent, IonCardTitle, onIonViewWillEnter, IonIcon, IonButton,IonSelect,IonSelectOption } from '@ionic/vue';
 import { getTemplates, startWorkoutFromTemplate, hasActiveWorkout, getActiveWorkout, getWorkoutById,getLatestWorkout,getWorkoutsByTemplate,getWorkoutsByName } from '@/services/gym_db';
 import { ref, onMounted, onUnmounted,computed,watch } from 'vue';
 import { barbellSharp } from 'ionicons/icons';
@@ -344,6 +333,6 @@ onUnmounted(() => {
   margin: auto;
   padding: 10px;
   border-radius: 10px;
-  background-color: var(--ion-color-medioum);
+  background-color: var(--ion-color-medium);
 }
 </style>
