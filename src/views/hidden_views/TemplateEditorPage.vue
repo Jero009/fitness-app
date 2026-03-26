@@ -34,7 +34,7 @@
             <ion-item>
               <ion-button @click="goToExercisePicker">Add exercise</ion-button>
             </ion-item>
-                <Draggable v-model="selectedExercises" item-key="id">
+                <Draggable v-model="selectedExercises" item-key="id" @end="onDragEnd">
                   <template #item="{ element: ex, index }">
                     <ion-item class="exercise-item">
                       <div style="flex: 1;">
@@ -80,6 +80,10 @@ const route = useRoute();
 const goToExercisePicker = () => {
 
   router.push({ name: 'ExercisePicker', query: { from: 'template' } });
+};
+
+const onDragEnd = () => {
+  console.log('New order:', selectedExercises.value.map(e => e.name));
 };
 
 
