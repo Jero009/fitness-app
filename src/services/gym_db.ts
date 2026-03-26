@@ -461,38 +461,30 @@ export async function getWorkoutsByName(id:number) {
 }
 
 // edit template
-
-
-type ExerciseUpdate = {
-  id: number;
-  order_index: number;
-  set_number: number;
-  rep_number: number;
-};
-
-const updateTemplate = async (id: number, newName: string,exercises: ExerciseUpdate[]) => {
+export async function renameTemplate(id: number, newName: string) {
   if (!db) return;
-  try{
-    await db.execute('BEGIN TRANSACTION');
+  const result = await db.run(
+    `UPDATE workout_template SET name = ? WHERE id = ?`,
+    [newName, id]
+  );
+  return result;
+}
 
-    await db.run(
-      'UPDATE workout_template SET name = ? WHERE id = ?',
-      [newName, id]
-    );
+export async function editTemplateExercises(
+  templateId: number,
+  exerciseId: number,
+  setNumber: number,
+  repNumber: number,
+  orderIndex: number
+) {
+  if (!db) return;
 
-    for (const ex of exercises) {
-      await db.run(
-        `UPDATE workout_template_exercise 
-         SET order_index = ?, set_number = ?, rep_number = ?
-         WHERE id = ?`,
-        [ex.order_index, ex.set_number, ex.rep_number, ex.id]
-      );
-    }
-  
-  await db.execute('COMMIT');
-  console.log("Template updated successfully");
-  } catch (error) {
-    await db.execute('ROLLBACK');
-    console.error("Error updating template:", error);
-  }
-};
+  const result = await db.run(
+    `UPDATE workout_template_exercise 
+     SET set_number = ?, rep_number = ?, order_index = ?
+     WHERE id_workout_template = ? AND id_exercise = ?`,
+    [setNumber, repNumber, orderIndex, templateId, exerciseId]
+  );
+
+  return result;
+}

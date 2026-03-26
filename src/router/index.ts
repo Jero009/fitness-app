@@ -39,12 +39,17 @@ const routes: Array<RouteRecordRaw> = [
       {
         path: 'ExercisePicker',
         name: 'ExercisePicker',
-        component: () => import('@/views/ExercisePickerPage.vue')
+        component: () => import('@/views/hidden_views/ExercisePickerPage.vue')
       },
-            {
+      {
         path: 'TemplateBuilder',
         name: 'TemplateBuilder',
-        component: () => import('@/views/TemplateBuilderPage.vue')
+        component: () => import('@/views/hidden_views/TemplateBuilderPage.vue')
+      },
+      {
+        path: 'TemplateEditor/:id',
+        name: 'TemplateEditor',
+        component: () => import('@/views/hidden_views/TemplateEditorPage.vue')
       },
     ]
   }

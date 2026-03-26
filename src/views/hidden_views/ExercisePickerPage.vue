@@ -6,7 +6,7 @@
       </ion-toolbar>
   </ion-header>
   <ion-content class="ion-padding">
-         <ion-header collapse="condense">
+      <ion-header collapse="condense">
         <ion-toolbar>
           <ion-title size="large">Exercises</ion-title>
         </ion-toolbar>
@@ -52,7 +52,7 @@ const selectExercise = (exercise: exercise) => {
   // Store the selected exercise in localStorage
   localStorage.setItem('selectedExerciseForTemplate', JSON.stringify(exercise));
   // Navigate back to TemplatePage
-  router.push({ name: 'Template' });
+  router.push({ name: 'TemplateBuilder' });
 };
 
 

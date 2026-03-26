@@ -333,6 +333,6 @@ onUnmounted(() => {
   margin: auto;
   padding: 10px;
   border-radius: 10px;
-  background-color: var(--ion-color-medium);
+  background-color: var(--ion-color-dark);
 }
 </style>

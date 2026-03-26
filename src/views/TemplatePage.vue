@@ -3,7 +3,6 @@
     <ion-header>
       <ion-toolbar>
         <ion-title class="title">Template</ion-title>
-
       <ion-buttons slot="end">
         <ion-button @click="goToTemplateBuilder">
           <ion-icon :icon="add"></ion-icon>
@@ -12,7 +11,6 @@
       </ion-toolbar>
     </ion-header>
     <ion-content :fullscreen="true">
-
       <ion-header collapse="condense">
         <ion-toolbar>
           <ion-title size="large">Template</ion-title>
@@ -29,6 +27,7 @@
                   </ion-card-header>
                       <ion-item>
                       <ion-button  @click="deleteTemp(template.id)">Delete</ion-button>
+                      <ion-button  @click="editTemp(template.id)">Edit</ion-button>
                     </ion-item>
                   <ion-card-content>
 
@@ -69,7 +68,9 @@ const goToTemplateBuilder = () => {
   router.push({ name: 'TemplateBuilder' });
 };
 
-
+const editTemp = (id: number) => {
+  router.push({ name: 'TemplateEditor', params: { id } });
+};
 
 
 // displaying templates

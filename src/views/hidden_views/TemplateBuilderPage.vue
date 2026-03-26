@@ -1,18 +1,11 @@
 <template>
   <ion-page>
-    <ion-header>
-      <ion-toolbar>
-        <ion-title class="title">Template</ion-title>
-      </ion-toolbar>
-    </ion-header>
-    <ion-content :fullscreen="true">
-
-
       <ion-header collapse="condense">
         <ion-toolbar>
           <ion-title size="large">Template</ion-title>
         </ion-toolbar>
       </ion-header>
+    <ion-content :fullscreen="true">
 
         <ion-header>
           <ion-toolbar>
@@ -47,12 +40,17 @@
                         {{ ex.name }}
                       </div>
                       <ion-input
+                      label="Sets"  label-placement="floating" 
+                      :clear-on-edit="true"
                         type="number"
                         v-model="ex.set_number"
                         style="width: 60px"
                         placeholder="Sets"
                       ></ion-input>
+                      
                       <ion-input
+                      label="Reps" label-placement="floating"
+                      :clear-on-edit="true"
                         type="number"
                         v-model="ex.rep_number"
                         style="width: 60px"
@@ -79,28 +77,21 @@ const router = useRouter();
 
 // exercise picker 
 const goToExercisePicker = () => {
-  // Save a flag in localStorage or a store
-  localStorage.setItem('reopenTemplateModal', 'true');
-  isOpen.value = false;
+
   router.push({ name: 'ExercisePicker', query: { from: 'template' } });
 };
 
 
 
 //modal
-const isOpen = ref(false);
 
 //create template
 const TemplateName = ref('');
 const selectedTemplateId = ref<number | null>(null);
 
 
-const openModal = () => {
-  isOpen.value = true;
-};
-
 const cancel = () => {
-  isOpen.value = false;
+  router.push({ name: 'Template' });
 };
 
 
@@ -132,7 +123,9 @@ const confirm = async () => {
   // reset state
   selectedExercises.value = [];
   TemplateName.value = '';
-  isOpen.value = false;
+
+  router.push({ name: 'Template' });
+
 };
 // displaying templates
 const templates = ref<Template[]>([]);
@@ -209,13 +202,6 @@ const addSelectedExercise = (event: any) => {
   });
 };
 
-// delete template and template exercise
-const deleteTemp = async (id: number) => {
-
-  const result = await deleteTemplate(id);
-
-  await loadTemplates();
-};
 
 
 
@@ -234,11 +220,6 @@ onMounted(() => {
 });
 
 onIonViewWillEnter(() => {
-  if (localStorage.getItem('reopenTemplateModal') === 'true') {
-    isOpen.value = true;
-    localStorage.removeItem('reopenTemplateModal');
-  }
-
   // Check for selected exercise from ExercisePicker
   const selectedExerciseStr = localStorage.getItem('selectedExerciseForTemplate');
   if (selectedExerciseStr) {
