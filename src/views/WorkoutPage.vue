@@ -32,7 +32,7 @@
 </template>
 
 <script setup lang="ts">
-import { IonPage, IonHeader, IonToolbar, IonTitle, IonContent,IonButtons,IonButton,IonCard,IonCardHeader,IonCardContent,IonCheckbox,IonInput,IonCardTitle,onIonViewWillEnter } from '@ionic/vue';
+import { IonPage, IonHeader, IonToolbar, IonTitle, IonContent,IonButtons,IonButton,IonCard,IonCardHeader,IonCardContent,IonCheckbox,IonInput,IonCardTitle,onIonViewWillEnter,onUnmounted } from '@ionic/vue';
 import { ref } from 'vue';
 import { useRouter,useRoute } from 'vue-router';
 
@@ -116,7 +116,12 @@ onIonViewWillEnter(async () => {
   startTimer();
 });
 
-
+onUnmounted(() => {
+  if (interval) {
+    clearInterval(interval);
+    interval = null;
+  }
+});
 
 </script>
 <style>

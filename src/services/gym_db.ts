@@ -147,13 +147,16 @@ export async function getEquipment() {
 export async function createTemplate(name: string) {
   if (!db) return;
 
-  const result = await db.run(`
-    INSERT INTO workout_template (name) VALUES (?);
-  `, [name]);
+  try {
+    const result = await db.run(`
+      INSERT INTO workout_template (name) VALUES (?);
+    `, [name]);
 
-
-  return result.changes?.lastId ;
-
+    return result.changes?.lastId;
+  } catch (error) {
+    console.error('Error creating template:', error);
+    throw error;
+  }
 }
 
 export async function addExerciseToTemplate(
@@ -165,14 +168,19 @@ export async function addExerciseToTemplate(
 ) {
   if (!db) return;
 
-  const result = await db.run(
-    `INSERT INTO workout_template_exercise 
-     (id_workout_template, id_exercise, set_number, rep_number, order_index)
-     VALUES (?, ?, ?, ?, ?);`,
-    [templateId, exerciseId, setNumber, repNumber, orderIndex]
-  );
+  try {
+    const result = await db.run(
+      `INSERT INTO workout_template_exercise
+       (id_workout_template, id_exercise, set_number, rep_number, order_index)
+       VALUES (?, ?, ?, ?, ?);`,
+      [templateId, exerciseId, setNumber, repNumber, orderIndex]
+    );
 
-  return result;
+    return result;
+  } catch (error) {
+    console.error('Error adding exercise to template:', error);
+    throw error;
+  }
 }
 export async function getTemplates() {
   if (!db) return [];
@@ -203,25 +211,35 @@ export async function getTemplateExercises(templateId: number) {
 export async function addExercise(name: string, muscleGroupId: number, equipmentId: number, restSeconds: number) {
   if (!db) return;
 
-  const result = await db.run(
-    `INSERT INTO exercise (name, id_muscle_group, id_equipment, rest_seconds) 
-    VALUES (?, ?, ?, ?);`,
-    [name, muscleGroupId, equipmentId, restSeconds]
-  );
+  try {
+    const result = await db.run(
+      `INSERT INTO exercise (name, id_muscle_group, id_equipment, rest_seconds)
+      VALUES (?, ?, ?, ?);`,
+      [name, muscleGroupId, equipmentId, restSeconds]
+    );
 
-  return result;
+    return result;
+  } catch (error) {
+    console.error('Error adding exercise:', error);
+    throw error;
+  }
 }
 
 //rename
 export async function renameExercise(id: number, newName: string) {
   if (!db) return;
 
-  const result = await db.run(
-    `UPDATE exercise SET name = ? WHERE id = ?`,
-    [newName, id]
-  );
+  try {
+    const result = await db.run(
+      `UPDATE exercise SET name = ? WHERE id = ?`,
+      [newName, id]
+    );
 
-  return result;
+    return result;
+  } catch (error) {
+    console.error('Error renaming exercise:', error);
+    throw error;
+  }
 }
 
 export async function getExercises() {
@@ -245,42 +263,53 @@ export async function getExercises() {
 export async function deleteTemplate(id: number) {
   if (!db) return;
 
-  const result = await db.run(
-    `DELETE FROM workout_template WHERE id = ? ;`,
-    [id]
-  );
+  try {
+    const result = await db.run(
+      `DELETE FROM workout_template WHERE id = ? ;`,
+      [id]
+    );
 
-
-  return result;
+    return result;
+  } catch (error) {
+    console.error('Error deleting template:', error);
+    throw error;
+  }
 }
 // workout functions
 
 export async function startWorkoutFromTemplate(templateId: number) {
   if (!db) return;
 
-  const result = await db.run(
-    `INSERT INTO workout (id_workout_template) VALUES (?)`,
-    [templateId]
-  );
-  const workoutId = result.changes?.lastId;
-
-  const templateExercises = await getTemplateExercises(templateId);
-
-  for (const ex of templateExercises) {
-    const resultWE = await db.run(
-      `INSERT INTO workout_exercise (workout_id, exercise_id, order_index) VALUES (?, ?, ?)`,
-      [workoutId, ex.id_exercise, ex.order_index]
-    );
-    const workoutExerciseId = resultWE.changes?.lastId;
-
-    for (let i = 0; i < ex.set_number; i++) {
-      await db.run(
-        'INSERT INTO workout_exercise_sets (workout_exercise_id,set_number,reps,weight) values(?, ?, ?, ?)',
-        [workoutExerciseId, i + 1, ex.rep_number, 0]
+  try {
+    return await db.runTransaction(async () => {
+      const result = await db.run(
+        `INSERT INTO workout (id_workout_template) VALUES (?)`,
+        [templateId]
       );
-    }
+      const workoutId = result.changes?.lastId;
+
+      const templateExercises = await getTemplateExercises(templateId);
+
+      for (const ex of templateExercises) {
+        const resultWE = await db.run(
+          `INSERT INTO workout_exercise (workout_id, exercise_id, order_index) VALUES (?, ?, ?)`,
+          [workoutId, ex.id_exercise, ex.order_index]
+        );
+        const workoutExerciseId = resultWE.changes?.lastId;
+
+        for (let i = 0; i < ex.set_number; i++) {
+          await db.run(
+            'INSERT INTO workout_exercise_sets (workout_exercise_id,set_number,reps,weight) values(?, ?, ?, ?)',
+            [workoutExerciseId, i + 1, ex.rep_number, 0]
+          );
+        }
+      }
+      return workoutId;
+    });
+  } catch (error) {
+    console.error('Error starting workout from template:', error);
+    throw error;
   }
-  return workoutId;
 }
 
 export async function getWorkoutExercises(workoutId: number) {
