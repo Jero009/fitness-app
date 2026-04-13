@@ -139,8 +139,8 @@ onUnmounted(() => {
 .btn-quickstart {
   --background: var(--ion-color-accent-red);        
   --background-activated: var(--ion-color-accent-yellow); 
-  --color: #ffffff;                                 
-  --color-activated: #000100;                       
+  --color: var(--ion-color-light);                                 
+  --color-activated: var(--ion-color-dark);                       
   border-radius: 12px;
   padding: 0 16px;
 }

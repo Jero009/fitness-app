@@ -117,6 +117,68 @@ export async function initDB() {
     ('cables'),
     ('other');
 
+  INSERT OR IGNORE INTO exercise (name, id_muscle_group, id_equipment, rest_seconds) VALUES
+  ('Bench Press', 1, 1, 120),
+  ('Chest Fly', 1, 5, 60),
+  ('Push-Up', 1, 4, 60),
+  ('Incline Dumbbell Press', 1, 2, 90),
+  ('Chest Press Machine', 1, 3, 90),
+  ('Cable Fly', 1, 5, 60),
+  ('Incline Barbell Bench Press', 1, 1, 120),
+  ('Decline Hammer Strength Press', 1, 3, 90),
+  ('Cable Crossover', 1, 5, 60),
+  ('Deadlift', 2, 1, 180),
+  ('Lat Pulldown', 2, 3, 90),
+  ('Dumbbell Row', 2, 2, 90),
+  ('Pull-Up', 2, 4, 120),
+  ('Bent Over Row', 2, 1, 90),
+  ('Seated Cable Row', 2, 5, 90),
+  ('T-Bar Row', 2, 1, 120),
+  ('Single Arm Lat Pulldown', 2, 5, 60),
+  ('Chin-Up', 2, 4, 120),
+  ('Hyperextension', 2, 6, 60),
+  ('Back Squat', 3, 1, 180),
+  ('Leg Press', 3, 3, 120),
+  ('Walking Lunge', 3, 2, 90),
+  ('Romanian Deadlift', 3, 1, 120),
+  ('Leg Extension', 3, 3, 60),
+  ('Goblet Squat', 3, 2, 90),
+  ('Bulgarian Split Squat', 3, 2, 90),
+  ('Leg Curl Machine', 3, 3, 60),
+  ('Hack Squat', 3, 3, 120),
+  ('Stiff Legged Deadlift', 3, 1, 120),
+  ('Calf Raise', 3, 3, 45),
+  ('Overhead Press', 4, 1, 120),
+  ('Lateral Raise', 4, 2, 60),
+  ('Face Pull', 4, 5, 60),
+  ('Arnold Press', 4, 2, 90),
+  ('Upright Row', 4, 1, 60),
+  ('Front Raise', 4, 2, 60),
+  ('Reverse Fly', 4, 2, 60),
+  ('Dumbbell Shrugs', 4, 2, 60),
+  ('Military Press', 4, 1, 120),
+  ('Cable Lateral Raise', 4, 5, 60),
+  ('Bicep Curl', 5, 2, 60),
+  ('Tricep Pushdown', 5, 5, 60),
+  ('Dips', 5, 4, 90),
+  ('Hammer Curl', 5, 2, 60),
+  ('Skull Crusher', 5, 1, 90),
+  ('Preacher Curl', 5, 3, 60),
+  ('Concentration Curl', 5, 2, 60),
+  ('Close Grip Bench Press', 5, 1, 90),
+  ('EZ Bar Curl', 5, 1, 60),
+  ('Overhead Dumbbell Extension', 5, 2, 60),
+  ('Plank', 6, 4, 60),
+  ('Cable Crunch', 6, 5, 60),
+  ('Russian Twist', 6, 6, 45),
+  ('Leg Raise', 6, 4, 60),
+  ('Hanging Knee Raise', 6, 4, 60),
+  ('Woodchopper', 6, 5, 60),
+  ('Ab Wheel Rollout', 6, 6, 60),
+  ('Dead Bug', 6, 4, 45),
+  ('Mountain Climbers', 6, 4, 30),
+  ('Side Plank', 6, 4, 45);
+
   `);
 
     console.log("✅ Tables created");
@@ -280,31 +342,30 @@ export async function startWorkoutFromTemplate(templateId: number) {
   if (!db) return;
 
   try {
-    return await db.runTransaction(async () => {
-      const result = await db.run(
-        `INSERT INTO workout (id_workout_template) VALUES (?)`,
-        [templateId]
+    const result = await db.run(
+      `INSERT INTO workout (id_workout_template) VALUES (?)`,
+      [templateId]
+    );
+    const workoutId = result.changes?.lastId;
+
+    const templateExercises = await getTemplateExercises(templateId);
+
+    for (const ex of templateExercises) {
+      if (!db) continue;
+      const resultWE = await db.run(
+        `INSERT INTO workout_exercise (workout_id, exercise_id, order_index) VALUES (?, ?, ?)`,
+        [workoutId, ex.id_exercise, ex.order_index]
       );
-      const workoutId = result.changes?.lastId;
+      const workoutExerciseId = resultWE.changes?.lastId;
 
-      const templateExercises = await getTemplateExercises(templateId);
-
-      for (const ex of templateExercises) {
-        const resultWE = await db.run(
-          `INSERT INTO workout_exercise (workout_id, exercise_id, order_index) VALUES (?, ?, ?)`,
-          [workoutId, ex.id_exercise, ex.order_index]
+      for (let i = 0; i < ex.set_number; i++) {
+        await db.run(
+          'INSERT INTO workout_exercise_sets (workout_exercise_id,set_number,reps,weight) values(?, ?, ?, ?)',
+          [workoutExerciseId, i + 1, ex.rep_number, 0]
         );
-        const workoutExerciseId = resultWE.changes?.lastId;
-
-        for (let i = 0; i < ex.set_number; i++) {
-          await db.run(
-            'INSERT INTO workout_exercise_sets (workout_exercise_id,set_number,reps,weight) values(?, ?, ?, ?)',
-            [workoutExerciseId, i + 1, ex.rep_number, 0]
-          );
-        }
       }
-      return workoutId;
-    });
+    }
+    return workoutId;
   } catch (error) {
     console.error('Error starting workout from template:', error);
     throw error;

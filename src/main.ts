@@ -21,8 +21,7 @@ import '@ionic/vue/css/text-transformation.css'
 import '@ionic/vue/css/flex-utils.css'
 import '@ionic/vue/css/display.css'
 
-/* Dark mode */
-import '@ionic/vue/css/palettes/dark.system.css'
+
 
 /* Theme */
 import './theme/variables.css'

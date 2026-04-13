@@ -232,9 +232,9 @@ const renderChart = () => {
           tension: 0.3,
 
 
-          borderColor: '#D71921',
+          borderColor: '#FF0031',
           pointRadius: 4,
-          pointBackgroundColor: '#D71921',
+          pointBackgroundColor: '#FF0031',
         }
       ]
     },

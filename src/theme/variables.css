@@ -1,23 +1,23 @@
 :root {
   /* Colors */
-  --ion-color-primary: #222222;       /* main accent */
-  --ion-color-primary-rgb: 0,0,0;
+  --ion-color-primary: #131313;       /* main card/item background (floating effect) */
+  --ion-color-primary-rgb: 19,19,19;
   --ion-color-secondary: #ffffff;     /* background light */
   --ion-color-secondary-rgb: 255,255,255;
   --ion-color-tertiary: #f5f5f5; 
-       /* subtle contrast */
-  --ion-color-dark: #000000;
-  --ion-color-medium: #292929;
-  --ion-color-light: #fafafa;
+  --ion-color-dark: #000000;          /* true black background */
+       
+  --ion-color-medium: #1b1b1b;        /* slightly lighter grey */
+  --ion-color-light: #ffffff;         /* true white for high contrast */
 
     /* Signature accent colors */
-  --ion-color-accent-red: #D71921;   /* bright red pop */
-  --ion-color-accent-yellow: #e2a704; /* bright yellow pop */
+  --ion-color-accent-red: #FF0031;   /* LED vibrant red */
+  --ion-color-accent-yellow: #FFD700; /* vibrant gold pop */
 
     /*button*/
-    --ion-tab-button-color: var(--ion-color-medium); /* gray for inactive */
+    --ion-tab-button-color: #888888; /* medium grey for inactive */
     --ion-tab-button-color-selected: var(--ion-color-accent-red); /* red for active */
-    --ion-icon-color: var(--ion-color-medium); /* gray icons inactive */
+    --ion-icon-color: #888888; /* grey icons inactive */
 
 
   /* Toolbar & background */
@@ -39,11 +39,15 @@
   --ion-border-radius: 12px;
   --ion-padding: 16px;
   --ion-margin: 16px;
+  --ion-background-color: var(--ion-color-dark);
 }
 ion-tab-bar {
   --color-selected: var(--ion-color-accent-red);  /* active tab text & icon */
   --color: var(--ion-color-medium);              /* inactive tab text & icon */
   --background: var(--ion-color-dark);         /* tab bar background */
+}
+ion-page {
+  --background: var(--ion-color-dark); /* page background */
 }
 ion-checkbox {
   --size: 24px;                        /* checkbox size */
@@ -96,5 +100,8 @@ ion-action-sheet {
 ion-list {
   --background: var(--ion-color-medium);
   --color: var(--ion-color-light);
+}
 
+html, body, ion-app ion-content {
+  background: black !important;
 }
