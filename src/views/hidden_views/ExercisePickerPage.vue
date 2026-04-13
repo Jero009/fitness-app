@@ -35,11 +35,11 @@
 </template>
 
 <script setup lang="ts">
-import { IonPage, IonHeader, IonToolbar, IonTitle, IonContent,IonList,IonItem ,onIonViewWillEnter,
-   IonRefresher, IonRefresherContent, RefresherCustomEvent,IonSelect,IonSelectOption  } from '@ionic/vue';
-import { ref,onMounted,computed  } from 'vue';
-import {  getExercises,getMuscleGroups, getEquipment } from '@/services/gym_db'
-import { useRouter,useRoute } from 'vue-router';
+import { IonPage, IonHeader, IonToolbar, IonTitle, IonContent, IonList, IonItem, IonSelect, IonSelectOption, IonRefresher, IonRefresherContent, onIonViewWillEnter } from '@ionic/vue';
+import type { RefresherCustomEvent } from '@ionic/vue';
+import { ref, onMounted, computed } from 'vue';
+import { getExercises, getMuscleGroups, getEquipment } from '@/services/gym_db';
+import { useRouter, useRoute } from 'vue-router';
 const router = useRouter();
 
 // template id 

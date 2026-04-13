@@ -51,14 +51,12 @@
 </template>
 
 <script setup lang="ts">
-import { IonPage, IonHeader, IonToolbar, IonTitle, IonContent, IonCard, IonCardHeader,
-IonCardContent, IonCardSubtitle, IonCardTitle, IonList, IonItem, IonButton, IonIcon, IonButtons, IonModal, IonInput, onIonViewWillEnter, IonSelect, IonSelectOption, 
-IonRefresher, IonRefresherContent, RefresherCustomEvent } from '@ionic/vue';
-import { add, swapVerticalOutline } from 'ionicons/icons';
-import { createTemplate, getExercises,addExerciseToTemplate,getTemplates ,getTemplateExercises, deleteTemplate } from '@/services/gym_db'
-import { ref ,onMounted} from 'vue';
+import { IonPage, IonHeader, IonToolbar, IonTitle, IonContent, IonCard, IonCardHeader, IonCardContent, IonCardSubtitle, IonCardTitle, IonList, IonItem, IonButton, IonIcon, IonButtons, IonRefresher, IonRefresherContent, onIonViewWillEnter } from '@ionic/vue';
+import type { RefresherCustomEvent } from '@ionic/vue';
+import { add } from 'ionicons/icons';
+import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
-import Draggable from 'vuedraggable';
+import { getTemplates, getTemplateExercises, deleteTemplate, getExercises } from '@/services/gym_db';
 
 const router = useRouter();
 
@@ -91,7 +89,7 @@ const loadTemplates = async () => {
     return;
   }
 
-  for (let template of data) {
+  for (const template of data) {
     const exercises = await getTemplateExercises(template.id);
     template.exercises = exercises || [];
   }
@@ -129,9 +127,7 @@ const LoadExercises = async () =>{
 
 // delete template and template exercise
 const deleteTemp = async (id: number) => {
-
-  const result = await deleteTemplate(id);
-
+  await deleteTemplate(id);
   await loadTemplates();
 };
 

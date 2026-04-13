@@ -1,7 +1,6 @@
 import { CapacitorSQLite, SQLiteConnection } from '@capacitor-community/sqlite';
 import type { SQLiteDBConnection, SQLiteConnection as SQLiteConnType } from '@capacitor-community/sqlite';
 import { Capacitor } from '@capacitor/core';
-import { ref } from 'vue';
 const sqlite: SQLiteConnType = new SQLiteConnection(CapacitorSQLite);
 
 let db: SQLiteDBConnection | null = null;
@@ -14,7 +13,7 @@ export async function initDB() {
 
   if (db) return db;
 
-  // @ts-ignore
+  // @ts-expect-error - SQLite connection type mismatch
   db = await sqlite.createConnection('workout_db', false, 'no-encryption', 1);
 
   await db.open();

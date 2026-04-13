@@ -28,7 +28,7 @@
               <ion-button @click="goToExercisePicker">Add exercise</ion-button>
             </ion-item>
                 <Draggable v-model="exercises" item-key="id" @end="onDragEnd">
-                  <template #item="{ element: ex, index }">
+                  <template #item="{ element: ex }">
                     <ion-item class="exercise-item">
                       <div style="flex: 1;">
                         {{ ex.name }}
@@ -60,14 +60,11 @@
 </template>
 
 <script setup lang="ts">
-import { IonPage, IonHeader, IonToolbar, IonTitle, IonContent, IonCard, IonCardHeader,
-IonCardContent, IonCardSubtitle, IonCardTitle, IonList, IonItem, IonButton, IonIcon, IonButtons, IonModal, IonInput, onIonViewWillEnter, 
-onIonViewWillLeave} from '@ionic/vue';
-import { add, swapVerticalOutline } from 'ionicons/icons';
-import { createTemplate, getExercises,addExerciseToTemplate ,getTemplateExercises,getTemplateById, renameTemplate,editTemplateExercises, getTemplateExercisesByTemplateId } from '@/services/gym_db'
-import { ref ,onMounted} from 'vue';
+import { IonPage, IonHeader, IonToolbar, IonTitle, IonContent, IonItem, IonButton, IonButtons, IonInput, onIonViewWillEnter } from '@ionic/vue';
+import { ref } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import Draggable from 'vuedraggable';
+import { getTemplateById, getTemplateExercisesByTemplateId, renameTemplate, editTemplateExercises, addExerciseToTemplate } from '@/services/gym_db';
 
 const router = useRouter();
 const route = useRoute();
@@ -160,14 +157,9 @@ onIonViewWillEnter(async () => {
     TemplateName.value = template.name;
   }
 
-  // ✅ Load existing exercises FIRST
-
+  // ✅ Load existing exercises
   const data = await getTemplateExercisesByTemplateId(id);
-
-  // Only set if empty (first load)
-  if (exercises.value.length === 0) {
-    exercises.value = data || [];
-  }
+  exercises.value = data || [];
 
   // ✅ Then check if new exercise was selected
   const selectedExerciseStr = localStorage.getItem('selectedExerciseForTemplate');

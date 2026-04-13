@@ -1,11 +1,12 @@
 :root {
   /* Colors */
-  --ion-color-primary: #1B1B1D;       /* main accent */
+  --ion-color-primary: #222222;       /* main accent */
   --ion-color-primary-rgb: 0,0,0;
   --ion-color-secondary: #ffffff;     /* background light */
   --ion-color-secondary-rgb: 255,255,255;
-  --ion-color-tertiary: #f5f5f5;      /* subtle contrast */
-  --ion-color-dark: #111111;
+  --ion-color-tertiary: #f5f5f5; 
+       /* subtle contrast */
+  --ion-color-dark: #000000;
   --ion-color-medium: #292929;
   --ion-color-light: #fafafa;
 
@@ -20,15 +21,15 @@
 
 
   /* Toolbar & background */
-  --ion-toolbar-background: var(--ion-color-light);
+  --ion-toolbar-background: var(--ion-color-dark);
   --ion-toolbar-color: var(--ion-color-light);
-  --ion-content-background: var(--ion-color-secondary);
+  --ion-content-background: var(--ion-color-dark);
 
   /* Cards & items */
-  --ion-card-background: var(--ion-color-secondary);
+  --ion-card-background: var(--ion-color-primary);
   --ion-card-color: var(--ion-color-light);
-  --ion-item-background: var(--ion-color-secondary);
-  --ion-item-color: var(--ion-color-dark);
+  --ion-item-background: var(--ion-color-primary);
+  --ion-item-color: var(--ion-color-light);
 
   /* Font */
   --ion-font-family: 'Inter', sans-serif;

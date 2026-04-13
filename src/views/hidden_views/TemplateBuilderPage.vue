@@ -34,7 +34,7 @@
               <ion-button @click="goToExercisePicker">Add exercise</ion-button>
             </ion-item>
                 <Draggable v-model="selectedExercises" item-key="id">
-                  <template #item="{ element: ex, index }">
+                  <template #item="{ element: ex }">
                     <ion-item class="exercise-item">
                       <div style="flex: 1;">
                         {{ ex.name }}
@@ -64,14 +64,11 @@
 </template>
 
 <script setup lang="ts">
-import { IonPage, IonHeader, IonToolbar, IonTitle, IonContent, IonCard, IonCardHeader,
-IonCardContent, IonCardSubtitle, IonCardTitle, IonList, IonItem, IonButton, IonIcon, IonButtons, IonModal, IonInput, onIonViewWillEnter, IonSelect, IonSelectOption, 
-IonRefresher, IonRefresherContent, RefresherCustomEvent } from '@ionic/vue';
-import { add, swapVerticalOutline } from 'ionicons/icons';
-import { createTemplate, getExercises,addExerciseToTemplate,getTemplates ,getTemplateExercises, deleteTemplate } from '@/services/gym_db'
-import { ref ,onMounted} from 'vue';
+import { IonPage, IonHeader, IonToolbar, IonTitle, IonContent, IonItem, IonButton, IonButtons, IonInput, onIonViewWillEnter } from '@ionic/vue';
+import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import Draggable from 'vuedraggable';
+import { createTemplate, getExercises, addExerciseToTemplate } from '@/services/gym_db';
 
 const router = useRouter();
 
@@ -87,7 +84,6 @@ const goToExercisePicker = () => {
 
 //create template
 const TemplateName = ref('');
-const selectedTemplateId = ref<number | null>(null);
 
 
 const cancel = () => {
@@ -161,18 +157,8 @@ const LoadExercises = async () =>{
 
 
 
-//refresh 
-
-const handleRefresh = async (event: RefresherCustomEvent) => {
-  await LoadExercises();
-
-  event.target.complete();
-};
-
-
 onMounted(() => {
     LoadExercises()
-
 });
 
 onIonViewWillEnter(() => {

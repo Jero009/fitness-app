@@ -50,9 +50,7 @@ const LoadHistory = async () =>{
   for (const workout of data) {
     workout.exercises = await getWorkoutHistoryExercises(workout.id);
 
-    if (workout.time_start && workout.time_end) {
-
-    }
+    // workout duration is already formatted in the template
   }
 
   workouts.value = data;

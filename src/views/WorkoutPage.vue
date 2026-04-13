@@ -32,11 +32,11 @@
 </template>
 
 <script setup lang="ts">
-import { IonPage, IonHeader, IonToolbar, IonTitle, IonContent,IonButtons,IonButton,IonCard,IonCardHeader,IonCardContent,IonCheckbox,IonInput,IonCardTitle,onIonViewWillEnter,onUnmounted } from '@ionic/vue';
-import { ref } from 'vue';
+import { IonPage, IonHeader, IonToolbar, IonTitle, IonContent,IonButtons,IonButton,IonCard,IonCardHeader,IonCardContent,IonCheckbox,IonInput,IonCardTitle,onIonViewWillEnter } from '@ionic/vue';
+import { ref, onUnmounted } from 'vue';
 import { useRouter,useRoute } from 'vue-router';
 
-import { getWorkoutExercises,getWorkoutSets,updateWorkoutSet,getWorkoutById,endWorkout,saveWorkoutTotalKg } from '@/services/gym_db';
+import { getWorkoutExercises,getWorkoutSets,updateWorkoutSet,getWorkoutById,endWorkout } from '@/services/gym_db';
 
 const router = useRouter();
 // id from route
@@ -51,7 +51,7 @@ const workoutExercises = ref<any[]>([]);
 
 const loadWorkout = async () => {
   const workout = await getWorkoutById(workoutId);
-  startTime.value = workout?.time_start.replace(' ', 'T') + 'Z';
+  startTime.value = workout?.time_start.replace(' ', 'T');
 
   const data = await getWorkoutExercises(workoutId);
 
