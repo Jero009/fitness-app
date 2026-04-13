@@ -60,7 +60,7 @@ const formatDuration = (start: string, end: any) => {
   if (!start || !end) return '0h 0m 0s';
 
   // parse start (string)
-  const s = new Date(start.replace(' ', 'T')).getTime();
+  const s = new Date(start.replace(' ', 'T') + 'Z').getTime();
 
   // parse end (can be string, number, or stringified number)
   let e: number;
@@ -69,7 +69,7 @@ const formatDuration = (start: string, end: any) => {
   } else if (!isNaN(Number(end))) {
     e = Number(end);
   } else {
-    e = new Date(end.replace(' ', 'T')).getTime();
+    e = new Date(end.replace(' ', 'T') + 'Z').getTime();
   }
 
   if (isNaN(s) || isNaN(e)) return 'Invalid time';

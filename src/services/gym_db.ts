@@ -434,6 +434,15 @@ export async function endWorkout(id: number, time_end: number) {
 
   return result;
 }
+
+export async function cancelWorkout(id: number) {
+  if (!db) return;
+  return await db.run(
+    'DELETE FROM workout WHERE id = ?',
+    [id]
+  );
+}
+
 export async function getWorkouts() {
   if (!db) return [];
 

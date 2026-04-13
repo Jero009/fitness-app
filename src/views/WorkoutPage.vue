@@ -27,16 +27,19 @@
                   </div>
                 </ion-card-content>
             </ion-card>
+            <div class="cancel-container">
+              <ion-button  expand="block" fill="outline" @click="handleCancelWorkout">Cancel Workout</ion-button>
+            </div>
     </ion-content>
   </ion-page>
 </template>
 
 <script setup lang="ts">
-import { IonPage, IonHeader, IonToolbar, IonTitle, IonContent,IonButtons,IonButton,IonCard,IonCardHeader,IonCardContent,IonCheckbox,IonInput,IonCardTitle,onIonViewWillEnter } from '@ionic/vue';
+import { IonPage, IonHeader, IonToolbar, IonTitle, IonContent,IonButtons,IonButton,IonCard,IonCardHeader,IonCardContent,IonCheckbox,IonInput,IonCardTitle,onIonViewWillEnter, alertController } from '@ionic/vue';
 import { ref, onUnmounted } from 'vue';
 import { useRouter,useRoute } from 'vue-router';
 
-import { getWorkoutExercises,getWorkoutSets,updateWorkoutSet,getWorkoutById,endWorkout } from '@/services/gym_db';
+import { getWorkoutExercises,getWorkoutSets,updateWorkoutSet,getWorkoutById,endWorkout,cancelWorkout } from '@/services/gym_db';
 
 const router = useRouter();
 // id from route
@@ -51,7 +54,7 @@ const workoutExercises = ref<any[]>([]);
 
 const loadWorkout = async () => {
   const workout = await getWorkoutById(workoutId);
-  startTime.value = workout?.time_start.replace(' ', 'T');
+  startTime.value = workout?.time_start ? workout.time_start.replace(' ', 'T') + 'Z' : null;
 
   const data = await getWorkoutExercises(workoutId);
 
@@ -86,6 +89,29 @@ const saveWorkout = async ()=>{
   console.log("Workout saved!");
 
   router.push('/tabs/Home');
+};
+
+const handleCancelWorkout = async () => {
+  const alert = await alertController.create({
+    header: 'Cancel Workout?',
+    message: 'Are you sure you want to cancel? This workout will not be saved.',
+    buttons: [
+      { text: 'No', role: 'cancel' },
+      {
+        text: 'Yes, Cancel',
+        role: 'confirm',
+        handler: async () => {
+          await cancelWorkout(workoutId);
+          console.log("Workout cancelled and deleted from DB");
+          if (interval) clearInterval(interval);
+          interval = null;
+          router.push('/tabs/Home');
+        }
+      }
+    ]
+  });
+
+  await alert.present();
 };
 
 //timer 
@@ -175,6 +201,12 @@ onUnmounted(() => {
 }.unit {
   font-size: 0.9rem;
   color: #888;
+}
+
+.cancel-container {
+  padding: 16px;
+  margin-top: 20px;
+  margin-bottom: 20px;
 }
 
 </style>
