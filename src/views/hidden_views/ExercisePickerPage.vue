@@ -39,27 +39,40 @@
 import { IonPage, IonHeader, IonToolbar, IonTitle, IonContent, IonList, IonItem, IonSelect, IonSelectOption, IonRefresher, IonRefresherContent, onIonViewWillEnter } from '@ionic/vue';
 import type { RefresherCustomEvent } from '@ionic/vue';
 import { ref, onMounted, computed } from 'vue';
-import { getExercises, getMuscleGroups, getEquipment } from '@/services/gym_db';
+import { getExercises, getMuscleGroups, addExerciseToWorkout, getNextWorkoutOrderIndex } from '@/services/gym_db';
 import { useRouter, useRoute } from 'vue-router';
 const router = useRouter();
 
-// template id 
 const route = useRoute();
 
+// exercise selection - handles both template and workout contexts
+const selectExercise = async (exercise: exercise) => {
+  const workoutId = Number(route.query.workoutId);
 
-// exercise selection for template creation
-const selectExercise = (exercise: exercise) => {
-  localStorage.setItem('selectedExerciseForTemplate', JSON.stringify(exercise));
+  if (!isNaN(workoutId)) {
+    // Adding exercise to an active workout
+    const orderIndex = await getNextWorkoutOrderIndex(workoutId);
+    await addExerciseToWorkout(workoutId, exercise.id, orderIndex, 3, 10, 0);
 
-  const templateId = Number(route.query.templateId);
-
-  if (!isNaN(templateId)) {
+    // Navigate back to the workout page
     router.push({
-      name: 'TemplateEditor',
-      params: { id: templateId }
+      name: 'Workout',
+      params: { id: workoutId.toString() }
     });
   } else {
-    router.push({ name: 'TemplateBuilder' });
+    // Original template behavior
+    localStorage.setItem('selectedExerciseForTemplate', JSON.stringify(exercise));
+
+    const templateId = Number(route.query.templateId);
+
+    if (!isNaN(templateId)) {
+      router.push({
+        name: 'TemplateEditor',
+        params: { id: templateId }
+      });
+    } else {
+      router.push({ name: 'TemplateBuilder' });
+    }
   }
 };
 
@@ -83,9 +96,8 @@ const LoadExercises = async () =>{
   exercises.value = data;
   
 };
-// get muscle group and equipment for select options
+// get muscle group for select options
 const muscleGroups = ref<any[]>([]);
-const equipmentList = ref<any[]>([]);
 
 
 
@@ -109,14 +121,11 @@ const handleRefresh = async (event: RefresherCustomEvent) => {
 onMounted(() => {
     LoadExercises()
     getMuscleGroups().then(data => muscleGroups.value = data);
-    getEquipment().then(data => equipmentList.value = data);
 });
 
 onIonViewWillEnter(() => {
     LoadExercises()
     getMuscleGroups().then(data => muscleGroups.value = data);
-    getEquipment().then(data => equipmentList.value = data);
-
 });
 
 </script>

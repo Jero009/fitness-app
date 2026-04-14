@@ -515,7 +515,86 @@ export async function getLatestWorkout() {
   if (!db) return null;
   const result = await db.query('SELECT * FROM workout ORDER BY time_start DESC LIMIT 1');
   return result.values?.[0] || null;
-  
+
+}
+
+// Add a new exercise to an active workout
+export async function addExerciseToWorkout(
+  workoutId: number,
+  exerciseId: number,
+  orderIndex: number,
+  setNumber: number,
+  repNumber: number,
+  weight: number = 0
+) {
+  if (!db) return;
+
+  try {
+    // Insert the exercise into workout_exercise
+    const resultWE = await db.run(
+      `INSERT INTO workout_exercise (workout_id, exercise_id, order_index) VALUES (?, ?, ?)`,
+      [workoutId, exerciseId, orderIndex]
+    );
+    const workoutExerciseId = resultWE.changes?.lastId;
+
+    // Insert the initial set(s) into workout_exercise_sets
+    for (let i = 0; i < setNumber; i++) {
+      await db.run(
+        'INSERT INTO workout_exercise_sets (workout_exercise_id, set_number, reps, weight) VALUES (?, ?, ?, ?)',
+        [workoutExerciseId, i + 1, repNumber, weight]
+      );
+    }
+
+    return workoutExerciseId;
+  } catch (error) {
+    console.error('Error adding exercise to workout:', error);
+    throw error;
+  }
+}
+
+// Add a new set to an existing workout exercise
+export async function addSetToWorkoutExercise(
+  workoutExerciseId: number,
+  setNumber: number,
+  repNumber: number,
+  weight: number = 0
+) {
+  if (!db) return;
+
+  try {
+    const result = await db.run(
+      'INSERT INTO workout_exercise_sets (workout_exercise_id, set_number, reps, weight) VALUES (?, ?, ?, ?)',
+      [workoutExerciseId, setNumber, repNumber, weight]
+    );
+    return result.changes?.lastId;
+  } catch (error) {
+    console.error('Error adding set to workout exercise:', error);
+    throw error;
+  }
+}
+
+// Get the next order index for a workout
+export async function getNextWorkoutOrderIndex(workoutId: number) {
+  if (!db) return 0;
+
+  const result = await db.query(
+    'SELECT MAX(order_index) as max_order FROM workout_exercise WHERE workout_id = ?',
+    [workoutId]
+  );
+  const maxOrder = result.values?.[0]?.max_order ?? 0;
+  return maxOrder + 1;
+}
+
+// Get the next set number for a workout exercise
+export async function getNextSetNumber(workoutExerciseId: number) {
+  if (!db) return 1;
+
+  const result = await db.query(
+    'SELECT MAX(set_number) as max_set FROM workout_exercise_sets WHERE workout_exercise_id = ?',
+    [workoutExerciseId]
+  );
+  const maxSet = result.values?.[0]?.max_set ?? 0;
+  return maxSet + 1;
 }
 
 export async function getWorkoutsByTemplate() {

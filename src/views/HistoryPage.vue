@@ -17,9 +17,14 @@
           <div v-for="w in workouts" :key="w.id">
             <ion-card class="card-template">
                 <ion-card-header>
-                  <ion-card-title>{{ w.name || 0 }}</ion-card-title>
-                  <ion-card-subtitle>{{ formatDuration(w.time_start, w.time_end) }}</ion-card-subtitle>
-                  <ion-card-subtitle>{{ w.total_kg }} kg</ion-card-subtitle>
+                  <div class="card-header-flex">
+                    <div>
+                      <ion-card-title>{{ w.name || 0 }}</ion-card-title>
+                      <ion-card-subtitle>{{ formatDuration(w.time_start, w.time_end) }}</ion-card-subtitle>
+                      <ion-card-subtitle>{{ w.total_kg }} kg</ion-card-subtitle>
+                    </div>
+                    <ion-button color="danger" fill="clear" @click="handleDelete(w.id)">Delete</ion-button>
+                  </div>
                 </ion-card-header>
                 <ion-card-content>
                   <ion-list >
@@ -36,8 +41,8 @@
 
 <script setup lang="ts">
 import { IonPage, IonHeader, IonToolbar, IonTitle, IonContent,IonCard,IonCardHeader,IonCardContent,IonCardSubtitle,IonCardTitle,IonList,IonItem, 
-IonRefresher, IonRefresherContent, RefresherCustomEvent, onIonViewWillEnter } from '@ionic/vue';
-import { getWorkouts,getWorkoutHistoryExercises } from '@/services/gym_db'
+IonRefresher, IonRefresherContent, RefresherCustomEvent, onIonViewWillEnter, IonButton, alertController } from '@ionic/vue';
+import { getWorkouts,getWorkoutHistoryExercises, cancelWorkout } from '@/services/gym_db'
 import { onMounted ,ref} from 'vue';
 
 
@@ -89,6 +94,26 @@ const formatDuration = (start: string, end: any) => {
    event.target.complete();
   };
 
+const handleDelete = async (id: number) => {
+  const alert = await alertController.create({
+    header: 'Delete Workout?',
+    message: 'Are you sure you want to delete this workout from your history?',
+    buttons: [
+      { text: 'Cancel', role: 'cancel' },
+      {
+        text: 'Delete',
+        role: 'destructive',
+        handler: async () => {
+          await cancelWorkout(id);
+          await LoadHistory();
+        }
+      }
+    ]
+  });
+
+  await alert.present();
+};
+
 
   onMounted(() => {
     LoadHistory()
@@ -100,3 +125,11 @@ const formatDuration = (start: string, end: any) => {
 });
 
 </script>
+
+<style scoped>
+.card-header-flex {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+</style>

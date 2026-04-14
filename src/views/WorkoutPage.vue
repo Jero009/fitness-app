@@ -15,31 +15,54 @@
           <ion-title size="large">Workout</ion-title>
         </ion-toolbar>
       </ion-header>
-            <ion-card class="exercise-card"  v-for="ex in workoutExercises" :key="ex.id">
-                <ion-card-header >
-                <ion-card-title>{{ ex.name }}</ion-card-title>
-                </ion-card-header>
-                <ion-card-content>
-                  <div class="set" v-for="set in ex.sets" :key="set.id">
-                    <ion-checkbox slot="start" v-model="set.completed" @ionChange="() => saveSet(set)" class="checkbox"></ion-checkbox>
-                    <div class="input-container"><ion-input fill="outline" type="number" placeholder="kg" v-model.number="set.weight" @ionBlur="saveSet(set)" class="input-small"></ion-input><span class="unit">Kg</span></div>
-                    <div class="input-container"><ion-input fill="outline" type="number" placeholder="reps" v-model.number="set.reps" @ionBlur="saveSet(set)" class="input-small"></ion-input><span class="unit">reps</span></div>
-                  </div>
-                </ion-card-content>
-            </ion-card>
-            <div class="cancel-container">
-              <ion-button  expand="block" fill="outline" @click="handleCancelWorkout">Cancel Workout</ion-button>
+
+      <!-- Add Exercise Button -->
+      <div class="add-exercise-container">
+        <ion-button expand="block" @click="addNewExercise" color="secondary">
+          <ion-icon slot="start" :icon="addCircleOutline"></ion-icon>
+          Add Exercise
+        </ion-button>
+      </div>
+
+      <ion-card class="exercise-card"  v-for="ex in workoutExercises" :key="ex.id">
+        <ion-card-header>
+          <ion-card-title>{{ ex.name }}</ion-card-title>
+        </ion-card-header>
+        <ion-card-content>
+          <div class="set" v-for="set in ex.sets" :key="set.id">
+            <ion-checkbox slot="start" v-model="set.completed" @ionChange="() => saveSet(set)" class="checkbox"></ion-checkbox>
+            <div class="input-container">
+              <ion-input fill="outline" type="number" placeholder="kg" v-model.number="set.weight" @ionBlur="saveSet(set)" class="input-small"></ion-input>
+              <span class="unit">Kg</span>
             </div>
+            <div class="input-container">
+              <ion-input fill="outline" type="number" placeholder="reps" v-model.number="set.reps" @ionBlur="saveSet(set)" class="input-small"></ion-input>
+              <span class="unit">reps</span>
+            </div>
+          </div>
+
+          <!-- Add Set Button -->
+          <ion-button expand="block" fill="outline" @click="addNewSet(ex)" class="add-set-btn">
+            <ion-icon slot="start" :icon="addOutline"></ion-icon>
+            Add Set
+          </ion-button>
+        </ion-card-content>
+      </ion-card>
+
+      <div class="cancel-container">
+        <ion-button expand="block" fill="outline" @click="handleCancelWorkout">Cancel Workout</ion-button>
+      </div>
     </ion-content>
   </ion-page>
 </template>
 
 <script setup lang="ts">
-import { IonPage, IonHeader, IonToolbar, IonTitle, IonContent,IonButtons,IonButton,IonCard,IonCardHeader,IonCardContent,IonCheckbox,IonInput,IonCardTitle,onIonViewWillEnter, alertController } from '@ionic/vue';
+import { IonPage, IonHeader, IonToolbar, IonTitle, IonContent,IonButtons,IonButton,IonCard,IonCardHeader,IonCardContent,IonCheckbox,IonInput,IonCardTitle,onIonViewWillEnter, alertController, IonIcon } from '@ionic/vue';
 import { ref, onUnmounted } from 'vue';
 import { useRouter,useRoute } from 'vue-router';
+import { addCircleOutline, addOutline } from 'ionicons/icons';
 
-import { getWorkoutExercises,getWorkoutSets,updateWorkoutSet,getWorkoutById,endWorkout,cancelWorkout } from '@/services/gym_db';
+import { getWorkoutExercises,getWorkoutSets,updateWorkoutSet,getWorkoutById,endWorkout,cancelWorkout, addSetToWorkoutExercise, getNextSetNumber } from '@/services/gym_db';
 
 const router = useRouter();
 // id from route
@@ -112,6 +135,32 @@ const handleCancelWorkout = async () => {
   });
 
   await alert.present();
+};
+
+// Add new exercise to workout
+const addNewExercise = async () => {
+  router.push({
+    name: 'ExercisePicker',
+    query: { workoutId: workoutId.toString() }
+  });
+};
+
+// Add new set to existing exercise
+const addNewSet = async (exercise: any) => {
+  const nextSetNum = await getNextSetNumber(exercise.id);
+  const defaultReps = exercise.sets && exercise.sets.length > 0 ? exercise.sets[0].reps : 10;
+
+  const newSetId = await addSetToWorkoutExercise(
+    exercise.id,
+    nextSetNum,
+    defaultReps,
+    0
+  );
+
+  if (newSetId) {
+    // Reload the entire workout to ensure reactivity
+    await loadWorkout();
+  }
 };
 
 //timer 
@@ -207,6 +256,16 @@ onUnmounted(() => {
   padding: 16px;
   margin-top: 20px;
   margin-bottom: 20px;
+}
+
+.add-exercise-container {
+  padding: 16px;
+  padding-top: 8px;
+}
+
+.add-set-btn {
+  margin-top: 10px;
+  --border-radius: 8px;
 }
 
 </style>
