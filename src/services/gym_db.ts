@@ -378,7 +378,8 @@ export async function getWorkoutExercises(workoutId: number) {
   const result = await db.query(`
     SELECT 
       we.id,
-      e.name
+      e.name,
+      e.rest_seconds
     FROM workout_exercise we
     JOIN exercise e ON e.id = we.exercise_id
     WHERE we.workout_id = ?

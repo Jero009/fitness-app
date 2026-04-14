@@ -151,7 +151,8 @@ let interval: ReturnType<typeof setInterval> | null = null;
 const loadActiveWorkout = async () => {
   const workout = await getActiveWorkout();
   if (workout && workout.time_start) {
-    startTime.value = workout.time_start.replace(' ', 'T');
+    // Add 'Z' to treat as UTC, then convert to local time properly
+    startTime.value = workout.time_start.replace(' ', 'T') + 'Z';
     startTimer();
     activeWorkout.value = true;
   } else {
