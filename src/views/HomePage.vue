@@ -16,11 +16,14 @@
                 <ion-card-header > 
                 <ion-card-title >Stats for the last workout</ion-card-title>
 
-                <ion-card-subtitle>{{ latestWorkout?.time_end}}</ion-card-subtitle>
+                <ion-card-subtitle>{{ latestWorkout ? formatDate(latestWorkout.time_end) : '' }}</ion-card-subtitle>
                 </ion-card-header>
-                <ion-card-content>
+                <ion-card-content v-if="latestWorkout">
                 <span>Total weight lifted: {{ latestWorkout?.total_kg || 0 }} kg</span>
                 <span>{{ formatDuration(latestWorkout?.time_start, latestWorkout?.time_end) }}</span>
+                </ion-card-content>
+                <ion-card-content v-else>
+                  <span>No workouts yet</span>
                 </ion-card-content>
             </ion-card>
 
@@ -45,11 +48,13 @@
               </ion-card>
             </div>
               <ion-card class="chart-card">
-                <ion-select placeholder="Select template" interface="action-sheet" v-model="selectedTemplateId"><!--this doesnt triger-->
-                  <ion-select-option v-for="t in templates" :key="t.id" :value="t.id">
-                    {{ t.name }}
-                  </ion-select-option>
-                </ion-select>
+                <ion-item lines="none" class="chart-select-item">
+                  <ion-select placeholder="Select template" interface="action-sheet" v-model="selectedTemplateId" @ionChange="handleTemplateChange">
+                    <ion-select-option v-for="t in templates" :key="t.id" :value="t.id">
+                      {{ t.name }}
+                    </ion-select-option>
+                  </ion-select>
+                </ion-item>
                 <canvas ref="chartRef" ></canvas>
               </ion-card>
     </ion-content>
@@ -57,7 +62,7 @@
 </template>
 
 <script setup lang="ts">
-import { IonPage, IonHeader, IonToolbar, IonTitle, IonContent, IonCard, IonCardHeader, IonCardSubtitle, IonCardContent, IonCardTitle, onIonViewWillEnter, IonIcon, IonSelect, IonSelectOption } from '@ionic/vue';
+import { IonPage, IonHeader, IonToolbar, IonTitle, IonContent, IonCard, IonCardHeader, IonCardSubtitle, IonCardContent, IonCardTitle, onIonViewWillEnter, IonIcon, IonSelect, IonSelectOption, IonItem } from '@ionic/vue';
 import { getTemplates, startWorkoutFromTemplate, getActiveWorkout, getLatestWorkout, getWorkoutsByName } from '@/services/gym_db';
 import { ref, onMounted, onUnmounted,computed,watch } from 'vue';
 import { barbellSharp } from 'ionicons/icons';
@@ -113,11 +118,24 @@ const loadLatestWorkout = async () => {
   }
 };
 
+const formatDate = (date: any) => {
+  if (!date) return '';
+  let d: Date;
+  if (typeof date === 'number') {
+    d = new Date(date);
+  } else if (!isNaN(Number(date))) {
+    d = new Date(Number(date));
+  } else {
+    d = new Date(date.replace(' ', 'T') + 'Z');
+  }
+  return d.toLocaleDateString() + ' ' + d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+};
+
 const formatDuration = (start: string, end: any) => {
   if (!start || !end) return '0h 0m 0s';
 
   // parse start (string)
-  const s = new Date(start.replace(' ', 'T')).getTime();
+  const s = new Date(start.replace(' ', 'T') + 'Z').getTime();
 
   // parse end (can be string, number, or stringified number)
   let e: number;
@@ -126,10 +144,10 @@ const formatDuration = (start: string, end: any) => {
   } else if (!isNaN(Number(end))) {
     e = Number(end);
   } else {
-    e = new Date(end.replace(' ', 'T')).getTime();
+    e = new Date(end.replace(' ', 'T') + 'Z').getTime();
   }
 
-  if (isNaN(s) || isNaN(e)) return 'Invalid time';
+  if (isNaN(s) || isNaN(e)) return '0h 0m';
 
   const diff = Math.max(0, e - s);
   const totalSeconds = Math.floor(diff / 1000);
@@ -207,7 +225,7 @@ const selectedTemplateId = ref<number | null>(null);
 const chartData = computed(() => {
   return workouts.value
     .map(w => ({
-      date: new Date(w.time_start.replace(' ', 'T')).toLocaleDateString(),
+      date: new Date(w.time_start.replace(' ', 'T') + 'Z').toLocaleDateString(),
       kg: w.total_kg || 0
     }))
     .reverse(); // oldest → newest
@@ -246,23 +264,20 @@ const renderChart = () => {
   });
 };
 
-
-
-// Watch for template selection and update chart data (only one watcher)
-watch(selectedTemplateId, async (templateId) => {
-  console.log('WATCHER TRIGGERED. Template selected:', templateId, typeof templateId); /// this doesnt show------------------------------------
+const handleTemplateChange = async (event: any) => {
+  const templateId = event.detail.value;
   if (!templateId) {
     workouts.value = [];
     renderChart();
     return;
   }
   const numId = Number(templateId);
-  console.log('Fetching workouts for templateId:', numId);
   const data = await getWorkoutsByName(numId);
-  console.log('Fetched workouts:', data);
   workouts.value = data || [];
   renderChart();
-});
+};
+
+
 
 // Load all templates and latest workout on mount
 onMounted(async () => {
@@ -335,5 +350,9 @@ onUnmounted(() => {
   padding: 10px;
   border-radius: 10px;
   background-color: var(--ion-color-dark);
+}
+.chart-select-item {
+  --background: transparent;
+  --color: white;
 }
 </style>

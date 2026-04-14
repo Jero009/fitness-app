@@ -37,20 +37,18 @@
                       label="Sets"  label-placement="floating" 
                       :clear-on-edit="true"
                         type="number"
-                        v-model="ex.set_number"
+                        v-model.number="ex.set_number"
                         style="width: 60px"
                         placeholder="Sets"
-                        @ionInput="ex.set_number = Number($event.target.value)"
                       ></ion-input>
                       
                       <ion-input
                       label="Reps" label-placement="floating"
                       :clear-on-edit="true"
                         type="number"
-                        v-model="ex.rep_number"
+                        v-model.number="ex.rep_number"
                         style="width: 60px"
                         placeholder="Reps"
-                        @ionInput="ex.rep_number = Number($event.target.value)"
                       ></ion-input>
                     </ion-item>
                   </template>
@@ -176,8 +174,8 @@ onIonViewWillEnter(async () => {
           id: 0, // 🔥 IMPORTANT (new row, not in DB yet)
           id_exercise: ex.id,
           name: ex.name,
-          set_number: 0,
-          rep_number: 0,
+          set_number: 3,
+          rep_number: 10,
           order_index: exercises.value.length
         });
       }
@@ -194,6 +192,17 @@ onIonViewWillEnter(async () => {
 
 </script>
 <style>
+.card-template{
+  margin: 10px auto ;
+  width: 90%;
+}
+
+.sortable-chosen {
+  background: var(--ion-color-primary-medium) !important; /* Light blue */
+  transition: background 0.2s;
+}
+
+</style><style>
 .card-template{
   margin: 10px auto ;
   width: 90%;

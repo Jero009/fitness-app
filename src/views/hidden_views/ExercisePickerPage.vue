@@ -14,9 +14,9 @@
           <ion-refresher slot="fixed" @ionRefresh="handleRefresh($event)">
             <ion-refresher-content></ion-refresher-content>
           </ion-refresher>
-            <div class="card-template">
-                <ion-item>
-                  <ion-select v-model="selectedMuscleGroup" placeholder="Filter by muscle group" interface="action-sheet">
+            <div class="exercise-list-container">
+                <ion-item lines="none" class="muscle-group-select-item">
+                  <ion-select v-model="selectedMuscleGroup" placeholder="Filter by muscle group" interface="action-sheet" class="muscle-group-select">
                     <ion-select-option value="">All</ion-select-option>
                     <ion-select-option v-for="mg in muscleGroups" :key="mg.id" :value="mg.name">
                       {{ mg.name }}
@@ -24,8 +24,8 @@
                   </ion-select>
                 </ion-item>
 
-                      <ion-list class="exercise-list" lines="full">
-                        <ion-item class="exercise-item" v-for="ex in filteredExercises" :key="ex.id" @click="selectExercise(ex)">
+                      <ion-list class="exercise-list" lines="none">
+                        <ion-item class="exercise-item" v-for="ex in filteredExercises" :key="ex.id" @click="selectExercise(ex)" lines="none">
                           {{ ex.name }}
                         </ion-item>
                       </ion-list>
@@ -47,9 +47,10 @@ const route = useRoute();
 
 // exercise selection - handles both template and workout contexts
 const selectExercise = async (exercise: exercise) => {
-  const workoutId = Number(route.query.workoutId);
+  const workoutIdQuery = route.query.workoutId;
 
-  if (!isNaN(workoutId)) {
+  if (workoutIdQuery) {
+    const workoutId = Number(workoutIdQuery);
     // Adding exercise to an active workout
     const orderIndex = await getNextWorkoutOrderIndex(workoutId);
     await addExerciseToWorkout(workoutId, exercise.id, orderIndex, 3, 10, 0);
@@ -63,12 +64,12 @@ const selectExercise = async (exercise: exercise) => {
     // Original template behavior
     localStorage.setItem('selectedExerciseForTemplate', JSON.stringify(exercise));
 
-    const templateId = Number(route.query.templateId);
+    const templateIdQuery = route.query.templateId;
 
-    if (!isNaN(templateId)) {
+    if (templateIdQuery) {
       router.push({
         name: 'TemplateEditor',
-        params: { id: templateId }
+        params: { id: templateIdQuery.toString() }
       });
     } else {
       router.push({ name: 'TemplateBuilder' });
@@ -130,9 +131,30 @@ onIonViewWillEnter(() => {
 
 </script>
 <style>
+.exercise-list-container {
+  width: 90%;
+  margin: auto;
+}
+
 .exercise-list {
-  margin: 10px auto ;
+  background: transparent;
+}
+
+.exercise-item {
+  margin-bottom: 10px;
+  --background: var(--ion-color-medium);
+  --border-radius: 10px;
+  cursor: pointer;
+}
+
+.muscle-group-select-item {
+  margin-bottom: 10px;
+  --padding-start: 0;
+}
+
+.muscle-group-select {
   width: 100%;
+  --padding-start: 0;
 }
 
 </style>

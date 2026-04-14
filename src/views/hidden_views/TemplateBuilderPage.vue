@@ -172,8 +172,8 @@ onIonViewWillEnter(() => {
         selectedExercises.value.push({
           id: ex.id,
           name: ex.name,
-          set_number: ex.set_number || 0,
-          rep_number: ex.rep_number || 0
+          set_number: 3,
+          rep_number: 10
         });
       }
     } catch (e) {
