@@ -3,9 +3,26 @@
     <ion-header>
       <ion-toolbar>
         <ion-title class="title">History</ion-title>
+        <ion-buttons slot="end">
+          <ion-button fill="clear" @click="handleExport">
+            <ion-icon slot="start" :icon="downloadOutline" />
+            Export
+          </ion-button>
+          <ion-button fill="clear" @click="triggerImport">
+            <ion-icon slot="start" :icon="cloudUploadOutline" />
+            Import
+          </ion-button>
+        </ion-buttons>
       </ion-toolbar>
     </ion-header>
     <ion-content :fullscreen="true">
+      <input
+        ref="importInput"
+        type="file"
+        accept=".sql,text/plain"
+        style="display: none"
+        @change="handleImportFile"
+      >
       <ion-header collapse="condense">
         <ion-toolbar>
           <ion-title size="large">History</ion-title>
@@ -41,13 +58,15 @@
 
 <script setup lang="ts">
 import { IonPage, IonHeader, IonToolbar, IonTitle, IonContent,IonCard,IonCardHeader,IonCardContent,IonCardSubtitle,IonCardTitle,IonList,IonItem, 
-IonRefresher, IonRefresherContent, RefresherCustomEvent, onIonViewWillEnter, IonButton, alertController } from '@ionic/vue';
-import { getWorkouts,getWorkoutHistoryExercises, cancelWorkout } from '@/services/gym_db'
+IonRefresher, IonRefresherContent, RefresherCustomEvent, onIonViewWillEnter, IonButton, alertController, IonButtons, IonIcon } from '@ionic/vue';
+import { getWorkouts,getWorkoutHistoryExercises, cancelWorkout, exportDatabaseToSQL, importDatabaseFromSQL } from '@/services/gym_db'
 import { onMounted ,ref} from 'vue';
+import { cloudUploadOutline, downloadOutline } from 'ionicons/icons';
 
 
 
 const workouts = ref<any[]>([]);
+const importInput = ref<HTMLInputElement | null>(null);
 
 const LoadHistory = async () =>{
   const data = await getWorkouts();
@@ -112,6 +131,79 @@ const handleDelete = async (id: number) => {
   });
 
   await alert.present();
+};
+
+const handleExport = async () => {
+  const backup = await exportDatabaseToSQL();
+
+  if (!backup) {
+    const alert = await alertController.create({
+      header: 'Export Failed',
+      message: 'Database is not initialized yet.',
+      buttons: ['OK']
+    });
+    await alert.present();
+    return;
+  }
+
+  const blob = new Blob([backup.sql], { type: 'application/sql' });
+  const url = URL.createObjectURL(blob);
+  const anchor = document.createElement('a');
+  anchor.href = url;
+  anchor.download = backup.fileName;
+  document.body.appendChild(anchor);
+  anchor.click();
+  anchor.remove();
+  URL.revokeObjectURL(url);
+};
+
+const triggerImport = () => {
+  importInput.value?.click();
+};
+
+const handleImportFile = async (event: Event) => {
+  const target = event.target as HTMLInputElement;
+  const file = target.files?.[0];
+
+  if (!file) return;
+
+  const sqlContent = await file.text();
+
+  const confirmAlert = await alertController.create({
+    header: 'Import SQL Backup?',
+    message: 'Importing will replace your current data with the file content.',
+    buttons: [
+      {
+        text: 'Cancel',
+        role: 'cancel',
+        handler: () => {
+          target.value = '';
+        }
+      },
+      {
+        text: 'Import',
+        handler: async () => {
+          const result = await importDatabaseFromSQL(sqlContent);
+
+          const resultAlert = await alertController.create({
+            header: result.success ? 'Import Complete' : 'Import Failed',
+            message: result.message,
+            buttons: ['OK']
+          });
+
+          await resultAlert.present();
+
+          if (result.success) {
+            await LoadHistory();
+          }
+
+          target.value = '';
+        }
+      }
+    ]
+  });
+
+  await confirmAlert.present();
 };
 
 

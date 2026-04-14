@@ -396,6 +396,7 @@ onUnmounted(() => {
 }
 
 .add-exercise-container {
+  color: var(--ion-color-accent-yellow);
   padding: 16px;
   padding-top: 8px;
 }
