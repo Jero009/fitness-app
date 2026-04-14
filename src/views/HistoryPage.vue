@@ -65,6 +65,7 @@ import { cloudUploadOutline, downloadOutline } from 'ionicons/icons';
 import { Capacitor } from '@capacitor/core';
 import { Directory, Encoding, Filesystem } from '@capacitor/filesystem';
 import { Share } from '@capacitor/share';
+import { FilePicker } from '@capawesome/capacitor-file-picker';
 
 
 
@@ -195,27 +196,35 @@ const handleExport = async () => {
 };
 
 const triggerImport = () => {
-  importInput.value?.click();
+  if (Capacitor.getPlatform() === 'web') {
+    importInput.value?.click();
+    return;
+  }
+
+  void pickNativeImportFile();
 };
 
-const handleImportFile = async (event: Event) => {
-  const target = event.target as HTMLInputElement;
-  const file = target.files?.[0];
+const parseBase64Text = (base64Data: string) => {
+  try {
+    return decodeURIComponent(
+      atob(base64Data)
+        .split('')
+        .map((char) => `%${(`00${char.charCodeAt(0).toString(16)}`).slice(-2)}`)
+        .join('')
+    );
+  } catch {
+    return atob(base64Data);
+  }
+};
 
-  if (!file) return;
-
-  const sqlContent = await file.text();
-
+const runImportWithConfirm = async (sqlContent: string) => {
   const confirmAlert = await alertController.create({
     header: 'Import SQL Backup?',
     message: 'Importing will replace your current data with the file content.',
     buttons: [
       {
         text: 'Cancel',
-        role: 'cancel',
-        handler: () => {
-          target.value = '';
-        }
+        role: 'cancel'
       },
       {
         text: 'Import',
@@ -233,14 +242,61 @@ const handleImportFile = async (event: Event) => {
           if (result.success) {
             await LoadHistory();
           }
-
-          target.value = '';
         }
       }
     ]
   });
 
   await confirmAlert.present();
+};
+
+const pickNativeImportFile = async () => {
+  try {
+    const result = await FilePicker.pickFiles({
+      types: ['application/sql', 'text/plain', 'text/x-sql'],
+      readData: true
+    });
+
+    const pickedFile = result.files?.[0];
+    const data = pickedFile?.data;
+
+    if (!data) {
+      const alert = await alertController.create({
+        header: 'Import Failed',
+        message: 'Could not read file content from selected file.',
+        buttons: ['OK']
+      });
+      await alert.present();
+      return;
+    }
+
+    const sqlContent = parseBase64Text(data);
+    await runImportWithConfirm(sqlContent);
+  } catch (error) {
+    // User cancellation is expected and should not show an error dialog.
+    const message = error instanceof Error ? error.message.toLowerCase() : String(error).toLowerCase();
+    const isCancel = message.includes('cancel');
+
+    if (isCancel) return;
+
+    const alert = await alertController.create({
+      header: 'Import Failed',
+      message: 'Unable to open file picker. Please try again.',
+      buttons: ['OK']
+    });
+    await alert.present();
+  }
+};
+
+const handleImportFile = async (event: Event) => {
+  const target = event.target as HTMLInputElement;
+  const file = target.files?.[0];
+
+  if (!file) return;
+
+  const sqlContent = await file.text();
+  await runImportWithConfirm(sqlContent);
+  target.value = '';
 };
 
 

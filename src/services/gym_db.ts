@@ -23,6 +23,51 @@ function toSqlLiteral(value: unknown) {
   return `'${String(value).replace(/'/g, "''")}'`;
 }
 
+function parseSqlStatements(sqlContent: string) {
+  // Strip single-line SQL comments from backup files.
+  const withoutComments = sqlContent
+    .split('\n')
+    .map((line) => line.replace(/--.*$/, ''))
+    .join('\n');
+
+  const statements: string[] = [];
+  let current = '';
+  let insideString = false;
+
+  for (let i = 0; i < withoutComments.length; i++) {
+    const char = withoutComments[i];
+    const next = withoutComments[i + 1];
+
+    current += char;
+
+    if (char === "'") {
+      // Handle escaped quote in SQL string literal.
+      if (insideString && next === "'") {
+        current += next;
+        i++;
+        continue;
+      }
+      insideString = !insideString;
+      continue;
+    }
+
+    if (char === ';' && !insideString) {
+      const statement = current.slice(0, -1).trim();
+      if (statement) statements.push(statement);
+      current = '';
+    }
+  }
+
+  const tail = current.trim();
+  if (tail) statements.push(tail);
+
+  return statements.filter((statement) => {
+    const upper = statement.toUpperCase();
+    // Avoid nested transaction errors on plugins that wrap operations.
+    return upper !== 'BEGIN TRANSACTION' && upper !== 'COMMIT';
+  });
+}
+
 export async function initDB() {
   if (Capacitor.getPlatform() === 'web') {
     console.log('⚠️ SQLite not available on web');
@@ -197,10 +242,222 @@ export async function initDB() {
   ('Mountain Climbers', 6, 4, 30),
   ('Side Plank', 6, 4, 45);
 
+  INSERT INTO exercise (name, id_muscle_group, id_equipment, rest_seconds)
+  SELECT 'Lat Pulldown Cable', 2, 5, 90
+  WHERE NOT EXISTS (SELECT 1 FROM exercise WHERE lower(name) = lower('Lat Pulldown Cable'));
+
+  INSERT INTO exercise (name, id_muscle_group, id_equipment, rest_seconds)
+  SELECT 'Seated Row Machine', 2, 3, 90
+  WHERE NOT EXISTS (SELECT 1 FROM exercise WHERE lower(name) = lower('Seated Row Machine'));
+
+  INSERT INTO exercise (name, id_muscle_group, id_equipment, rest_seconds)
+  SELECT 'Reverse Fly Machine', 4, 3, 60
+  WHERE NOT EXISTS (SELECT 1 FROM exercise WHERE lower(name) = lower('Reverse Fly Machine'));
+
+  INSERT INTO exercise (name, id_muscle_group, id_equipment, rest_seconds)
+  SELECT 'Pullover Machine', 2, 3, 75
+  WHERE NOT EXISTS (SELECT 1 FROM exercise WHERE lower(name) = lower('Pullover Machine'));
+
+  INSERT INTO exercise (name, id_muscle_group, id_equipment, rest_seconds)
+  SELECT 'Preacher Curl Dumbbell', 5, 2, 60
+  WHERE NOT EXISTS (SELECT 1 FROM exercise WHERE lower(name) = lower('Preacher Curl Dumbbell'));
+
+  INSERT INTO exercise (name, id_muscle_group, id_equipment, rest_seconds)
+  SELECT 'Incline Bench Press', 1, 1, 120
+  WHERE NOT EXISTS (SELECT 1 FROM exercise WHERE lower(name) = lower('Incline Bench Press'));
+
+  INSERT INTO exercise (name, id_muscle_group, id_equipment, rest_seconds)
+  SELECT 'Chest Dips', 1, 4, 90
+  WHERE NOT EXISTS (SELECT 1 FROM exercise WHERE lower(name) = lower('Chest Dips'));
+
+  INSERT INTO exercise (name, id_muscle_group, id_equipment, rest_seconds)
+  SELECT 'Lateral Raise Cable', 4, 5, 60
+  WHERE NOT EXISTS (SELECT 1 FROM exercise WHERE lower(name) = lower('Lateral Raise Cable'));
+
+  INSERT INTO exercise (name, id_muscle_group, id_equipment, rest_seconds)
+  SELECT 'Triceps Extension Cable', 5, 5, 60
+  WHERE NOT EXISTS (SELECT 1 FROM exercise WHERE lower(name) = lower('Triceps Extension Cable'));
+
+  INSERT INTO exercise (name, id_muscle_group, id_equipment, rest_seconds)
+  SELECT 'Lat Pulldown Machine', 2, 3, 90
+  WHERE NOT EXISTS (SELECT 1 FROM exercise WHERE lower(name) = lower('Lat Pulldown Machine'));
+
+  INSERT INTO exercise (name, id_muscle_group, id_equipment, rest_seconds)
+  SELECT 'Seated Row Cable', 2, 5, 90
+  WHERE NOT EXISTS (SELECT 1 FROM exercise WHERE lower(name) = lower('Seated Row Cable'));
+
+  INSERT INTO exercise (name, id_muscle_group, id_equipment, rest_seconds)
+  SELECT 'Back Extension', 2, 6, 60
+  WHERE NOT EXISTS (SELECT 1 FROM exercise WHERE lower(name) = lower('Back Extension'));
+
+  INSERT INTO exercise (name, id_muscle_group, id_equipment, rest_seconds)
+  SELECT 'Bayesian Cable Curl', 5, 5, 60
+  WHERE NOT EXISTS (SELECT 1 FROM exercise WHERE lower(name) = lower('Bayesian Cable Curl'));
+
+  INSERT INTO exercise (name, id_muscle_group, id_equipment, rest_seconds)
+  SELECT 'Reverse Curl Barbell', 5, 1, 60
+  WHERE NOT EXISTS (SELECT 1 FROM exercise WHERE lower(name) = lower('Reverse Curl Barbell'));
+
+  INSERT INTO exercise (name, id_muscle_group, id_equipment, rest_seconds)
+  SELECT 'Bench Press Dumbbell', 1, 2, 90
+  WHERE NOT EXISTS (SELECT 1 FROM exercise WHERE lower(name) = lower('Bench Press Dumbbell'));
+
+  INSERT INTO exercise (name, id_muscle_group, id_equipment, rest_seconds)
+  SELECT 'Chest Fly Machine', 1, 3, 60
+  WHERE NOT EXISTS (SELECT 1 FROM exercise WHERE lower(name) = lower('Chest Fly Machine'));
+
+  INSERT INTO exercise (name, id_muscle_group, id_equipment, rest_seconds)
+  SELECT 'Shoulder Press Machine', 4, 3, 90
+  WHERE NOT EXISTS (SELECT 1 FROM exercise WHERE lower(name) = lower('Shoulder Press Machine'));
+
+  INSERT INTO workout_template (name)
+  SELECT 'PULL A'
+  WHERE NOT EXISTS (SELECT 1 FROM workout_template WHERE lower(name) = lower('PULL A'));
+
+  INSERT INTO workout_template (name)
+  SELECT 'PUSH A'
+  WHERE NOT EXISTS (SELECT 1 FROM workout_template WHERE lower(name) = lower('PUSH A'));
+
+  INSERT INTO workout_template (name)
+  SELECT 'PULL B'
+  WHERE NOT EXISTS (SELECT 1 FROM workout_template WHERE lower(name) = lower('PULL B'));
+
+  INSERT INTO workout_template (name)
+  SELECT 'PUSH B'
+  WHERE NOT EXISTS (SELECT 1 FROM workout_template WHERE lower(name) = lower('PUSH B'));
+
+  INSERT INTO workout_template_exercise (id_workout_template, id_exercise, set_number, rep_number, order_index)
+  SELECT wt.id, e.id, 3, 10, 1
+  FROM workout_template wt, exercise e
+  WHERE lower(wt.name) = lower('PULL A') AND lower(e.name) = lower('Pull-Up')
+    AND NOT EXISTS (
+      SELECT 1 FROM workout_template_exercise wte
+      WHERE wte.id_workout_template = wt.id AND wte.id_exercise = e.id
+    );
+
+  INSERT INTO workout_template_exercise (id_workout_template, id_exercise, set_number, rep_number, order_index)
+  SELECT wt.id, e.id, 3, 10, 2
+  FROM workout_template wt, exercise e
+  WHERE lower(wt.name) = lower('PULL A') AND lower(e.name) = lower('Lat Pulldown Cable')
+    AND NOT EXISTS (SELECT 1 FROM workout_template_exercise wte WHERE wte.id_workout_template = wt.id AND wte.id_exercise = e.id);
+
+  INSERT INTO workout_template_exercise (id_workout_template, id_exercise, set_number, rep_number, order_index)
+  SELECT wt.id, e.id, 3, 10, 3
+  FROM workout_template wt, exercise e
+  WHERE lower(wt.name) = lower('PULL A') AND lower(e.name) = lower('Seated Row Machine')
+    AND NOT EXISTS (SELECT 1 FROM workout_template_exercise wte WHERE wte.id_workout_template = wt.id AND wte.id_exercise = e.id);
+
+  INSERT INTO workout_template_exercise (id_workout_template, id_exercise, set_number, rep_number, order_index)
+  SELECT wt.id, e.id, 3, 12, 4
+  FROM workout_template wt, exercise e
+  WHERE lower(wt.name) = lower('PULL A') AND lower(e.name) = lower('Reverse Fly Machine')
+    AND NOT EXISTS (SELECT 1 FROM workout_template_exercise wte WHERE wte.id_workout_template = wt.id AND wte.id_exercise = e.id);
+
+  INSERT INTO workout_template_exercise (id_workout_template, id_exercise, set_number, rep_number, order_index)
+  SELECT wt.id, e.id, 3, 12, 5
+  FROM workout_template wt, exercise e
+  WHERE lower(wt.name) = lower('PULL A') AND lower(e.name) = lower('Pullover Machine')
+    AND NOT EXISTS (SELECT 1 FROM workout_template_exercise wte WHERE wte.id_workout_template = wt.id AND wte.id_exercise = e.id);
+
+  INSERT INTO workout_template_exercise (id_workout_template, id_exercise, set_number, rep_number, order_index)
+  SELECT wt.id, e.id, 3, 12, 6
+  FROM workout_template wt, exercise e
+  WHERE lower(wt.name) = lower('PULL A') AND lower(e.name) = lower('Preacher Curl Dumbbell')
+    AND NOT EXISTS (SELECT 1 FROM workout_template_exercise wte WHERE wte.id_workout_template = wt.id AND wte.id_exercise = e.id);
+
+  INSERT INTO workout_template_exercise (id_workout_template, id_exercise, set_number, rep_number, order_index)
+  SELECT wt.id, e.id, 3, 8, 1
+  FROM workout_template wt, exercise e
+  WHERE lower(wt.name) = lower('PUSH A') AND lower(e.name) = lower('Incline Bench Press')
+    AND NOT EXISTS (SELECT 1 FROM workout_template_exercise wte WHERE wte.id_workout_template = wt.id AND wte.id_exercise = e.id);
+
+  INSERT INTO workout_template_exercise (id_workout_template, id_exercise, set_number, rep_number, order_index)
+  SELECT wt.id, e.id, 3, 8, 2
+  FROM workout_template wt, exercise e
+  WHERE lower(wt.name) = lower('PUSH A') AND lower(e.name) = lower('Overhead Press')
+    AND NOT EXISTS (SELECT 1 FROM workout_template_exercise wte WHERE wte.id_workout_template = wt.id AND wte.id_exercise = e.id);
+
+  INSERT INTO workout_template_exercise (id_workout_template, id_exercise, set_number, rep_number, order_index)
+  SELECT wt.id, e.id, 3, 10, 3
+  FROM workout_template wt, exercise e
+  WHERE lower(wt.name) = lower('PUSH A') AND lower(e.name) = lower('Chest Dips')
+    AND NOT EXISTS (SELECT 1 FROM workout_template_exercise wte WHERE wte.id_workout_template = wt.id AND wte.id_exercise = e.id);
+
+  INSERT INTO workout_template_exercise (id_workout_template, id_exercise, set_number, rep_number, order_index)
+  SELECT wt.id, e.id, 3, 12, 4
+  FROM workout_template wt, exercise e
+  WHERE lower(wt.name) = lower('PUSH A') AND lower(e.name) = lower('Cable Crossover')
+    AND NOT EXISTS (SELECT 1 FROM workout_template_exercise wte WHERE wte.id_workout_template = wt.id AND wte.id_exercise = e.id);
+
+  INSERT INTO workout_template_exercise (id_workout_template, id_exercise, set_number, rep_number, order_index)
+  SELECT wt.id, e.id, 3, 12, 5
+  FROM workout_template wt, exercise e
+  WHERE lower(wt.name) = lower('PUSH A') AND lower(e.name) = lower('Lateral Raise Cable')
+    AND NOT EXISTS (SELECT 1 FROM workout_template_exercise wte WHERE wte.id_workout_template = wt.id AND wte.id_exercise = e.id);
+
+  INSERT INTO workout_template_exercise (id_workout_template, id_exercise, set_number, rep_number, order_index)
+  SELECT wt.id, e.id, 3, 12, 6
+  FROM workout_template wt, exercise e
+  WHERE lower(wt.name) = lower('PUSH A') AND lower(e.name) = lower('Triceps Extension Cable')
+    AND NOT EXISTS (SELECT 1 FROM workout_template_exercise wte WHERE wte.id_workout_template = wt.id AND wte.id_exercise = e.id);
+
+  INSERT INTO workout_template_exercise (id_workout_template, id_exercise, set_number, rep_number, order_index)
+  SELECT wt.id, e.id, 3, 10, 1
+  FROM workout_template wt, exercise e
+  WHERE lower(wt.name) = lower('PULL B') AND lower(e.name) = lower('Lat Pulldown Machine')
+    AND NOT EXISTS (SELECT 1 FROM workout_template_exercise wte WHERE wte.id_workout_template = wt.id AND wte.id_exercise = e.id);
+
+  INSERT INTO workout_template_exercise (id_workout_template, id_exercise, set_number, rep_number, order_index)
+  SELECT wt.id, e.id, 3, 10, 2
+  FROM workout_template wt, exercise e
+  WHERE lower(wt.name) = lower('PULL B') AND lower(e.name) = lower('Seated Row Cable')
+    AND NOT EXISTS (SELECT 1 FROM workout_template_exercise wte WHERE wte.id_workout_template = wt.id AND wte.id_exercise = e.id);
+
+  INSERT INTO workout_template_exercise (id_workout_template, id_exercise, set_number, rep_number, order_index)
+  SELECT wt.id, e.id, 3, 12, 3
+  FROM workout_template wt, exercise e
+  WHERE lower(wt.name) = lower('PULL B') AND lower(e.name) = lower('Back Extension')
+    AND NOT EXISTS (SELECT 1 FROM workout_template_exercise wte WHERE wte.id_workout_template = wt.id AND wte.id_exercise = e.id);
+
+  INSERT INTO workout_template_exercise (id_workout_template, id_exercise, set_number, rep_number, order_index)
+  SELECT wt.id, e.id, 3, 12, 4
+  FROM workout_template wt, exercise e
+  WHERE lower(wt.name) = lower('PULL B') AND lower(e.name) = lower('Bayesian Cable Curl')
+    AND NOT EXISTS (SELECT 1 FROM workout_template_exercise wte WHERE wte.id_workout_template = wt.id AND wte.id_exercise = e.id);
+
+  INSERT INTO workout_template_exercise (id_workout_template, id_exercise, set_number, rep_number, order_index)
+  SELECT wt.id, e.id, 3, 12, 5
+  FROM workout_template wt, exercise e
+  WHERE lower(wt.name) = lower('PULL B') AND lower(e.name) = lower('Reverse Curl Barbell')
+    AND NOT EXISTS (SELECT 1 FROM workout_template_exercise wte WHERE wte.id_workout_template = wt.id AND wte.id_exercise = e.id);
+
+  INSERT INTO workout_template_exercise (id_workout_template, id_exercise, set_number, rep_number, order_index)
+  SELECT wt.id, e.id, 3, 10, 1
+  FROM workout_template wt, exercise e
+  WHERE lower(wt.name) = lower('PUSH B') AND lower(e.name) = lower('Bench Press Dumbbell')
+    AND NOT EXISTS (SELECT 1 FROM workout_template_exercise wte WHERE wte.id_workout_template = wt.id AND wte.id_exercise = e.id);
+
+  INSERT INTO workout_template_exercise (id_workout_template, id_exercise, set_number, rep_number, order_index)
+  SELECT wt.id, e.id, 3, 12, 2
+  FROM workout_template wt, exercise e
+  WHERE lower(wt.name) = lower('PUSH B') AND lower(e.name) = lower('Chest Fly Machine')
+    AND NOT EXISTS (SELECT 1 FROM workout_template_exercise wte WHERE wte.id_workout_template = wt.id AND wte.id_exercise = e.id);
+
+  INSERT INTO workout_template_exercise (id_workout_template, id_exercise, set_number, rep_number, order_index)
+  SELECT wt.id, e.id, 3, 10, 3
+  FROM workout_template wt, exercise e
+  WHERE lower(wt.name) = lower('PUSH B') AND lower(e.name) = lower('Shoulder Press Machine')
+    AND NOT EXISTS (SELECT 1 FROM workout_template_exercise wte WHERE wte.id_workout_template = wt.id AND wte.id_exercise = e.id);
+
+  INSERT INTO workout_template_exercise (id_workout_template, id_exercise, set_number, rep_number, order_index)
+  SELECT wt.id, e.id, 2, 12, 4
+  FROM workout_template wt, exercise e
+  WHERE lower(wt.name) = lower('PUSH B') AND lower(e.name) = lower('Triceps Extension Cable')
+    AND NOT EXISTS (SELECT 1 FROM workout_template_exercise wte WHERE wte.id_workout_template = wt.id AND wte.id_exercise = e.id);
+
   `);
 
     console.log("✅ Tables created");
-
 
   return db;
 }
@@ -715,23 +972,15 @@ export async function exportDatabaseToSQL() {
 
   const now = new Date().toISOString().replace(/[:.]/g, '-');
   const lines: string[] = [
-    '-- Fitness App SQL backup',
-    '-- Generated by exportDatabaseToSQL()',
+    '-- Fitness App SQL data-only backup',
+    '-- Generated by exportDatabaseToSQL() (no schema)',
     'PRAGMA foreign_keys = OFF;',
     'BEGIN TRANSACTION;',
     ''
   ];
 
   for (const table of EXPORT_TABLES) {
-    const schemaResult = await db.query(
-      "SELECT sql FROM sqlite_master WHERE type = 'table' AND name = ?",
-      [table]
-    );
-
-    const createTableSql = schemaResult.values?.[0]?.sql as string | undefined;
-    if (!createTableSql) continue;
-
-    lines.push(`${createTableSql};`);
+    // Data-only backup: clear current table data and reinsert rows.
     lines.push(`DELETE FROM "${table}";`);
 
     const columnResult = await db.query(`PRAGMA table_info("${table}");`);
@@ -774,14 +1023,24 @@ export async function importDatabaseFromSQL(sqlContent: string) {
     return { success: false, message: 'The SQL file is empty.' };
   }
 
+  const statements = parseSqlStatements(normalizedContent);
+  if (statements.length === 0) {
+    return { success: false, message: 'No valid SQL statements found in file.' };
+  }
+
   try {
     await db.execute('PRAGMA foreign_keys = OFF;');
-    await db.execute(normalizedContent);
+
+    for (const statement of statements) {
+      await db.execute(`${statement};`);
+    }
+
     await db.execute('PRAGMA foreign_keys = ON;');
     return { success: true, message: 'Data imported successfully.' };
   } catch (error) {
     await db.execute('PRAGMA foreign_keys = ON;').catch(() => undefined);
     console.error('Error importing SQL:', error);
-    return { success: false, message: 'Failed to import SQL data.' };
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    return { success: false, message: `Failed to import SQL data: ${errorMessage}` };
   }
 }
