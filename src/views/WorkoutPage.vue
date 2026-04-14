@@ -51,7 +51,7 @@
 
       <!-- Add Exercise Button -->
       <div class="add-exercise-container">
-        <ion-button expand="block" @click="addNewExercise" color="secondary">
+        <ion-button expand="block" @click="addNewExercise" class="add-exercise-btn">
           <ion-icon slot="start" :icon="addCircleOutline"></ion-icon>
           Add Exercise
         </ion-button>
@@ -90,7 +90,7 @@
 import { IonPage, IonHeader, IonToolbar, IonTitle, IonContent,IonButtons,IonButton,IonCard,IonCardHeader,IonCardContent,IonCheckbox,IonInput,IonCardTitle,onIonViewWillEnter,onIonViewDidEnter, alertController, IonIcon } from '@ionic/vue';
 import { ref, onUnmounted, shallowRef, computed } from 'vue';
 import { useRouter,useRoute } from 'vue-router';
-import { addCircleOutline, addOutline, timerOutline, removeOutline } from 'ionicons/icons';
+import { addCircleOutline, addOutline, timerOutline } from 'ionicons/icons';
 
 import { getWorkoutExercises,getWorkoutSets,updateWorkoutSet,getWorkoutById,endWorkout,cancelWorkout, addSetToWorkoutExercise, getNextSetNumber } from '@/services/gym_db';
 
@@ -399,6 +399,15 @@ onUnmounted(() => {
   color: var(--ion-color-accent-yellow);
   padding: 16px;
   padding-top: 8px;
+}
+
+.add-exercise-btn {
+  --background: var(--ion-color-accent-yellow) !important;
+  --background-activated: var(--ion-color-accent-red) !important;
+  --color: var(--ion-color-dark) !important;
+  --color-activated: var(--ion-color-light) !important;
+  --border-radius: 10px;
+  font-weight: 700;
 }
 
 .add-set-btn {

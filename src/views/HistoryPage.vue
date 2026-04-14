@@ -62,6 +62,9 @@ IonRefresher, IonRefresherContent, RefresherCustomEvent, onIonViewWillEnter, Ion
 import { getWorkouts,getWorkoutHistoryExercises, cancelWorkout, exportDatabaseToSQL, importDatabaseFromSQL } from '@/services/gym_db'
 import { onMounted ,ref} from 'vue';
 import { cloudUploadOutline, downloadOutline } from 'ionicons/icons';
+import { Capacitor } from '@capacitor/core';
+import { Directory, Encoding, Filesystem } from '@capacitor/filesystem';
+import { Share } from '@capacitor/share';
 
 
 
@@ -146,15 +149,49 @@ const handleExport = async () => {
     return;
   }
 
-  const blob = new Blob([backup.sql], { type: 'application/sql' });
-  const url = URL.createObjectURL(blob);
-  const anchor = document.createElement('a');
-  anchor.href = url;
-  anchor.download = backup.fileName;
-  document.body.appendChild(anchor);
-  anchor.click();
-  anchor.remove();
-  URL.revokeObjectURL(url);
+  try {
+    if (Capacitor.getPlatform() === 'web') {
+      const blob = new Blob([backup.sql], { type: 'application/sql' });
+      const url = URL.createObjectURL(blob);
+      const anchor = document.createElement('a');
+      anchor.href = url;
+      anchor.download = backup.fileName;
+      document.body.appendChild(anchor);
+      anchor.click();
+      anchor.remove();
+      URL.revokeObjectURL(url);
+    } else {
+      const writeResult = await Filesystem.writeFile({
+        path: backup.fileName,
+        data: backup.sql,
+        directory: Directory.Documents,
+        encoding: Encoding.UTF8,
+        recursive: true
+      });
+
+      await Share.share({
+        title: 'SQL Backup',
+        text: 'Workout backup file',
+        url: writeResult.uri,
+        dialogTitle: 'Share SQL Backup'
+      });
+    }
+
+    const successAlert = await alertController.create({
+      header: 'Export Complete',
+      message: `Backup file ready: ${backup.fileName}`,
+      buttons: ['OK']
+    });
+    await successAlert.present();
+  } catch (error) {
+    console.error('Export failed:', error);
+    const alert = await alertController.create({
+      header: 'Export Failed',
+      message: 'Could not export backup file. Please try again.',
+      buttons: ['OK']
+    });
+    await alert.present();
+  }
 };
 
 const triggerImport = () => {
