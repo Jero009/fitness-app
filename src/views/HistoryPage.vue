@@ -46,7 +46,7 @@
                 <ion-card-content>
                   <ion-list >
                       <ion-item v-for="ex in w.exercises" :key="ex.id">
-                        <span>{{ ex.name  }} </span> <span> {{ ex.set_count }} x {{ ex.reps }} </span>
+                        <span>{{ ex.name  }} </span> <span> {{ ex.set_count  }} x {{ ex.reps }} </span>
                       </ion-item>
                   </ion-list>
                 </ion-card-content>
