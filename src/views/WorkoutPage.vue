@@ -171,7 +171,7 @@ const editRestTime = async (exercise: any) => {
 };
 
 const saveWorkout = async ()=>{
-  await endWorkout(workoutId, Date.now());
+  await endWorkout(workoutId);
   console.log("Workout saved!");
 
   router.push('/tabs/Home');
@@ -221,8 +221,17 @@ const addNewSet = async (exercise: any) => {
   );
 
   if (newSetId) {
-    // Reload the entire workout to ensure reactivity
-    await loadWorkout();
+    // Add the new set directly to the exercise's sets array
+    const ex = workoutExercises.value.find(e => e.id === exercise.id);
+    if (ex) {
+      ex.sets.push({
+        id: newSetId,
+        set_number: nextSetNum,
+        reps: defaultReps,
+        weight: 0,
+        completed: 0
+      });
+    }
   }
 };
 

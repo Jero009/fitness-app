@@ -36,7 +36,7 @@ function parseSqlStatements(sqlContent: string) {
 
   for (let i = 0; i < withoutComments.length; i++) {
     const char = withoutComments[i];
-    const next = withoutComments[i + 1];
+    const next = withoutComments[i + 1] ?? '';
 
     current += char;
 
@@ -623,6 +623,11 @@ export async function startWorkoutFromTemplate(templateId: number) {
     );
     const workoutId = result.changes?.lastId;
 
+    if (!workoutId) {
+      console.error('Failed to get workout ID after insert');
+      return;
+    }
+
     const templateExercises = await getTemplateExercises(templateId);
 
     for (const ex of templateExercises) {
@@ -700,8 +705,9 @@ export async function getWorkoutById(id: number) {
   return result.values?.[0] || null;
 }
 
-export async function endWorkout(id: number, time_end: number) {
+export async function endWorkout(id: number) {
   if (!db) return;
+  const time_end = new Date().toISOString();
   const result = await db.run(
     'UPDATE workout SET time_end = ? WHERE id = ?',
     [time_end, id]
@@ -742,15 +748,15 @@ export async function getWorkoutHistoryExercises(workoutId: number) {
   if (!db) return [];
 
   const result = await db.query(`
-      SELECT 
+      SELECT
         e.name,
         SUM(CASE WHEN wes.completed = 1 THEN 1 ELSE 0 END) as set_count,
-        wes.reps
+        MAX(wes.reps) as reps
       FROM workout_exercise we
       JOIN exercise e ON e.id = we.exercise_id
-      LEFT JOIN workout_exercise_sets wes 
+      LEFT JOIN workout_exercise_sets wes
         ON wes.workout_exercise_id = we.id
-      WHERE we.workout_id = ?  
+      WHERE we.workout_id = ?
       GROUP BY we.id
   `, [workoutId]);
 
@@ -760,12 +766,12 @@ export async function getWorkoutHistoryExercises(workoutId: number) {
 export async function saveWorkoutTotalKg(workoutId: number,) {
   if (!db) return;
   const totalKgResult = await db.query(`
-    SELECT sum(reps * weight) as total_kg 
+    SELECT sum(reps * weight) as total_kg
     FROM workout_exercise_sets wes
-    JOIN workout_exercise we ON we.id = wes.workout_exercise_id AND wes.completed = 1
-    WHERE we.workout_id = ?;
+    JOIN workout_exercise we ON we.id = wes.workout_exercise_id
+    WHERE we.workout_id = ? AND wes.completed = 1;
   `, [workoutId]);
-  const totalKg = totalKgResult.values?.[0].total_kg || 0;
+  const totalKg = totalKgResult.values?.[0]?.total_kg || 0;
 
   const result = await db.run(
     'UPDATE workout SET total_kg = ? WHERE id = ?',

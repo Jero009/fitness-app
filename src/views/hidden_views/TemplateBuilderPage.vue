@@ -181,9 +181,6 @@ onIonViewWillEnter(() => {
     }
     localStorage.removeItem('selectedExerciseForTemplate');
   }
-
-  LoadExercises();
-
 });
 </script>
 

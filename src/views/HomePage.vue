@@ -73,6 +73,11 @@ const router = useRouter();
 const startWorkout = async (templateId: number) => {
   const workoutId = await startWorkoutFromTemplate(templateId);
 
+  if (!workoutId) {
+    console.error('Failed to start workout');
+    return;
+  }
+
   router.push(`/workout/${workoutId}`);
 };
 // active workout id
@@ -200,7 +205,7 @@ const chartRef = ref<any>(null);
 let chart: any = null;
 
 const workouts = ref<any[]>([]);
-const selectedTemplateId = ref<number | null>(null);
+const selectedTemplateId = ref<number | undefined>(undefined);
 
 // prepare data
 const chartData = computed(() => {
@@ -247,18 +252,15 @@ const renderChart = () => {
 
 
 
-// Watch for template selection and update chart data (only one watcher)
+// Watch for template selection and update chart data
 watch(selectedTemplateId, async (templateId) => {
-  console.log('WATCHER TRIGGERED. Template selected:', templateId, typeof templateId); /// this doesnt show------------------------------------
-  if (!templateId) {
+  if (templateId === undefined || templateId === null) {
     workouts.value = [];
     renderChart();
     return;
   }
   const numId = Number(templateId);
-  console.log('Fetching workouts for templateId:', numId);
   const data = await getWorkoutsByName(numId);
-  console.log('Fetched workouts:', data);
   workouts.value = data || [];
   renderChart();
 });
