@@ -55,24 +55,53 @@
               <div class="exercise-list-container">
 
                   <ion-select v-model="selectedMuscleGroup" placeholder="Filter by muscle group" interface="action-sheet" class="muscle-group-select">
-                    <ion-select-option value="">All</ion-select-option>
+                    <ion-select-option value="">&nbsp;All</ion-select-option>
                     <ion-select-option v-for="mg in muscleGroups" :key="mg.id" :value="mg.name">
                       {{ mg.name }}
                     </ion-select-option>
                   </ion-select>
+                  <ion-list class="exercise-list" lines="none">
 
-
-                        <ion-item class="exercise-item" v-for="ex in filteredExercises" :key="ex.id" lines="none">
-                          {{ ex.name }}
-                          <ion-button slot="end" @click="renameEx(ex)">Rename</ion-button>
-                        </ion-item>
-
+                    <ion-item class="exercise-item" v-for="ex in filteredExercises" :key="ex.id" lines="none">
+                      {{ ex.name }}
+                      <ion-button slot="end" @click="renameEx(ex)">Rename</ion-button>
+                    </ion-item>
+                  </ion-list>
             </div>
         
   </ion-content>
   </ion-page>
 </template>
+<style>
+.exercise-list {
+  background: transparent;
+}
+.exercise-list-container {
+  width: 90%;
+  margin: auto;
+}
 
+.exercise-item {
+  margin: 10px auto ;
+  width: 100%;
+  background-color: var(--ion-color-medium);
+  border-radius: 10px;
+}
+.muscle-group-select{
+  margin:  auto ;
+  width: 100%;
+}
+
+
+.input {
+  margin:0;
+  background-color: var(--ion-color-primary);
+  border-radius: 10px;
+  font-family: doto;
+}
+
+
+</style>
 <script setup lang="ts">
 import { IonPage, IonHeader, IonToolbar, IonTitle, IonContent, IonItem, IonButton, IonIcon, IonButtons, IonModal, IonInput, onIonViewWillEnter,
    IonRefresher, IonRefresherContent, RefresherCustomEvent, alertController, IonSelect, IonSelectOption } from '@ionic/vue';
@@ -206,23 +235,3 @@ onIonViewWillEnter(() => {
 
 
 </script>
-<style>
-.exercise-item {
-  margin: 10px auto ;
-  width: 100%;
-  background-color: var(--ion-color-medium);
-  border-radius: 10px;
-}
-.input {
-  margin:0;
-  background-color: var(--ion-color-primary);
-  border-radius: 10px;
-  font-family: doto;
-}
-
-.muscle-group-select{
-  margin:  auto ;
-  width: 100%;
-}
-
-</style>

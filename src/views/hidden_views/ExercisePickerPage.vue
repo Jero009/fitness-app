@@ -15,26 +15,54 @@
             <ion-refresher-content></ion-refresher-content>
           </ion-refresher>
             <div class="exercise-list-container">
-                <ion-item lines="none" class="muscle-group-select-item">
                   <ion-select v-model="selectedMuscleGroup" placeholder="Filter by muscle group" interface="action-sheet" class="muscle-group-select">
-                    <ion-select-option value="">All</ion-select-option>
+                    <ion-select-option value="">&nbsp;All</ion-select-option>
                     <ion-select-option v-for="mg in muscleGroups" :key="mg.id" :value="mg.name">
                       {{ mg.name }}
                     </ion-select-option>
                   </ion-select>
-                </ion-item>
-
-                      <ion-list class="exercise-list" lines="none">
-                        <ion-item class="exercise-item" v-for="ex in filteredExercises" :key="ex.id" @click="selectExercise(ex)" lines="none">
-                          {{ ex.name }}
-                        </ion-item>
-                      </ion-list>
+                <ion-list class="exercise-list" lines="none">
+                  <ion-item class="exercise-item" v-for="ex in filteredExercises" :key="ex.id" @click="selectExercise(ex)" lines="none">
+                    {{ ex.name }}
+                  </ion-item>
+                  <ion-item class="exercise-item" >
+                    pull up
+            
+                  </ion-item>
+                  <ion-item class="exercise-item" >
+                    tewst
+                  </ion-item>
+                </ion-list>
             </div>
         
   </ion-content>
   </ion-page>
 </template>
+<style>
 
+.exercise-list {
+  background: transparent;
+}
+
+.exercise-list-container {
+  width: 90%;
+  margin: auto;
+}
+
+.exercise-item {
+  margin: 10px auto ;
+  width: 100%;
+  background-color: var(--ion-color-medium);
+  border-radius: 10px;
+}
+
+.muscle-group-select{
+  margin:  auto ;
+  width: 100%;
+
+}
+
+</style>
 <script setup lang="ts">
 import { IonPage, IonHeader, IonToolbar, IonTitle, IonContent, IonList, IonItem, IonSelect, IonSelectOption, IonRefresher, IonRefresherContent, onIonViewWillEnter } from '@ionic/vue';
 import type { RefresherCustomEvent } from '@ionic/vue';
@@ -130,31 +158,3 @@ onIonViewWillEnter(() => {
 });
 
 </script>
-<style>
-.exercise-list-container {
-  width: 90%;
-  margin: auto;
-}
-
-.exercise-list {
-  background: transparent;
-}
-
-.exercise-item {
-  margin-bottom: 10px;
-  --background: var(--ion-color-medium);
-  --border-radius: 10px;
-  cursor: pointer;
-}
-
-.muscle-group-select-item {
-  margin-bottom: 10px;
-  --padding-start: 0;
-}
-
-.muscle-group-select {
-  width: 100%;
-  --padding-start: 0;
-}
-
-</style>
