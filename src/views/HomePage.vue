@@ -2,7 +2,7 @@
   <ion-page>
     <ion-header>
       <ion-toolbar class="toolbar-flex">
-        <ion-title class="title">Home</ion-title>
+        <ion-title class="title">HOME</ion-title>
       </ion-toolbar>
     </ion-header>
     <ion-content :fullscreen="true">

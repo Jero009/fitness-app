@@ -3,30 +3,31 @@
         <ion-header>
           <ion-toolbar>
             <ion-buttons slot="start">
-              <ion-button @click="cancel()">Cancel</ion-button>
+              <ion-button class="button-red" @click="cancel()">Cancel</ion-button>
             </ion-buttons>
 
-            <ion-title>Edit Template</ion-title>
+            <ion-title>EDIT TEMPLATE</ion-title>
 
             <ion-buttons slot="end">
-              <ion-button @click="confirm()">Save</ion-button>
+              <ion-button class="button-red" @click="confirm()">Save</ion-button>
             </ion-buttons>
           </ion-toolbar>
         </ion-header>
   <ion-content :fullscreen="true">
           <!-- Template name -->
-          <ion-item>
-            <ion-input
-              v-model="TemplateName"
-              placeholder="Template name"
-              :clear-on-edit="true"
-            />
-          </ion-item>
-
-          <!-- Exercise list -->
-            <ion-item>
-              <ion-button @click="goToExercisePicker">Add exercise</ion-button>
+           <div class="template-top">
+            <ion-item class="template-top">
+              <ion-input
+                v-model="TemplateName"
+                placeholder="Template name"
+                :clear-on-edit="true"
+              />
             </ion-item>
+              <ion-item class="template-top">
+                <ion-button class="button-red" @click="goToExercisePicker">Add exercise</ion-button>
+              </ion-item>
+            </div>
+            
                 <Draggable v-model="exercises" item-key="id" @end="onDragEnd">
                   <template #item="{ element: ex }">
                     <ion-item class="exercise-item">
@@ -56,7 +57,27 @@
         </ion-content>
   </ion-page>
 </template>
+<style>
+.card-template{
+  margin: 10px auto ;
+  width: 90%;
+}
 
+.sortable-chosen {
+  background: var(--ion-color-primary-medium) !important; /* Light blue */
+  transition: background 0.2s;
+}
+
+.card-template{
+  margin: 10px auto ;
+  width: 90%;
+}
+.template-top {
+  width: 100%;
+  background-color: var(--ion-color-primary);
+}
+
+</style>
 <script setup lang="ts">
 import { IonPage, IonHeader, IonToolbar, IonTitle, IonContent, IonItem, IonButton, IonButtons, IonInput, onIonViewWillEnter } from '@ionic/vue';
 import { ref } from 'vue';
@@ -191,26 +212,3 @@ onIonViewWillEnter(async () => {
 
 
 </script>
-<style>
-.card-template{
-  margin: 10px auto ;
-  width: 90%;
-}
-
-.sortable-chosen {
-  background: var(--ion-color-primary-medium) !important; /* Light blue */
-  transition: background 0.2s;
-}
-
-</style><style>
-.card-template{
-  margin: 10px auto ;
-  width: 90%;
-}
-
-.sortable-chosen {
-  background: var(--ion-color-primary-medium) !important; /* Light blue */
-  transition: background 0.2s;
-}
-
-</style>

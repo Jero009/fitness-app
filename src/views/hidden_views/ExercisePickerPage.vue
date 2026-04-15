@@ -2,7 +2,7 @@
 <ion-page>
   <ion-header>
     <ion-toolbar>
-        <ion-title class="title">Exercises</ion-title>
+        <ion-title class="title">EXERCISES</ion-title>
       </ion-toolbar>
   </ion-header>
   <ion-content class="ion-padding">

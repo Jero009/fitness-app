@@ -5,7 +5,7 @@
         <ion-title slot="start" class="title">Workout</ion-title>
         <div class="timer">{{ formatTime() }}</div>
         <ion-buttons  slot="end">
-          <ion-button @click="saveWorkout">stop</ion-button>
+          <ion-button class="button-red" @click="saveWorkout">stop</ion-button>
         </ion-buttons>
       </ion-toolbar>
     </ion-header>
@@ -42,7 +42,7 @@
           </div>
 
           <!-- Add Set Button -->
-          <ion-button expand="block" fill="outline" @click="addNewSet(ex)" class="add-set-btn">
+          <ion-button  expand="block" fill="outline" @click="addNewSet(ex)" class="add-set-btn">
             <ion-icon slot="start" :icon="addOutline"></ion-icon>
             Add Set
           </ion-button>
@@ -58,7 +58,7 @@
       </div>
 
       <div class="cancel-container">
-        <ion-button expand="block" fill="outline" @click="handleCancelWorkout">Cancel Workout</ion-button>
+        <ion-button class="button-red" expand="block" fill="outline" @click="handleCancelWorkout">Cancel Workout</ion-button>
       </div>
 
       <!-- Rest Timer Overlay -->

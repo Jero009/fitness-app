@@ -2,7 +2,7 @@
   <ion-page>
     <ion-header>
       <ion-toolbar>
-        <ion-title class="title">History</ion-title>
+        <ion-title class="title">HISTORY</ion-title>
         <ion-buttons slot="end">
           <ion-button fill="clear" @click="handleExport">
             <ion-icon slot="start" :icon="downloadOutline" />
@@ -40,7 +40,7 @@
                       <ion-card-subtitle>{{ formatDuration(w.time_start, w.time_end) }}</ion-card-subtitle>
                       <ion-card-subtitle>{{ w.total_kg }} kg</ion-card-subtitle>
                     </div>
-                    <ion-button color="danger" fill="clear" @click="handleDelete(w.id)">Delete</ion-button>
+                    <ion-button class="button-red" fill="clear" @click="handleDelete(w.id)">Delete</ion-button>
                   </div>
                 </ion-card-header>
                 <ion-card-content>
@@ -55,6 +55,13 @@
     </ion-content>
   </ion-page>
 </template>
+<style scoped>
+.card-header-flex {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+</style>
 
 <script setup lang="ts">
 import { IonPage, IonHeader, IonToolbar, IonTitle, IonContent,IonCard,IonCardHeader,IonCardContent,IonCardSubtitle,IonCardTitle,IonList,IonItem, 
@@ -310,11 +317,3 @@ const handleImportFile = async (event: Event) => {
 });
 
 </script>
-
-<style scoped>
-.card-header-flex {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-}
-</style>

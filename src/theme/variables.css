@@ -14,29 +14,20 @@
   --ion-color-accent-red: #FF0031;   /* LED vibrant red */
   --ion-color-accent-yellow: #FFD700; /* vibrant gold pop */
 
-    /*button*/
-    --ion-tab-button-color: #888888; /* medium grey for inactive */
-    --ion-tab-button-color-selected: var(--ion-color-accent-red); /* red for active */
-    --ion-icon-color: #888888; /* grey icons inactive */
-
-
   /* Toolbar & background */
-  --ion-toolbar-background: var(--ion-color-dark);
-  --ion-toolbar-color: var(--ion-color-light);
+  --ion-toolbar-background: var(--ion-color-primary);
   --ion-content-background: var(--ion-color-dark);
+  --ion-tabs-bar-background: var(--ion-color-primary);
 
   /* Cards & items */
   --ion-card-background: var(--ion-color-primary);
   --ion-card-color: var(--ion-color-light);
-  --ion-item-background: var(--ion-color-primary);
-  --ion-item-color: var(--ion-color-light);
-
   /* Font */
   --ion-font-family: 'Inter', sans-serif;
   --ion-font-size: 16px;
 
   /* Borders & spacing */
-  --ion-border-radius: 12px;
+  --ion-border-radius: 3px;
   --ion-padding: 16px;
   --ion-margin: 16px;
   --ion-background-color: var(--ion-color-dark);
@@ -49,6 +40,7 @@ ion-tab-bar {
 ion-page {
   --background: var(--ion-color-dark); /* page background */
 }
+
 ion-checkbox {
   --size: 24px;                        /* checkbox size */
   --border-color: var(--ion-color-accent-red); /* border when unchecked */
@@ -68,15 +60,39 @@ ion-card-subtitle, ion-label,ion-item {
   font-family: 'Doto', sans-serif;
   color: var(--ion-color-light);
 }
-
-ion-button {
-  --background: var(--ion-color-accent-red) !important;
-  --background-activated: var(--ion-color-accent-yellow) !important;
-  --color: #ffffff; 
-  --color-activated: #000000;
-  --border-radius: 5px !important;
+.button-red {
+  --background: var(--ion-color-accent-red)!important;
+  --color: #000000 !important; 
+  --color: var(--ion-color-light);
+  --border-radius: 3px !important;
   font-family: Doto;
 }
+.button-white {
+  --background: var(--ion-color-light)!important;
+  --color: #000000 !important; 
+  --color: var(--ion-color-dark);
+  --border-radius: 3px !important;
+  font-family: Doto;
+}
+.button-yellow {
+  --background: var(--ion-color-accent-yellow)!important;
+  --color: #000000 !important; 
+  --color: var(--ion-color-dark);
+  --border-radius: 3px !important;
+  font-family: Doto;
+}
+
+.set{
+  width: 100%;
+  padding: 10px;
+  border-radius: 10px;
+  margin-bottom: 5px;
+  background-color: var(--ion-color-medium);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
 
 ion-select {
   --background: var(--ion-color-primary);

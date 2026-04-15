@@ -2,9 +2,9 @@
 <ion-page>
   <ion-header>
     <ion-toolbar>
-        <ion-title class="title">Exercises</ion-title>
+        <ion-title class="title">EXERCISES</ion-title>
       <ion-buttons slot="end">
-        <ion-button  @click="openModal">
+        <ion-button class="button-red" @click="openModal">
           <ion-icon :icon="add" ></ion-icon>
         </ion-button>
       </ion-buttons>
@@ -15,11 +15,11 @@
       <ion-header>
         <ion-toolbar>
           <ion-buttons slot="start">
-            <ion-button @click="cancel()">Cancel</ion-button>
+            <ion-button class="button-red" @click="cancel()">Cancel</ion-button>
           </ion-buttons>
           <ion-title>Add exercise</ion-title>
           <ion-buttons slot="end">
-            <ion-button :strong="true" @click="confirm()">Add</ion-button>
+            <ion-button class="button-red" :strong="true" @click="confirm()">Add</ion-button>
           </ion-buttons>
         </ion-toolbar>
       </ion-header>
@@ -64,7 +64,7 @@
 
                     <ion-item class="exercise-item" v-for="ex in filteredExercises" :key="ex.id" lines="none">
                       {{ ex.name }}
-                      <ion-button slot="end" @click="renameEx(ex)">Rename</ion-button>
+                      <ion-button class="button-yellow" slot="end" @click="renameEx(ex)">Rename</ion-button>
                     </ion-item>
                   </ion-list>
             </div>
@@ -96,7 +96,7 @@
 .input {
   margin:0;
   background-color: var(--ion-color-primary);
-  border-radius: 10px;
+  border-radius: 3px;
   font-family: doto;
 }
 

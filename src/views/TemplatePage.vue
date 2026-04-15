@@ -2,9 +2,9 @@
   <ion-page>
     <ion-header>
       <ion-toolbar>
-        <ion-title class="title">Template</ion-title>
+        <ion-title class="title">TEMPLATE</ion-title>
       <ion-buttons slot="end">
-        <ion-button @click="goToTemplateBuilder">
+        <ion-button class="button-red" @click="goToTemplateBuilder">
           <ion-icon :icon="add"></ion-icon>
         </ion-button>
       </ion-buttons>
@@ -21,13 +21,13 @@
             <ion-refresher-content></ion-refresher-content>
           </ion-refresher>
               <ion-card class="card-template" v-for="template in templates" :key="template.id">
-                  <ion-card-header>
-                      <ion-card-title>{{ template.name }}</ion-card-title>
-                      <ion-card-subtitle>{{ template.created_at }}</ion-card-subtitle>
+                  <ion-card-header class="card-header">
+                      <ion-card-title class="card-title">{{ template.name }}</ion-card-title>
+                      <ion-card-subtitle class="card-subtitle">{{ template.created_at }}</ion-card-subtitle>
                   </ion-card-header>
-                      <ion-item>
-                      <ion-button  @click="deleteTemp(template.id)">Delete</ion-button>
-                      <ion-button  @click="editTemp(template.id)">Edit</ion-button>
+                      <ion-item class="card-item">
+                      <ion-button class="button-red" @click="deleteTemp(template.id)">Delete</ion-button>
+                      <ion-button class="button-yellow" @click="editTemp(template.id)">Edit</ion-button>
                     </ion-item>
                   <ion-card-content>
 
@@ -49,6 +49,27 @@
     </ion-content>
   </ion-page>
 </template>
+<style>
+.card-template{
+  margin: 10px auto ;
+  width: 90%;
+}
+.card-title{
+  font-size: 2em;
+  color:var(--ion-color-light);
+  font-weight: bold;
+  text-align: center;
+}
+.card-subtitle{
+  font-size: 0.9em;
+  color:var(--ion-color-light);
+  text-align: center;
+}
+
+.card-header{
+  background-color: var(--ion-color-medium);
+}
+</style>
 
 <script setup lang="ts">
 import { IonPage, IonHeader, IonToolbar, IonTitle, IonContent, IonCard, IonCardHeader, IonCardContent, IonCardSubtitle, IonCardTitle, IonList, IonItem, IonButton, IonIcon, IonButtons, IonRefresher, IonRefresherContent, onIonViewWillEnter } from '@ionic/vue';
@@ -158,15 +179,3 @@ onIonViewWillEnter(() => {
 
 
 
-<style>
-.card-template{
-  margin: 10px auto ;
-  width: 90%;
-}
-
-.sortable-chosen {
-  background: var(--ion-color-primary-medium) !important; /* Light blue */
-  transition: background 0.2s;
-}
-
-</style>
