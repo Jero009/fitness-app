@@ -51,7 +51,7 @@
 
               <!-- Add Set Button -->
               <ion-button  expand="block" fill="outline" @click="addNewSet(ex)" class="add-set-btn">
-                <ion-icon class="button-yellow" slot="start" :icon="addOutline"></ion-icon>
+                <ion-icon class="add-set-icon" slot="start" :icon="addOutline"></ion-icon>
                 Add Set
               </ion-button>
             </ion-card-content>
@@ -504,6 +504,10 @@ onUnmounted(() => {
 .add-set-btn {
   margin-top: 10px;
   --border-radius: 8px;
+}
+
+.add-set-icon {
+  color: var(--ion-color-accent-yellow);
 }
 
 /* Rest Timer Overlay */
