@@ -18,9 +18,8 @@
 
 
 
-      <ion-item-sliding v-for="ex in workoutExercises" :key="ex.id" class="exercise-sliding-item">
-        <ion-item lines="none" class="exercise-slide-host">
-          <ion-card class="exercise-card">
+       <div v-for="ex in workoutExercises" :key="ex.id" class="exercise-sliding-item">
+        <ion-card class="exercise-card">
             <ion-card-header>
               <div class="exercise-header">
                 <ion-card-title>{{ ex.name }}</ion-card-title>
@@ -52,18 +51,12 @@
 
               <!-- Add Set Button -->
               <ion-button  expand="block" fill="outline" @click="addNewSet(ex)" class="add-set-btn">
-                <ion-icon slot="start" :icon="addOutline"></ion-icon>
+                <ion-icon class="button-yellow" slot="start" :icon="addOutline"></ion-icon>
                 Add Set
               </ion-button>
             </ion-card-content>
-          </ion-card>
-        </ion-item>
-        <ion-item-options side="end">
-          <ion-item-option color="danger" expandable @click="handleRemoveExercise(ex.id)">
-            Remove
-          </ion-item-option>
-        </ion-item-options>
-      </ion-item-sliding>
+        </ion-card>
+      </div>
 
       <!-- Add Exercise Button -->
       <div class="add-exercise-container">
@@ -104,11 +97,11 @@
 
 <script setup lang="ts">
 import { IonPage, IonHeader, IonToolbar, IonTitle, IonContent,IonButtons,IonButton,IonCard,IonCardHeader,IonCardContent,IonCheckbox,IonInput,IonCardTitle,onIonViewWillEnter,onIonViewDidEnter, alertController, IonIcon, IonItemSliding, IonItemOptions, IonItemOption, IonItem } from '@ionic/vue';
-import { ref, onUnmounted, shallowRef, computed } from 'vue';
+import { ref, onUnmounted, computed } from 'vue';
 import { useRouter,useRoute } from 'vue-router';
 import { addCircleOutline, addOutline, timerOutline } from 'ionicons/icons';
 
-import { getWorkoutExercises,getWorkoutSets,updateWorkoutSet,getWorkoutById,endWorkout,cancelWorkout, addSetToWorkoutExercise, getNextSetNumber, deleteWorkoutExercise, deleteWorkoutSet } from '@/services/gym_db';
+import { getWorkoutExercises,getWorkoutSets,updateWorkoutSet,getWorkoutById,endWorkout,cancelWorkout, addSetToWorkoutExercise, getNextSetNumber, deleteWorkoutSet, deleteWorkoutExercise } from '@/services/gym_db';
 
 const router = useRouter();
 // id from route
@@ -118,7 +111,7 @@ console.log("Workout ID:", workoutId);
 
 // exercise data 
 
-const workoutExercises = shallowRef<any[]>([]);
+const workoutExercises = ref<any[]>([]);
 
 
 const loadWorkout = async () => {
@@ -216,26 +209,6 @@ const handleCancelWorkout = async () => {
   await alert.present();
 };
 
-const handleRemoveExercise = async (workoutExerciseId: number) => {
-  const alert = await alertController.create({
-    header: 'Remove Exercise?',
-    message: 'This will remove the exercise and all its sets from this workout.',
-    buttons: [
-      { text: 'Cancel', role: 'cancel' },
-      {
-        text: 'Remove',
-        role: 'destructive',
-        handler: async () => {
-          await deleteWorkoutExercise(workoutExerciseId);
-          workoutExercises.value = workoutExercises.value.filter((ex) => ex.id !== workoutExerciseId);
-        }
-      }
-    ]
-  });
-
-  await alert.present();
-};
-
 const handleRemoveSet = async (workoutExerciseId: number, setId: number) => {
   const alert = await alertController.create({
     header: 'Remove Set?',
@@ -246,12 +219,35 @@ const handleRemoveSet = async (workoutExerciseId: number, setId: number) => {
         text: 'Remove',
         role: 'destructive',
         handler: async () => {
-          await deleteWorkoutSet(setId);
+          await deleteWorkoutSet(Number(setId));
 
-          const exercise = workoutExercises.value.find((ex) => ex.id === workoutExerciseId);
-          if (!exercise) return;
+          const currentExercise = workoutExercises.value.find(
+            (ex) => Number(ex.id) === Number(workoutExerciseId)
+          );
+          if (!currentExercise) return;
 
-          exercise.sets = exercise.sets.filter((set: any) => set.id !== setId);
+          const updatedSets = (currentExercise.sets || [])
+            .filter((set: any) => Number(set.id) !== Number(setId))
+            .map((set: any, index: number) => ({
+              ...set,
+              set_number: index + 1
+            }));
+
+          if (updatedSets.length === 0) {
+            await deleteWorkoutExercise(Number(workoutExerciseId));
+            workoutExercises.value = workoutExercises.value.filter(
+              (ex) => Number(ex.id) !== Number(workoutExerciseId)
+            );
+            return;
+          }
+
+          workoutExercises.value = workoutExercises.value.map((ex) => {
+            if (Number(ex.id) !== Number(workoutExerciseId)) return ex;
+            return {
+              ...ex,
+              sets: updatedSets
+            };
+          });
         }
       }
     ]
