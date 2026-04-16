@@ -51,7 +51,7 @@
 
               <!-- Add Set Button -->
               <ion-button  expand="block" fill="outline" @click="addNewSet(ex)" class="add-set-btn">
-                <ion-icon class="add-set-icon" slot="start" :icon="addOutline"></ion-icon>
+                <ion-icon class="add-set-icon" slot="center" :icon="addOutline"></ion-icon>
                 Add Set
               </ion-button>
             </ion-card-content>
