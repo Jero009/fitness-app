@@ -76,15 +76,16 @@ export async function initDB() {
 
   if (db) return db;
 
-  // @ts-expect-error - SQLite connection type mismatch
-  db = await sqlite.createConnection('workout_db', false, 'no-encryption', 1);
+  try {
+    // @ts-expect-error - SQLite connection type mismatch
+    db = await sqlite.createConnection('workout_db', false, 'no-encryption', 1);
 
-  await db.open();
+    await db.open();
 
-  // ✅ enable foreign keys
-  await db.execute(`PRAGMA foreign_keys = ON;`);
+    // ✅ enable foreign keys
+    await db.execute(`PRAGMA foreign_keys = ON;`);
 
-  await db.execute(`
+    await db.execute(`
   CREATE TABLE IF NOT EXISTS workout_template (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     name TEXT,
@@ -372,7 +373,7 @@ export async function initDB() {
     AND NOT EXISTS (SELECT 1 FROM workout_template_exercise wte WHERE wte.id_workout_template = wt.id AND wte.id_exercise = e.id);
 
   INSERT INTO workout_template_exercise (id_workout_template, id_exercise, set_number, rep_number, order_index)
-  SELECT wt.id, e.id, 3, 8, 2
+  SELECT wt.id, e.id, 3, 10, 2
   FROM workout_template wt, exercise e
   WHERE lower(wt.name) = lower('PUSH A') AND lower(e.name) = lower('Overhead Press')
     AND NOT EXISTS (SELECT 1 FROM workout_template_exercise wte WHERE wte.id_workout_template = wt.id AND wte.id_exercise = e.id);
@@ -459,7 +460,12 @@ export async function initDB() {
 
     console.log("✅ Tables created");
 
-  return db;
+    return db;
+  } catch (error) {
+    console.error('initDB failed:', error);
+    db = null;
+    return null;
+  }
 }
 // get muscle groups and equpment
 
@@ -694,6 +700,17 @@ export async function updateWorkoutSet(id: number, reps: number, weight: number,
   
 }
 
+export async function deleteWorkoutSet(setId: number) {
+  if (!db) return;
+
+  const result = await db.run(
+    'DELETE FROM workout_exercise_sets WHERE id = ?',
+    [setId]
+  );
+
+  return result;
+}
+
 export async function getWorkoutById(id: number) {
   if (!db) return null;
 
@@ -722,6 +739,14 @@ export async function cancelWorkout(id: number) {
   return await db.run(
     'DELETE FROM workout WHERE id = ?',
     [id]
+  );
+}
+
+export async function deleteWorkoutExercise(workoutExerciseId: number) {
+  if (!db) return;
+  return await db.run(
+    'DELETE FROM workout_exercise WHERE id = ?',
+    [workoutExerciseId]
   );
 }
 
@@ -795,7 +820,9 @@ export async function getActiveWorkout() {
 
 export async function getLatestWorkout() {
   if (!db) return null;
-  const result = await db.query('SELECT * FROM workout ORDER BY time_start DESC LIMIT 1');
+  const result = await db.query(
+    'SELECT * FROM workout WHERE time_end IS NOT NULL ORDER BY time_end DESC LIMIT 1'
+  );
   return result.values?.[0] || null;
 
 }
@@ -883,16 +910,23 @@ export async function getWorkoutsByTemplate() {
   if (!db) return [];
 
   const result = await db.query(`
-    SELECT 
+    SELECT
       w.id,
       wt.name,
       w.time_start,
       w.time_end,
       w.total_kg
     FROM workout w
-    LEFT JOIN workout_template wt 
+    LEFT JOIN workout_template wt
       ON wt.id = w.id_workout_template
-    GROUP BY wt.id
+    JOIN (
+      SELECT id_workout_template, MAX(time_start) AS latest_start
+      FROM workout
+      WHERE time_end IS NOT NULL
+      GROUP BY id_workout_template
+    ) latest
+      ON latest.id_workout_template = w.id_workout_template
+      AND latest.latest_start = w.time_start
     ORDER BY w.time_start DESC
   `);
 
@@ -945,6 +979,17 @@ export async function editTemplateExercises(
   );
 
   console.log("Rows affected:", result.changes);
+
+  return result;
+}
+
+export async function deleteTemplateExercise(rowId: number) {
+  if (!db) return;
+
+  const result = await db.run(
+    `DELETE FROM workout_template_exercise WHERE id = ?`,
+    [rowId]
+  );
 
   return result;
 }
@@ -1036,14 +1081,17 @@ export async function importDatabaseFromSQL(sqlContent: string) {
 
   try {
     await db.execute('PRAGMA foreign_keys = OFF;');
+    await db.execute('BEGIN TRANSACTION;');
 
     for (const statement of statements) {
       await db.execute(`${statement};`);
     }
 
+    await db.execute('COMMIT;');
     await db.execute('PRAGMA foreign_keys = ON;');
     return { success: true, message: 'Data imported successfully.' };
   } catch (error) {
+    await db.execute('ROLLBACK;').catch(() => undefined);
     await db.execute('PRAGMA foreign_keys = ON;').catch(() => undefined);
     console.error('Error importing SQL:', error);
     const errorMessage = error instanceof Error ? error.message : String(error);

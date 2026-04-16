@@ -18,36 +18,52 @@
 
 
 
-      <ion-card class="exercise-card"  v-for="ex in workoutExercises" :key="ex.id">
-        <ion-card-header>
-          <div class="exercise-header">
-            <ion-card-title>{{ ex.name }}</ion-card-title>
-            <div class="rest-settings" @click="editRestTime(ex)">
-              <ion-icon :icon="timerOutline"></ion-icon>
-              <span>{{ ex.rest_seconds }}s</span>
-            </div>
-          </div>
-        </ion-card-header>
-        <ion-card-content>
-          <div class="set" v-for="set in ex.sets" :key="set.id">
-            <ion-checkbox slot="start" v-model="set.completed" @ionChange="() => handleSetChange(ex, set)" class="checkbox"></ion-checkbox>
-            <div class="input-container">
-              <ion-input fill="outline" type="number" placeholder="kg" v-model.number="set.weight" @ionBlur="saveSet(set)" class="input-small"></ion-input>
-              <span class="unit">Kg</span>
-            </div>
-            <div class="input-container">
-              <ion-input fill="outline" type="number" placeholder="reps" v-model.number="set.reps" @ionBlur="saveSet(set)" class="input-small"></ion-input>
-              <span class="unit">reps</span>
-            </div>
-          </div>
+      <ion-item-sliding v-for="ex in workoutExercises" :key="ex.id" class="exercise-sliding-item">
+        <ion-item lines="none" class="exercise-slide-host">
+          <ion-card class="exercise-card">
+            <ion-card-header>
+              <div class="exercise-header">
+                <ion-card-title>{{ ex.name }}</ion-card-title>
+                <div class="rest-settings" @click="editRestTime(ex)">
+                  <ion-icon :icon="timerOutline"></ion-icon>
+                  <span>{{ ex.rest_seconds }}s</span>
+                </div>
+              </div>
+            </ion-card-header>
+            <ion-card-content>
+              <ion-item-sliding class="set-sliding" v-for="set in ex.sets" :key="set.id">
+                <ion-item lines="none" class="set">
+                  <ion-checkbox slot="start" v-model="set.completed" @ionChange="() => handleSetChange(ex, set)" class="checkbox"></ion-checkbox>
+                  <div class="input-container">
+                    <ion-input fill="outline" type="number" placeholder="kg" v-model.number="set.weight" @ionBlur="saveSet(set)" class="input-small"></ion-input>
+                    <span class="unit">Kg</span>
+                  </div>
+                  <div class="input-container">
+                    <ion-input fill="outline" type="number" placeholder="reps" v-model.number="set.reps" @ionBlur="saveSet(set)" class="input-small"></ion-input>
+                    <span class="unit">reps</span>
+                  </div>
+                </ion-item>
+                <ion-item-options side="end">
+                  <ion-item-option color="danger" @click="handleRemoveSet(ex.id, set.id)">
+                    Remove
+                  </ion-item-option>
+                </ion-item-options>
+              </ion-item-sliding>
 
-          <!-- Add Set Button -->
-          <ion-button  expand="block" fill="outline" @click="addNewSet(ex)" class="add-set-btn">
-            <ion-icon slot="start" :icon="addOutline"></ion-icon>
-            Add Set
-          </ion-button>
-        </ion-card-content>
-      </ion-card>
+              <!-- Add Set Button -->
+              <ion-button  expand="block" fill="outline" @click="addNewSet(ex)" class="add-set-btn">
+                <ion-icon slot="start" :icon="addOutline"></ion-icon>
+                Add Set
+              </ion-button>
+            </ion-card-content>
+          </ion-card>
+        </ion-item>
+        <ion-item-options side="end">
+          <ion-item-option color="danger" expandable @click="handleRemoveExercise(ex.id)">
+            Remove
+          </ion-item-option>
+        </ion-item-options>
+      </ion-item-sliding>
 
       <!-- Add Exercise Button -->
       <div class="add-exercise-container">
@@ -75,7 +91,7 @@
             <ion-button fill="clear" color="light" @click="adjustRestTimer(15)">
               +15s
             </ion-button>
-            <ion-button fill="solid" color="danger" @click="skipRestTimer" class="skip-btn">
+            <ion-button fill="solid" color="danger" @click.stop="onSkipRestTimer" class="skip-btn">
               Skip
             </ion-button>
           </div>
@@ -87,12 +103,12 @@
 </template>
 
 <script setup lang="ts">
-import { IonPage, IonHeader, IonToolbar, IonTitle, IonContent,IonButtons,IonButton,IonCard,IonCardHeader,IonCardContent,IonCheckbox,IonInput,IonCardTitle,onIonViewWillEnter,onIonViewDidEnter, alertController, IonIcon } from '@ionic/vue';
+import { IonPage, IonHeader, IonToolbar, IonTitle, IonContent,IonButtons,IonButton,IonCard,IonCardHeader,IonCardContent,IonCheckbox,IonInput,IonCardTitle,onIonViewWillEnter,onIonViewDidEnter, alertController, IonIcon, IonItemSliding, IonItemOptions, IonItemOption, IonItem } from '@ionic/vue';
 import { ref, onUnmounted, shallowRef, computed } from 'vue';
 import { useRouter,useRoute } from 'vue-router';
 import { addCircleOutline, addOutline, timerOutline } from 'ionicons/icons';
 
-import { getWorkoutExercises,getWorkoutSets,updateWorkoutSet,getWorkoutById,endWorkout,cancelWorkout, addSetToWorkoutExercise, getNextSetNumber } from '@/services/gym_db';
+import { getWorkoutExercises,getWorkoutSets,updateWorkoutSet,getWorkoutById,endWorkout,cancelWorkout, addSetToWorkoutExercise, getNextSetNumber, deleteWorkoutExercise, deleteWorkoutSet } from '@/services/gym_db';
 
 const router = useRouter();
 // id from route
@@ -200,6 +216,50 @@ const handleCancelWorkout = async () => {
   await alert.present();
 };
 
+const handleRemoveExercise = async (workoutExerciseId: number) => {
+  const alert = await alertController.create({
+    header: 'Remove Exercise?',
+    message: 'This will remove the exercise and all its sets from this workout.',
+    buttons: [
+      { text: 'Cancel', role: 'cancel' },
+      {
+        text: 'Remove',
+        role: 'destructive',
+        handler: async () => {
+          await deleteWorkoutExercise(workoutExerciseId);
+          workoutExercises.value = workoutExercises.value.filter((ex) => ex.id !== workoutExerciseId);
+        }
+      }
+    ]
+  });
+
+  await alert.present();
+};
+
+const handleRemoveSet = async (workoutExerciseId: number, setId: number) => {
+  const alert = await alertController.create({
+    header: 'Remove Set?',
+    message: 'This will remove only this set from the exercise.',
+    buttons: [
+      { text: 'Cancel', role: 'cancel' },
+      {
+        text: 'Remove',
+        role: 'destructive',
+        handler: async () => {
+          await deleteWorkoutSet(setId);
+
+          const exercise = workoutExercises.value.find((ex) => ex.id === workoutExerciseId);
+          if (!exercise) return;
+
+          exercise.sets = exercise.sets.filter((set: any) => set.id !== setId);
+        }
+      }
+    ]
+  });
+
+  await alert.present();
+};
+
 // Add new exercise to workout
 const addNewExercise = async () => {
   router.push({
@@ -285,7 +345,15 @@ const stopRestTimer = () => {
   restTimer.value.isActive = false;
 };
 
-const skipRestTimer = () => {
+const onSkipRestTimer = (event: Event) => {
+  event.preventDefault();
+  event.stopPropagation();
+
+  // Force immediate UI close before interval cleanup.
+  restTimer.value.remaining = 0;
+  restTimer.value.total = 0;
+  restTimer.value.isActive = false;
+
   stopRestTimer();
 };
 
@@ -354,10 +422,23 @@ onUnmounted(() => {
   width: 100%;
   margin: 20px auto ;
 }
+
+.exercise-sliding-item {
+  margin: 0 8px;
+  background-color: var(--ion-color-dark);
+}
+
+.exercise-slide-host {
+  --background: transparent;
+  --padding-start: 0;
+  --inner-padding-end: 0;
+  --inner-border-width: 0;
+}
 .exercise-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  color:var(--ion-color-light)
 }
 .rest-settings {
   display: flex;
@@ -379,6 +460,11 @@ onUnmounted(() => {
   display: flex;
   justify-content: space-between;
   align-items: center;
+}
+
+.set-sliding {
+  margin-bottom: 5px;
+  background-color: transparent;
 }
 .input-small {
   width: 100px; /* small input boxes for kg/reps */

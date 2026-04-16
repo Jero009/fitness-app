@@ -11,7 +11,7 @@
       </ion-toolbar>
   </ion-header>
   <ion-content class="ion-padding">
-    <ion-modal :is-open="isOpen" >
+    <ion-modal :is-open="isOpen" css-class="exercise-modal">
       <ion-header>
         <ion-toolbar>
           <ion-buttons slot="start">
@@ -26,17 +26,17 @@
       <ion-content class="ion-padding">
           <ion-input class="input"
             v-model="name"
-            placeholder="Enter exercise name"
+            placeholder="&nbsp;Enter exercise name"
           ></ion-input>
 
-          <ion-select v-model="muscleGroup" placeholder="Select muscle group" interface="action-sheet">
+          <ion-select v-model="muscleGroup" placeholder="&nbsp;Select muscle group" interface="action-sheet">
             <ion-select-option v-for="mg in muscleGroups" :key="mg.id" :value="mg.id">
               {{ mg.name }}
             </ion-select-option>
           </ion-select>
 
 
-          <ion-select v-model="equipment" placeholder="Select equipment" interface="action-sheet">
+          <ion-select v-model="equipment" placeholder="&nbsp;Select equipment" interface="action-sheet">
             <ion-select-option v-for="eq in equipmentList" :key="eq.id" :value="eq.id">
               {{ eq.name }}
             </ion-select-option>
@@ -96,6 +96,7 @@
 .input {
   margin:0;
   background-color: var(--ion-color-primary);
+  color:var(--ion-color-light);
   border-radius: 3px;
   font-family: doto;
 }
@@ -180,6 +181,7 @@ const filteredExercises = computed(() => {
 const renameEx = async (ex: exercise) => {
   const alert = await alertController.create({
     header: 'Rename Exercise',
+    cssClass: 'rename-exercise-alert',
 
     inputs: [
       {

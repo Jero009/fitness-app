@@ -9,7 +9,7 @@
             <ion-title>EDIT TEMPLATE</ion-title>
 
             <ion-buttons slot="end">
-              <ion-button class="button-red" @click="confirm()">Save</ion-button>
+              <ion-button class="button-yellow" @click="confirm()">Save</ion-button>
             </ion-buttons>
           </ion-toolbar>
         </ion-header>
@@ -28,30 +28,35 @@
               </ion-item>
             </div>
             
-                <Draggable v-model="exercises" item-key="id" @end="onDragEnd">
-                  <template #item="{ element: ex }">
-                    <ion-item class="exercise-item">
-                      <div style="flex: 1;">
-                        {{ ex.name }}
-                      </div>
-                      <ion-input
-                      label="Sets"  label-placement="floating" 
-                      :clear-on-edit="true"
-                        type="number"
-                        v-model.number="ex.set_number"
-                        style="width: 60px"
-                        placeholder="Sets"
-                      ></ion-input>
-                      
-                      <ion-input
-                      label="Reps" label-placement="floating"
-                      :clear-on-edit="true"
-                        type="number"
-                        v-model.number="ex.rep_number"
-                        style="width: 60px"
-                        placeholder="Reps"
-                      ></ion-input>
-                    </ion-item>
+                <Draggable v-model="exercises" item-key="id_exercise" @end="onDragEnd">
+                  <template #item="{ element: ex, index }">
+                    <ion-item-sliding>
+                      <ion-item class="exercise-item">
+                        <div style="flex: 1;">
+                          {{ ex.name }}
+                        </div>
+                        <ion-input
+                        label="Sets"  label-placement="floating" 
+                        :clear-on-edit="true"
+                          type="number"
+                          v-model.number="ex.set_number"
+                          style="width: 60px"
+                          placeholder="Sets"
+                        ></ion-input>
+                        
+                        <ion-input
+                        label="Reps" label-placement="floating"
+                        :clear-on-edit="true"
+                          type="number"
+                          v-model.number="ex.rep_number"
+                          style="width: 60px"
+                          placeholder="Reps"
+                        ></ion-input>
+                      </ion-item>
+                      <ion-item-options side="end">
+                        <ion-item-option color="danger" @click="removeExercise(index)">Remove</ion-item-option>
+                      </ion-item-options>
+                    </ion-item-sliding>
                   </template>
                 </Draggable>
         </ion-content>
@@ -79,11 +84,11 @@
 
 </style>
 <script setup lang="ts">
-import { IonPage, IonHeader, IonToolbar, IonTitle, IonContent, IonItem, IonButton, IonButtons, IonInput, onIonViewWillEnter } from '@ionic/vue';
+import { IonPage, IonHeader, IonToolbar, IonTitle, IonContent, IonItem, IonButton, IonButtons, IonInput, IonItemSliding, IonItemOptions, IonItemOption, onIonViewWillEnter } from '@ionic/vue';
 import { ref } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import Draggable from 'vuedraggable';
-import { getTemplateById, getTemplateExercisesByTemplateId, renameTemplate, editTemplateExercises, addExerciseToTemplate } from '@/services/gym_db';
+import { getTemplateById, getTemplateExercisesByTemplateId, renameTemplate, editTemplateExercises, addExerciseToTemplate, deleteTemplateExercise } from '@/services/gym_db';
 
 const router = useRouter();
 const route = useRoute();
@@ -111,6 +116,18 @@ const cancel = () => {
 };
 
 const TemplateName = ref('');
+const removedExerciseRowIds = ref<number[]>([]);
+
+const removeExercise = (index: number) => {
+  const exercise = exercises.value[index];
+  if (!exercise) return;
+
+  if (exercise.id > 0 && !removedExerciseRowIds.value.includes(exercise.id)) {
+    removedExerciseRowIds.value.push(exercise.id);
+  }
+
+  exercises.value.splice(index, 1);
+};
 
 // saving changes doesnt work
 
@@ -121,6 +138,11 @@ const confirm = async () => {
 
   await renameTemplate(templateId, TemplateName.value);
   console.log("✅ Template renamed");
+
+  // Delete exercises removed from the list.
+  for (const rowId of removedExerciseRowIds.value) {
+    await deleteTemplateExercise(rowId);
+  }
 
 
   //add each selected exercise  
@@ -150,6 +172,7 @@ const confirm = async () => {
 
   // reset state
   exercises.value = [];
+  removedExerciseRowIds.value = [];
   TemplateName.value = '';
 
   router.push({ name: 'Template' });

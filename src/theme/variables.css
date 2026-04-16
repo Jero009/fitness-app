@@ -11,17 +11,19 @@
   --ion-color-light: #ffffff;         /* true white for high contrast */
 
     /* Signature accent colors */
-  --ion-color-accent-red: #FF0031;   /* LED vibrant red */
+  --ion-color-accent-red: #d1032f;   /* LED vibrant red */
   --ion-color-accent-yellow: #FFD700; /* vibrant gold pop */
 
   /* Toolbar & background */
   --ion-toolbar-background: var(--ion-color-primary);
   --ion-content-background: var(--ion-color-dark);
   --ion-tabs-bar-background: var(--ion-color-primary);
+  --ion-title-color: var(--ion-color-light);
 
   /* Cards & items */
   --ion-card-background: var(--ion-color-primary);
   --ion-card-color: var(--ion-color-light);
+  --ion-item-background: var(--ion-color-primary);
   /* Font */
   --ion-font-family: 'Inter', sans-serif;
   --ion-font-size: 16px;
@@ -32,11 +34,78 @@
   --ion-margin: 16px;
   --ion-background-color: var(--ion-color-dark);
 }
+
+ion-alert.history-delete-alert {
+  --background: #111827;
+  --color: #f9fafb;
+  --backdrop-opacity: 0.4;
+  --border-radius: 14px;
+}
+
+ion-alert.history-delete-alert .alert-title {
+  color: #ffffff;
+}
+
+ion-alert.history-delete-alert .alert-message {
+  color: #ffffff;
+}
+
+ion-alert.history-delete-alert .alert-button-role-cancel {
+  color: #ffffff;
+}
+
+ion-alert.history-delete-alert .alert-button-role-destructive {
+  color:var(--ion-color-accent-red);
+  font-weight: 700;
+}
+
+ion-alert.rename-exercise-alert {
+  --background: #0f0f0f;
+  --color: #f9fafb;
+  --backdrop-opacity: 0.45;
+  --border-radius: 12px;
+}
+
+ion-alert.rename-exercise-alert .alert-title {
+  color: #ffffff;
+}
+
+ion-alert.rename-exercise-alert .alert-input {
+  color: #ffffff;
+  background: #1b1b1b;
+  border-radius: 6px;
+}
+
+ion-alert.rename-exercise-alert .alert-button {
+  color: #ffffff;
+}
+
+ion-modal.exercise-modal {
+  --background: #0b0b0b;
+  --color: #f9fafb;
+  --border-radius: 18px 18px 0 0;
+  --height: 72%;
+  --width: 100%;
+  --backdrop-opacity: 0.5;
+}
+
+
+
 ion-tab-bar {
   --color-selected: var(--ion-color-accent-red);  /* active tab text & icon */
   --color: var(--ion-color-medium);              /* inactive tab text & icon */
   --background: var(--ion-color-dark);         /* tab bar background */
 }
+
+ion-toolbar {
+  --color: var(--ion-color-light);
+}
+
+ion-title,
+ion-title.title {
+  color: var(--ion-color-light);
+}
+
 ion-page {
   --background: var(--ion-color-dark); /* page background */
 }

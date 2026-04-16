@@ -34,7 +34,7 @@
                 </ion-card-header>
             </ion-card>
             <div class="card-container">
-              <ion-card class="card" v-for="template in templates" :key="template.id" :disabled="activeWorkout" @click="startWorkout(template.id)">
+              <ion-card class="card" v-for="template in templates" :key="template.id" @click="startWorkout(template.id)">
                   <ion-card-header>
                       <ion-card-title class="card-title">{{ template.name }}</ion-card-title>
                       <ion-card-subtitle>{{ template.created_at }}</ion-card-subtitle>
@@ -57,8 +57,8 @@
 </template>
 
 <script setup lang="ts">
-import { IonPage, IonHeader, IonToolbar, IonTitle, IonContent, IonCard, IonCardHeader, IonCardSubtitle, IonCardContent, IonCardTitle, onIonViewWillEnter, IonIcon, IonButton,IonSelect,IonSelectOption } from '@ionic/vue';
-import { getTemplates, startWorkoutFromTemplate, hasActiveWorkout, getActiveWorkout, getWorkoutById,getLatestWorkout,getWorkoutsByTemplate,getWorkoutsByName } from '@/services/gym_db';
+import { IonPage, IonHeader, IonToolbar, IonTitle, IonContent, IonCard, IonCardHeader, IonCardSubtitle, IonCardContent, IonCardTitle, onIonViewWillEnter, IonIcon, IonSelect, IonSelectOption } from '@ionic/vue';
+import { getTemplates, startWorkoutFromTemplate, getActiveWorkout, getLatestWorkout, getWorkoutsByName } from '@/services/gym_db';
 import { ref, onMounted, onUnmounted,computed,watch } from 'vue';
 import { barbellSharp } from 'ionicons/icons';
 import { useRouter } from 'vue-router';
@@ -71,6 +71,11 @@ const activeWorkout = ref(false);
 const router = useRouter();
 
 const startWorkout = async (templateId: number) => {
+  if (activeWorkout.value) {
+    await backToWorkout();
+    return;
+  }
+
   const workoutId = await startWorkoutFromTemplate(templateId);
 
   if (!workoutId) {

@@ -33,6 +33,10 @@ const app = createApp(App)
 
 // ✅ Wait for router + DB
 router.isReady().then(async () => {
-  await initDB()
+  try {
+    await initDB()
+  } catch (error) {
+    console.error('Failed to initialize database, continuing without DB.', error)
+  }
   app.mount('#app')
 })

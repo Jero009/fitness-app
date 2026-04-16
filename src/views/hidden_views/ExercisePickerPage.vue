@@ -25,13 +25,6 @@
                   <ion-item class="exercise-item" v-for="ex in filteredExercises" :key="ex.id" @click="selectExercise(ex)" lines="none">
                     {{ ex.name }}
                   </ion-item>
-                  <ion-item class="exercise-item" >
-                    pull up
-            
-                  </ion-item>
-                  <ion-item class="exercise-item" >
-                    tewst
-                  </ion-item>
                 </ion-list>
             </div>
         

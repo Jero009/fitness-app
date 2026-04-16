@@ -29,34 +29,39 @@
                   placeholder="Template name"
                 />
               </ion-item >
-                <ion-item class="template-top"S>
+                <ion-item class="template-top">
                   <ion-button class="button-red" @click="goToExercisePicker">Add exercise</ion-button>
                 </ion-item>
 
                 <Draggable v-model="selectedExercises" item-key="id">
-                  <template #item="{ element: ex }">
-                    <ion-item class="exercise-item">
-                      <div style="flex: 1;">
-                        {{ ex.name }}
-                      </div>
-                      <ion-input
-                      label="Sets"  label-placement="floating" 
-                      :clear-on-edit="true"
-                        type="number"
-                        v-model="ex.set_number"
-                        style="width: 60px"
-                        placeholder="Sets"
-                      ></ion-input>
-                      
-                      <ion-input
-                      label="Reps" label-placement="floating"
-                      :clear-on-edit="true"
-                        type="number"
-                        v-model="ex.rep_number"
-                        style="width: 60px"
-                        placeholder="Reps"
-                      ></ion-input>
-                    </ion-item>
+                  <template #item="{ element: ex, index }">
+                    <ion-item-sliding>
+                      <ion-item class="exercise-item">
+                        <div style="flex: 1;">
+                          {{ ex.name }}
+                        </div>
+                        <ion-input
+                        label="Sets"  label-placement="floating" 
+                        :clear-on-edit="true"
+                          type="number"
+                          v-model="ex.set_number"
+                          style="width: 60px"
+                          placeholder="Sets"
+                        ></ion-input>
+                        
+                        <ion-input
+                        label="Reps" label-placement="floating"
+                        :clear-on-edit="true"
+                          type="number"
+                          v-model="ex.rep_number"
+                          style="width: 60px"
+                          placeholder="Reps"
+                        ></ion-input>
+                      </ion-item>
+                      <ion-item-options side="end">
+                        <ion-item-option color="danger" @click="removeSelectedExercise(index)">Remove</ion-item-option>
+                      </ion-item-options>
+                    </ion-item-sliding>
                   </template>
                 </Draggable>
         </ion-content>
@@ -80,13 +85,12 @@
   transition: background 0.2s;
 }
 .template-top {
-  width: 100%;
-  background-color: var(--ion-color-primary);
+  background-color: var(--ion-color-medium) !important;
 }
 
 </style>
 <script setup lang="ts">
-import { IonPage, IonHeader, IonToolbar, IonTitle, IonContent, IonItem, IonButton, IonButtons, IonInput, onIonViewWillEnter } from '@ionic/vue';
+import { IonPage, IonHeader, IonToolbar, IonTitle, IonContent, IonItem, IonButton, IonButtons, IonInput, IonItemSliding, IonItemOptions, IonItemOption, onIonViewWillEnter } from '@ionic/vue';
 import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import Draggable from 'vuedraggable';
@@ -153,6 +157,10 @@ const confirm = async () => {
 const exercises = ref<exercise[]>([])
 
 const selectedExercises = ref<SelectedExercise[]>([]);
+
+const removeSelectedExercise = (index: number) => {
+  selectedExercises.value.splice(index, 1);
+};
 
 type SelectedExercise = {
   id: number;

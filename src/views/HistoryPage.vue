@@ -128,6 +128,7 @@ const handleDelete = async (id: number) => {
   const alert = await alertController.create({
     header: 'Delete Workout?',
     message: 'Are you sure you want to delete this workout from your history?',
+    cssClass: 'history-delete-alert',
     buttons: [
       { text: 'Cancel', role: 'cancel' },
       {
