@@ -18,49 +18,45 @@
 
 
 
-      <Draggable v-model="workoutExercises" item-key="id" @end="onDragEnd" class="exercise-list">
-        <template #item="{ element: ex }">
-          <div class="exercise-sliding-item">
-            <ion-card class="exercise-card">
-              <ion-card-header>
-                <div class="exercise-header">
-                  <ion-card-title>{{ ex.name }}</ion-card-title>
-                  <div class="rest-settings" @click="editRestTime(ex)">
-                    <ion-icon :icon="timerOutline"></ion-icon>
-                    <span>{{ ex.rest_seconds }}s</span>
-                  </div>
+       <div v-for="ex in workoutExercises" :key="ex.id" class="exercise-sliding-item">
+        <ion-card class="exercise-card">
+            <ion-card-header>
+              <div class="exercise-header">
+                <ion-card-title>{{ ex.name }}</ion-card-title>
+                <div class="rest-settings" @click="editRestTime(ex)">
+                  <ion-icon :icon="timerOutline"></ion-icon>
+                  <span>{{ ex.rest_seconds }}s</span>
                 </div>
-              </ion-card-header>
-              <ion-card-content>
-                <ion-item-sliding class="set-sliding" v-for="set in ex.sets" :key="set.id">
-                  <ion-item lines="none" class="set">
-                    <ion-checkbox slot="start" v-model="set.completed" @ionChange="() => handleSetChange(ex, set)" class="checkbox"></ion-checkbox>
-                    <div class="input-container">
-                      <ion-input fill="outline" type="number" placeholder="kg" v-model.number="set.weight" @ionBlur="saveSet(set)" class="input-small"></ion-input>
-                      <span class="unit">Kg</span>
-                    </div>
-                    <div class="input-container">
-                      <ion-input fill="outline" type="number" placeholder="reps" v-model.number="set.reps" @ionBlur="saveSet(set)" class="input-small"></ion-input>
-                      <span class="unit">reps</span>
-                    </div>
-                  </ion-item>
-                  <ion-item-options side="end">
-                    <ion-item-option color="danger" @click="handleRemoveSet(ex.id, set.id)">
-                      Remove
-                    </ion-item-option>
-                  </ion-item-options>
-                </ion-item-sliding>
+              </div>
+            </ion-card-header>
+            <ion-card-content>
+              <ion-item-sliding class="set-sliding" v-for="set in ex.sets" :key="set.id">
+                <ion-item lines="none" class="set">
+                  <ion-checkbox slot="start" v-model="set.completed" @ionChange="() => handleSetChange(ex, set)" class="checkbox"></ion-checkbox>
+                  <div class="input-container">
+                    <ion-input fill="outline" type="number" placeholder="kg" v-model.number="set.weight" @ionBlur="saveSet(set)" class="input-small"></ion-input>
+                    <span class="unit">Kg</span>
+                  </div>
+                  <div class="input-container">
+                    <ion-input fill="outline" type="number" placeholder="reps" v-model.number="set.reps" @ionBlur="saveSet(set)" class="input-small"></ion-input>
+                    <span class="unit">reps</span>
+                  </div>
+                </ion-item>
+                <ion-item-options side="end">
+                  <ion-item-option color="danger" @click="handleRemoveSet(ex.id, set.id)">
+                    Remove
+                  </ion-item-option>
+                </ion-item-options>
+              </ion-item-sliding>
 
-                <!-- Add Set Button -->
-                <ion-button expand="block" fill="outline" @click="addNewSet(ex)" class="add-set-btn">
-                  <ion-icon class="add-set-icon" :icon="addOutline"></ion-icon>
-                  Add Set
-                </ion-button>
-              </ion-card-content>
-            </ion-card>
-          </div>
-        </template>
-      </Draggable>
+              <!-- Add Set Button -->
+              <ion-button  expand="block" fill="outline" @click="addNewSet(ex)" class="add-set-btn">
+                <ion-icon class="add-set-icon" :icon="addOutline"></ion-icon>
+                Add Set
+              </ion-button>
+            </ion-card-content>
+        </ion-card>
+      </div>
 
       <!-- Add Exercise Button -->
       <div class="add-exercise-container">
@@ -98,7 +94,181 @@
     </ion-content>
   </ion-page>
 </template>
+<style>
+/*top bar*/
+.timer {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  font-family: 'Doto', sans-serif;
+  pointer-events: none; 
+}
+.title {
+  margin-left: 10px;
+}
+.btn-quickstart {
+  --background: var(--ion-color-accent-red);        
+  --background-activated: var(--ion-color-accent-yellow); 
+  --color: var(--ion-color-light);                                 
+  --color-activated: var(--ion-color-dark);                       
+  border-radius: 3px;
+  padding: 0 16px;
+}
+/* exercise cards */
+.exercise-card{
+  width: 100%;
+  margin: 20px auto ;
+}
 
+.exercise-sliding-item {
+  margin: 0 8px;
+  background-color: var(--ion-color-dark);
+}
+
+.exercise-slide-host {
+  --background: transparent;
+  --padding-start: 0;
+  --inner-padding-end: 0;
+  --inner-border-width: 0;
+}
+.exercise-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  color:var(--ion-color-light)
+}
+.rest-settings {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: var(--ion-color-step-200);
+  padding: 4px 8px;
+  border-radius: 3px;
+  font-size: 0.8rem;
+  color: var(--ion-color-primary);
+  cursor: pointer;
+}
+.set{
+  width: 100%;
+  padding: 10px;
+  border-radius: 3px;
+  margin-bottom: 5px;
+  background-color: var(--ion-color-medium);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.set-sliding {
+  margin-bottom: 5px;
+  background-color: transparent;
+}
+.input-small {
+  width: 100px; /* small input boxes for kg/reps */
+  height: 30px;
+  --padding-start: 5px;
+  --padding-end: 5px;
+  text-align: center;
+  --placeholder-color: #ddd;
+  --placeholder-opacity: 0.8;
+}
+.input-container {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}.unit {
+  font-size: 0.9rem;
+  color: #888;
+}
+
+.cancel-container {
+  padding: 16px;
+  margin-top: 20px;
+  margin-bottom: 20px;
+}
+
+.add-exercise-container {
+  color: var(--ion-color-accent-yellow);
+  padding: 16px;
+  padding-top: 8px;
+}
+
+.add-exercise-btn {
+  --background: var(--ion-color-accent-yellow) !important;
+  --background-activated: var(--ion-color-accent-red) !important;
+  --color: var(--ion-color-dark) !important;
+  --color-activated: var(--ion-color-light) !important;
+  --border-radius: 3px;
+  font-weight: 700;
+}
+
+.add-set-btn {
+  margin-top: 10px;
+  --border-radius: 3px;
+}
+
+.add-set-icon {
+  color: var(--ion-color-accent-yellow);
+}
+
+/* Rest Timer Overlay */
+.rest-timer-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  background: var(--ion-color-dark);
+  color: white;
+  padding: 16px;
+  z-index: 1000;
+  border-bottom-left-radius: 16px;
+  border-bottom-right-radius: 16px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+}
+
+.rest-timer-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.rest-timer-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.rest-label {
+  font-size: 0.8rem;
+  opacity: 0.7;
+}
+
+.rest-time {
+  font-size: 1.8rem;
+  font-weight: bold;
+  font-family: 'Doto', sans-serif;
+}
+
+.rest-timer-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.skip-btn {
+  --border-radius: 8px;
+  font-weight: bold;
+}
+
+.rest-progress-bar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 4px;
+  background: var(--ion-color-primary);
+  transition: width 1s linear;
+}
+
+</style>
 <script setup lang="ts">
 import { IonPage, IonHeader, IonToolbar, IonTitle, IonContent,IonButtons,IonButton,IonCard,IonCardHeader,IonCardContent,IonCheckbox,IonInput,IonCardTitle,onIonViewWillEnter,onIonViewDidEnter, alertController, IonIcon, IonItemSliding, IonItemOptions, IonItemOption, IonItem } from '@ionic/vue';
 import { ref, onUnmounted, computed } from 'vue';
@@ -106,7 +276,7 @@ import Draggable from 'vuedraggable';
 import { useRouter,useRoute } from 'vue-router';
 import { addCircleOutline, addOutline, timerOutline } from 'ionicons/icons';
 
-import { getWorkoutExercises,getWorkoutSets,updateWorkoutSet,getWorkoutById,endWorkout,cancelWorkout, addSetToWorkoutExercise, getNextSetNumber, deleteWorkoutSet, deleteWorkoutExercise, updateWorkoutExerciseOrder } from '@/services/gym_db';
+import { getWorkoutExercises,getWorkoutSets,updateWorkoutSet,getWorkoutById,endWorkout,cancelWorkout, addSetToWorkoutExercise, getNextSetNumber, deleteWorkoutSet, deleteWorkoutExercise,updateWorkoutExerciseOrder } from '@/services/gym_db';
 
 const router = useRouter();
 // id from route
@@ -455,191 +625,3 @@ onUnmounted(() => {
 });
 
 </script>
-<style>
-/*top bar*/
-.timer {
-  position: absolute;
-  left: 50%;
-  transform: translateX(-50%);
-  font-family: 'Doto', sans-serif;
-  pointer-events: none; 
-}
-.title {
-  margin-left: 10px;
-}
-.btn-quickstart {
-  --background: var(--ion-color-accent-red);        
-  --background-activated: var(--ion-color-accent-yellow); 
-  --color: var(--ion-color-light);                                 
-  --color-activated: var(--ion-color-dark);                       
-  border-radius: 12px;
-  padding: 0 16px;
-}
-/* exercise cards */
-.exercise-card{
-  width: 100%;
-  margin: 20px auto ;
-}
-
-.exercise-sliding-item {
-  margin: 0 8px;
-  background-color: var(--ion-color-dark);
-}
-
-.exercise-slide-host {
-  --background: transparent;
-  --padding-start: 0;
-  --inner-padding-end: 0;
-  --inner-border-width: 0;
-}
-.exercise-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  color:var(--ion-color-light)
-}
-.rest-settings {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  background: var(--ion-color-step-200);
-  padding: 4px 8px;
-  border-radius: 6px;
-  font-size: 0.8rem;
-  color: var(--ion-color-primary);
-  cursor: pointer;
-}
-.set{
-  width: 100%;
-  padding: 10px;
-  border-radius: 10px;
-  margin-bottom: 5px;
-  background-color: var(--ion-color-medium);
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.set-sliding {
-  margin-bottom: 5px;
-  background-color: transparent;
-}
-.input-small {
-  width: 100px; /* small input boxes for kg/reps */
-  height: 30px;
-  --padding-start: 5px;
-  --padding-end: 5px;
-  text-align: center;
-  --placeholder-color: #ddd;
-  --placeholder-opacity: 0.8;
-}
-.input-container {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-}.unit {
-  font-size: 0.9rem;
-  color: #888;
-}
-
-.cancel-container {
-  padding: 16px;
-  margin-top: 20px;
-  margin-bottom: 20px;
-}
-
-.add-exercise-container {
-  color: var(--ion-color-accent-yellow);
-  padding: 16px;
-  padding-top: 8px;
-}
-
-.add-exercise-btn {
-  --background: var(--ion-color-accent-yellow) !important;
-  --background-activated: var(--ion-color-accent-red) !important;
-  --color: var(--ion-color-dark) !important;
-  --color-activated: var(--ion-color-light) !important;
-  --border-radius: 10px;
-  font-weight: 700;
-}
-
-.add-set-btn {
-  margin-top: 10px;
-  --border-radius: 8px;
-}
-
-.add-set-icon {
-  color: var(--ion-color-accent-yellow);
-}
-
-/* Rest Timer Overlay */
-.rest-timer-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  background: var(--ion-color-dark);
-  color: white;
-  padding: 16px;
-  z-index: 1000;
-  border-bottom-left-radius: 16px;
-  border-bottom-right-radius: 16px;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.3);
-}
-
-.rest-timer-content {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.rest-timer-info {
-  display: flex;
-  flex-direction: column;
-}
-
-.rest-label {
-  font-size: 0.8rem;
-  opacity: 0.7;
-}
-
-.rest-time {
-  font-size: 1.8rem;
-  font-weight: bold;
-  font-family: 'Doto', sans-serif;
-}
-
-.rest-timer-controls {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.skip-btn {
-  --border-radius: 8px;
-  font-weight: bold;
-}
-
-.rest-progress-bar {
-  position: absolute;
-  top: 0;
-  left: 0;
-  height: 4px;
-  background: var(--ion-color-primary);
-  transition: width 1s linear;
-}
-
-.exercise-list {
-  width: 100%;
-}
-
-.sortable-chosen {
-  background-color: var(--ion-color-step-200) !important;
-  transition: background-color 0.2s;
-}
-
-.sortable-drag {
-  opacity: 0.8;
-}
-
-</style>

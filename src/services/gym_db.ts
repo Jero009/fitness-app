@@ -906,19 +906,6 @@ export async function getNextSetNumber(workoutExerciseId: number) {
   return maxSet + 1;
 }
 
-export async function updateWorkoutExerciseOrder(
-  workoutId: number,
-  exerciseIds: number[]
-) {
-  if (!db) return;
-  for (let i = 0; i < exerciseIds.length; i++) {
-    await db.run(
-      'UPDATE workout_exercise SET order_index = ? WHERE workout_id = ? AND id = ?',
-      [i + 1, workoutId, exerciseIds[i]]
-    );
-  }
-}
-
 export async function getWorkoutsByTemplate() {
   if (!db) return [];
 
