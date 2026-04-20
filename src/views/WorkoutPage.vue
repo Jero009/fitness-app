@@ -16,8 +16,6 @@
         </ion-toolbar>
       </ion-header>
 
-
-
        <div v-for="ex in workoutExercises" :key="ex.id" class="exercise-sliding-item">
         <ion-card class="exercise-card">
             <ion-card-header>
@@ -32,13 +30,13 @@
             <ion-card-content>
               <ion-item-sliding class="set-sliding" v-for="set in ex.sets" :key="set.id">
                 <ion-item lines="none" class="set">
-                  <ion-checkbox slot="start" v-model="set.completed" @ionChange="() => handleSetChange(ex, set)" class="checkbox"></ion-checkbox>
-                  <div class="input-container">
-                    <ion-input fill="outline" type="number" placeholder="kg" v-model.number="set.weight" @ionBlur="saveSet(set)" class="input-small"></ion-input>
+                  <ion-checkbox slot="start" v-model="set.completed" @ionChange="(ev) => handleSetChange(ex, set, ev)" class="checkbox"></ion-checkbox>
+                  <div class="input-container metric-field">
+                    <ion-input fill="outline" type="number" :placeholder="getWeightPlaceholder(ex, set)" v-model.number="set.weight" @ionBlur="saveSet(set)" class="input-small"></ion-input>
                     <span class="unit">Kg</span>
                   </div>
-                  <div class="input-container">
-                    <ion-input fill="outline" type="number" placeholder="reps" v-model.number="set.reps" @ionBlur="saveSet(set)" class="input-small"></ion-input>
+                  <div class="input-container metric-field">
+                    <ion-input fill="outline" type="number" :placeholder="getRepsPlaceholder(ex, set)" v-model.number="set.reps" @ionBlur="saveSet(set)" class="input-small"></ion-input>
                     <span class="unit">reps</span>
                   </div>
                 </ion-item>
@@ -70,28 +68,29 @@
         <ion-button class="button-red" expand="block" fill="outline" @click="handleCancelWorkout">Cancel Workout</ion-button>
       </div>
 
-      <!-- Rest Timer Overlay -->
-      <div v-if="restTimer.isActive" class="rest-timer-overlay">
-        <div class="rest-timer-content">
-          <div class="rest-timer-info">
-            <span class="rest-label">Resting</span>
-            <span class="rest-time">{{ formatRestTime(restTimer.remaining) }}</span>
-          </div>
-          <div class="rest-timer-controls">
-            <ion-button fill="clear" color="light" @click="adjustRestTimer(-15)">
-              -15s
-            </ion-button>
-            <ion-button fill="clear" color="light" @click="adjustRestTimer(15)">
-              +15s
-            </ion-button>
-            <ion-button fill="solid" color="danger" @click.stop="onSkipRestTimer" class="skip-btn">
-              Skip
-            </ion-button>
-          </div>
-        </div>
-        <div class="rest-progress-bar" :style="{ width: restProgress + '%' }"></div>
-      </div>
     </ion-content>
+
+    <!-- Rest Timer Overlay -->
+    <div v-if="restTimer.isActive" class="rest-timer-overlay">
+      <div class="rest-timer-content">
+        <div class="rest-timer-info">
+          <span class="rest-label">Resting</span>
+          <span class="rest-time">{{ formatRestTime(restTimer.remaining) }}</span>
+        </div>
+        <div class="rest-timer-controls">
+          <ion-button fill="clear" color="light" @click="adjustRestTimer(-15)">
+            -15s
+          </ion-button>
+          <ion-button fill="clear" color="light" @click="adjustRestTimer(15)">
+            +15s
+          </ion-button>
+          <ion-button fill="solid" color="danger" @click.stop="onSkipRestTimer" class="skip-btn">
+            Skip
+          </ion-button>
+        </div>
+      </div>
+      <div class="rest-progress-bar" :style="{ width: restProgress + '%' }"></div>
+    </div>
   </ion-page>
 </template>
 <style>
@@ -118,11 +117,14 @@
 .exercise-card{
   width: 100%;
   margin: 20px auto ;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: none;
 }
 
 .exercise-sliding-item {
   margin: 0 8px;
-  background-color: var(--ion-color-dark);
+  background-color: transparent;
 }
 
 .exercise-slide-host {
@@ -141,7 +143,7 @@
   display: flex;
   align-items: center;
   gap: 4px;
-  background: var(--ion-color-step-200);
+  background: rgba(255, 255, 255, 0.06);
   padding: 4px 8px;
   border-radius: 3px;
   font-size: 0.8rem;
@@ -150,10 +152,14 @@
 }
 .set{
   width: 100%;
-  padding: 10px;
+  padding: 14px;
   border-radius: 3px;
   margin-bottom: 5px;
-  background-color: var(--ion-color-medium);
+  --background: transparent;
+  --inner-border-width: 0;
+  --inner-padding-end: 0;
+  --padding-start: 0;
+  border: 1px solid rgba(255, 255, 255, 0.06);
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -161,24 +167,56 @@
 
 .set-sliding {
   margin-bottom: 5px;
-  background-color: transparent;
+  --background: transparent;
+  background: transparent;
 }
 .input-small {
-  width: 100px; /* small input boxes for kg/reps */
-  height: 30px;
-  --padding-start: 5px;
-  --padding-end: 5px;
+  width: 100%;
+  height: 54px;
+  --padding-start: 0;
+  --padding-end: 0;
+  --background: rgba(255, 255, 255, 0.03);
+  --border-color: rgba(255, 255, 255, 0.12);
+  --border-radius: 8px;
   text-align: center;
-  --placeholder-color: #ddd;
+  --placeholder-color: rgba(255, 255, 255, 0.9);
   --placeholder-opacity: 0.8;
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: var(--ion-color-light);
 }
 .input-container {
   display: flex;
   align-items: center;
   gap: 5px;
-}.unit {
-  font-size: 0.9rem;
-  color: #888;
+}
+
+.metric-field {
+  position: relative;
+  flex: 1;
+  max-width: 160px;
+}
+
+.metric-field .unit {
+  position: absolute;
+  right: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.45);
+  pointer-events: none;
+}
+
+.checkbox {
+  --size: 28px;
+  --checkmark-width: 4px;
+  --border-color: var(--ion-color-accent-red);
+  --border-color-checked: var(--ion-color-accent-red);
+  --checkbox-background: transparent;
+  --checkbox-background-checked: var(--ion-color-accent-red);
+  --border-radius: 6px;
 }
 
 .cancel-container {
@@ -203,8 +241,10 @@
 }
 
 .add-set-btn {
+  background: var(--ion-color-primary);
   margin-top: 10px;
   --border-radius: 3px;
+  color: var(--ion-color-accent-yellow);
 }
 
 .add-set-icon {
@@ -214,16 +254,16 @@
 /* Rest Timer Overlay */
 .rest-timer-overlay {
   position: fixed;
-  top: 0;
+  top: calc(env(safe-area-inset-top, 0px) + 56px);
   left: 0;
   right: 0;
-  background: var(--ion-color-dark);
+  background: rgba(20, 20, 20, 0.98);
   color: white;
   padding: 16px;
-  z-index: 1000;
+  z-index: 9999;
   border-bottom-left-radius: 16px;
   border-bottom-right-radius: 16px;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+  box-shadow: 0 6px 18px rgba(0,0,0,0.45);
 }
 
 .rest-timer-content {
@@ -275,7 +315,7 @@ import { ref, onUnmounted, computed } from 'vue';
 import { useRouter,useRoute } from 'vue-router';
 import { addCircleOutline, addOutline, timerOutline } from 'ionicons/icons';
 
-import { getWorkoutExercises,getWorkoutSets,updateWorkoutSet,getWorkoutById,endWorkout,cancelWorkout, addSetToWorkoutExercise, getNextSetNumber, deleteWorkoutSet, deleteWorkoutExercise } from '@/services/gym_db';
+import { getWorkoutExercises,getWorkoutSets,updateWorkoutSet,getWorkoutById,endWorkout,cancelWorkout, addSetToWorkoutExercise, getNextSetNumber, deleteWorkoutSet, deleteWorkoutExercise, getLatestCompletedSetsForExercise } from '@/services/gym_db';
 
 const router = useRouter();
 // id from route
@@ -296,11 +336,17 @@ const loadWorkout = async () => {
 
   for (const ex of data) {
       const sets = await getWorkoutSets(ex.id);
+      const previousSets = await getLatestCompletedSetsForExercise(ex.exercise_id, workoutId);
+      const previousSetByNumber = new Map<number, any>(
+        previousSets.map((row: any) => [Number(row.set_number), row])
+      );
 
       ex.sets = sets.map((s: any) => ({
-      ...s,
-      completed: !!s.completed
-    }));
+        ...s,
+        completed: !!s.completed,
+        previous_weight: Number(previousSetByNumber.get(Number(s.set_number))?.weight) || 0,
+        previous_reps: Number(previousSetByNumber.get(Number(s.set_number))?.reps) || 0
+      }));
   }
 
   workoutExercises.value = data;
@@ -319,13 +365,22 @@ const saveSet = async (set: any) => {
 );
 };
 
-const handleSetChange = async (exercise: any, set: any) => {
-  await saveSet(set);
-  if (set.completed) {
-    startRestTimer(exercise.rest_seconds);
+const handleSetChange = async (exercise: any, set: any, event?: CustomEvent) => {
+  const checked = (event as any)?.detail?.checked;
+  const isChecked = typeof checked === 'boolean' ? checked : !!set.completed;
+  set.completed = isChecked;
+
+  if (isChecked) {
+    startRestTimer(Number(exercise.rest_seconds) || 60);
   } else {
-    // If user unchecks, maybe they want to stop the timer? 
-    // Usually not necessary, but we could stop it if it was the last action.
+    stopRestTimer();
+    sessionStorage.removeItem('restTimer');
+  }
+
+  try {
+    await saveSet(set);
+  } catch (error) {
+    console.error('Failed to save set state:', error);
   }
 };
 
@@ -459,10 +514,54 @@ const addNewSet = async (exercise: any) => {
         set_number: nextSetNum,
         reps: defaultReps,
         weight: 0,
-        completed: 0
+        completed: 0,
+        previous_weight: 0,
+        previous_reps: 0
       });
     }
   }
+};
+
+const getWeightPlaceholder = (exercise: any, currentSet: any) => {
+  const previousWorkoutWeight = Number(currentSet?.previous_weight);
+  if (previousWorkoutWeight > 0) {
+    return String(previousWorkoutWeight);
+  }
+
+  const sets = exercise?.sets || [];
+  const currentIndex = sets.findIndex((set: any) => Number(set.id) === Number(currentSet.id));
+
+  if (currentIndex > 0) {
+    for (let i = currentIndex - 1; i >= 0; i--) {
+      const candidateWeight = Number(sets[i]?.weight);
+      if (candidateWeight > 0) {
+        return String(candidateWeight);
+      }
+    }
+  }
+
+  return 'kg';
+};
+
+const getRepsPlaceholder = (exercise: any, currentSet: any) => {
+  const previousWorkoutReps = Number(currentSet?.previous_reps);
+  if (previousWorkoutReps > 0) {
+    return String(previousWorkoutReps);
+  }
+
+  const sets = exercise?.sets || [];
+  const currentIndex = sets.findIndex((set: any) => Number(set.id) === Number(currentSet.id));
+
+  if (currentIndex > 0) {
+    for (let i = currentIndex - 1; i >= 0; i--) {
+      const candidateReps = Number(sets[i]?.reps);
+      if (candidateReps > 0) {
+        return String(candidateReps);
+      }
+    }
+  }
+
+  return 'reps';
 };
 
 //timer 

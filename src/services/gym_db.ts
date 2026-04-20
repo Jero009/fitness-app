@@ -181,67 +181,77 @@ export async function initDB() {
     ('cables'),
     ('other');
 
-  INSERT OR IGNORE INTO exercise (name, id_muscle_group, id_equipment, rest_seconds) VALUES
-  ('Bench Press', 1, 1, 120),
-  ('Chest Fly', 1, 5, 60),
-  ('Push-Up', 1, 4, 60),
-  ('Incline Dumbbell Press', 1, 2, 90),
-  ('Chest Press Machine', 1, 3, 90),
-  ('Cable Fly', 1, 5, 60),
-  ('Incline Barbell Bench Press', 1, 1, 120),
-  ('Decline Hammer Strength Press', 1, 3, 90),
-  ('Cable Crossover', 1, 5, 60),
-  ('Deadlift', 2, 1, 180),
-  ('Lat Pulldown', 2, 3, 90),
-  ('Dumbbell Row', 2, 2, 90),
-  ('Pull-Up', 2, 4, 120),
-  ('Bent Over Row', 2, 1, 90),
-  ('Seated Cable Row', 2, 5, 90),
-  ('T-Bar Row', 2, 1, 120),
-  ('Single Arm Lat Pulldown', 2, 5, 60),
-  ('Chin-Up', 2, 4, 120),
-  ('Hyperextension', 2, 6, 60),
-  ('Back Squat', 3, 1, 180),
-  ('Leg Press', 3, 3, 120),
-  ('Walking Lunge', 3, 2, 90),
-  ('Romanian Deadlift', 3, 1, 120),
-  ('Leg Extension', 3, 3, 60),
-  ('Goblet Squat', 3, 2, 90),
-  ('Bulgarian Split Squat', 3, 2, 90),
-  ('Leg Curl Machine', 3, 3, 60),
-  ('Hack Squat', 3, 3, 120),
-  ('Stiff Legged Deadlift', 3, 1, 120),
-  ('Calf Raise', 3, 3, 45),
-  ('Overhead Press', 4, 1, 120),
-  ('Lateral Raise', 4, 2, 60),
-  ('Face Pull', 4, 5, 60),
-  ('Arnold Press', 4, 2, 90),
-  ('Upright Row', 4, 1, 60),
-  ('Front Raise', 4, 2, 60),
-  ('Reverse Fly', 4, 2, 60),
-  ('Dumbbell Shrugs', 4, 2, 60),
-  ('Military Press', 4, 1, 120),
-  ('Cable Lateral Raise', 4, 5, 60),
-  ('Bicep Curl', 5, 2, 60),
-  ('Tricep Pushdown', 5, 5, 60),
-  ('Dips', 5, 4, 90),
-  ('Hammer Curl', 5, 2, 60),
-  ('Skull Crusher', 5, 1, 90),
-  ('Preacher Curl', 5, 3, 60),
-  ('Concentration Curl', 5, 2, 60),
-  ('Close Grip Bench Press', 5, 1, 90),
-  ('EZ Bar Curl', 5, 1, 60),
-  ('Overhead Dumbbell Extension', 5, 2, 60),
-  ('Plank', 6, 4, 60),
-  ('Cable Crunch', 6, 5, 60),
-  ('Russian Twist', 6, 6, 45),
-  ('Leg Raise', 6, 4, 60),
-  ('Hanging Knee Raise', 6, 4, 60),
-  ('Woodchopper', 6, 5, 60),
-  ('Ab Wheel Rollout', 6, 6, 60),
-  ('Dead Bug', 6, 4, 45),
-  ('Mountain Climbers', 6, 4, 30),
-  ('Side Plank', 6, 4, 45);
+  WITH base_exercises(name, id_muscle_group, id_equipment, rest_seconds) AS (
+    VALUES
+      ('Bench Press', 1, 1, 120),
+      ('Chest Fly', 1, 5, 60),
+      ('Push-Up', 1, 4, 60),
+      ('Incline Dumbbell Press', 1, 2, 90),
+      ('Chest Press Machine', 1, 3, 90),
+      ('Cable Fly', 1, 5, 60),
+      ('Incline Barbell Bench Press', 1, 1, 120),
+      ('Decline Hammer Strength Press', 1, 3, 90),
+      ('Cable Crossover', 1, 5, 60),
+      ('Deadlift', 2, 1, 180),
+      ('Lat Pulldown', 2, 3, 90),
+      ('Dumbbell Row', 2, 2, 90),
+      ('Pull-Up', 2, 4, 120),
+      ('Bent Over Row', 2, 1, 90),
+      ('Seated Cable Row', 2, 5, 90),
+      ('T-Bar Row', 2, 1, 120),
+      ('Single Arm Lat Pulldown', 2, 5, 60),
+      ('Chin-Up', 2, 4, 120),
+      ('Hyperextension', 2, 6, 60),
+      ('Back Squat', 3, 1, 180),
+      ('Leg Press', 3, 3, 120),
+      ('Walking Lunge', 3, 2, 90),
+      ('Romanian Deadlift', 3, 1, 120),
+      ('Leg Extension', 3, 3, 60),
+      ('Goblet Squat', 3, 2, 90),
+      ('Bulgarian Split Squat', 3, 2, 90),
+      ('Leg Curl Machine', 3, 3, 60),
+      ('Hack Squat', 3, 3, 120),
+      ('Stiff Legged Deadlift', 3, 1, 120),
+      ('Calf Raise', 3, 3, 45),
+      ('Overhead Press', 4, 1, 120),
+      ('Lateral Raise', 4, 2, 60),
+      ('Face Pull', 4, 5, 60),
+      ('Arnold Press', 4, 2, 90),
+      ('Upright Row', 4, 1, 60),
+      ('Front Raise', 4, 2, 60),
+      ('Reverse Fly', 4, 2, 60),
+      ('Dumbbell Shrugs', 4, 2, 60),
+      ('Military Press', 4, 1, 120),
+      ('Cable Lateral Raise', 4, 5, 60),
+      ('Bicep Curl', 5, 2, 60),
+      ('Tricep Pushdown', 5, 5, 60),
+      ('Dips', 5, 4, 90),
+      ('Hammer Curl', 5, 2, 60),
+      ('Skull Crusher', 5, 1, 90),
+      ('Preacher Curl', 5, 3, 60),
+      ('Concentration Curl', 5, 2, 60),
+      ('Close Grip Bench Press', 5, 1, 90),
+      ('EZ Bar Curl', 5, 1, 60),
+      ('Overhead Dumbbell Extension', 5, 2, 60),
+      ('Plank', 6, 4, 60),
+      ('Cable Crunch', 6, 5, 60),
+      ('Russian Twist', 6, 6, 45),
+      ('Leg Raise', 6, 4, 60),
+      ('Hanging Knee Raise', 6, 4, 60),
+      ('Woodchopper', 6, 5, 60),
+      ('Ab Wheel Rollout', 6, 6, 60),
+      ('Dead Bug', 6, 4, 45),
+      ('Mountain Climbers', 6, 4, 30),
+      ('Side Plank', 6, 4, 45)
+  )
+  INSERT INTO exercise (name, id_muscle_group, id_equipment, rest_seconds)
+  SELECT b.name, b.id_muscle_group, b.id_equipment, b.rest_seconds
+  FROM base_exercises b
+  WHERE NOT EXISTS (
+    SELECT 1
+    FROM exercise e
+    WHERE lower(e.name) = lower(b.name)
+  );
 
   INSERT INTO exercise (name, id_muscle_group, id_equipment, rest_seconds)
   SELECT 'Lat Pulldown Cable', 2, 5, 90
@@ -310,6 +320,61 @@ export async function initDB() {
   INSERT INTO exercise (name, id_muscle_group, id_equipment, rest_seconds)
   SELECT 'Shoulder Press Machine', 4, 3, 90
   WHERE NOT EXISTS (SELECT 1 FROM exercise WHERE lower(name) = lower('Shoulder Press Machine'));
+
+  WITH canonical AS (
+    SELECT lower(name) AS normalized_name, MIN(id) AS keep_id
+    FROM exercise
+    GROUP BY lower(name)
+  ),
+  duplicates AS (
+    SELECT e.id AS duplicate_id, c.keep_id
+    FROM exercise e
+    JOIN canonical c ON lower(e.name) = c.normalized_name
+    WHERE e.id <> c.keep_id
+  )
+  UPDATE workout_template_exercise
+  SET id_exercise = (
+    SELECT d.keep_id
+    FROM duplicates d
+    WHERE d.duplicate_id = workout_template_exercise.id_exercise
+  )
+  WHERE id_exercise IN (SELECT duplicate_id FROM duplicates);
+
+  WITH canonical AS (
+    SELECT lower(name) AS normalized_name, MIN(id) AS keep_id
+    FROM exercise
+    GROUP BY lower(name)
+  ),
+  duplicates AS (
+    SELECT e.id AS duplicate_id, c.keep_id
+    FROM exercise e
+    JOIN canonical c ON lower(e.name) = c.normalized_name
+    WHERE e.id <> c.keep_id
+  )
+  UPDATE workout_exercise
+  SET exercise_id = (
+    SELECT d.keep_id
+    FROM duplicates d
+    WHERE d.duplicate_id = workout_exercise.exercise_id
+  )
+  WHERE exercise_id IN (SELECT duplicate_id FROM duplicates);
+
+  DELETE FROM exercise
+  WHERE id NOT IN (
+    SELECT MIN(id)
+    FROM exercise
+    GROUP BY lower(name)
+  );
+
+  DELETE FROM workout_template_exercise
+  WHERE id IN (
+    SELECT dup.id
+    FROM workout_template_exercise dup
+    JOIN workout_template_exercise keep
+      ON dup.id_workout_template = keep.id_workout_template
+     AND dup.id_exercise = keep.id_exercise
+     AND dup.id > keep.id
+  );
 
   INSERT INTO workout_template (name)
   SELECT 'PULL A'
@@ -664,6 +729,7 @@ export async function getWorkoutExercises(workoutId: number) {
   const result = await db.query(`
     SELECT 
       we.id,
+      we.exercise_id,
       e.name,
       e.rest_seconds
     FROM workout_exercise we
@@ -671,6 +737,37 @@ export async function getWorkoutExercises(workoutId: number) {
     WHERE we.workout_id = ?
     ORDER BY we.order_index
   `, [workoutId]);
+
+  return result.values || [];
+}
+
+export async function getLatestCompletedSetsForExercise(exerciseId: number, excludeWorkoutId?: number) {
+  if (!db) return [];
+
+  const latestWorkoutResult = await db.query(
+    `SELECT w.id
+     FROM workout w
+     JOIN workout_exercise we ON we.workout_id = w.id
+     WHERE we.exercise_id = ?
+       AND w.time_end IS NOT NULL
+       AND (? IS NULL OR w.id <> ?)
+     ORDER BY w.time_end DESC
+     LIMIT 1;`,
+    [exerciseId, excludeWorkoutId ?? null, excludeWorkoutId ?? null]
+  );
+
+  const latestWorkoutId = latestWorkoutResult.values?.[0]?.id;
+  if (!latestWorkoutId) return [];
+
+  const result = await db.query(
+    `SELECT wes.set_number, wes.reps, wes.weight
+     FROM workout_exercise_sets wes
+     JOIN workout_exercise we ON we.id = wes.workout_exercise_id
+     WHERE we.workout_id = ?
+       AND we.exercise_id = ?
+     ORDER BY wes.set_number ASC;`,
+    [latestWorkoutId, exerciseId]
+  );
 
   return result.values || [];
 }
