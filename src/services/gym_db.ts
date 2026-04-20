@@ -774,6 +774,7 @@ export async function getWorkoutHistoryExercises(workoutId: number) {
 
   const result = await db.query(`
       SELECT
+        we.id,
         e.name,
         SUM(CASE WHEN wes.completed = 1 THEN 1 ELSE 0 END) as set_count,
         MAX(wes.reps) as reps

@@ -107,7 +107,7 @@ const toTimestamp = (value: unknown): number => {
   }
 
   const normalized = raw.includes(' ') ? raw.replace(' ', 'T') : raw;
-  const hasTimezone = /(?:Z|[+\-]\d{2}:?\d{2})$/i.test(normalized);
+  const hasTimezone = /(?:Z|[-+]\d{2}:?\d{2})$/i.test(normalized);
   const candidate = hasTimezone ? normalized : `${normalized}Z`;
 
   return new Date(candidate).getTime();

@@ -118,9 +118,7 @@ const latestWorkout = ref<any>(null);
 
 const loadLatestWorkout = async () => {
   const workout = await getLatestWorkout();
-  if (workout) {
-    latestWorkout.value = workout;
-  }
+  latestWorkout.value = workout || null;
 };
 
 const formatDuration = (start: string, end: any) => {

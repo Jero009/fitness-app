@@ -272,11 +272,10 @@
 <script setup lang="ts">
 import { IonPage, IonHeader, IonToolbar, IonTitle, IonContent,IonButtons,IonButton,IonCard,IonCardHeader,IonCardContent,IonCheckbox,IonInput,IonCardTitle,onIonViewWillEnter,onIonViewDidEnter, alertController, IonIcon, IonItemSliding, IonItemOptions, IonItemOption, IonItem } from '@ionic/vue';
 import { ref, onUnmounted, computed } from 'vue';
-import Draggable from 'vuedraggable';
 import { useRouter,useRoute } from 'vue-router';
 import { addCircleOutline, addOutline, timerOutline } from 'ionicons/icons';
 
-import { getWorkoutExercises,getWorkoutSets,updateWorkoutSet,getWorkoutById,endWorkout,cancelWorkout, addSetToWorkoutExercise, getNextSetNumber, deleteWorkoutSet, deleteWorkoutExercise,updateWorkoutExerciseOrder } from '@/services/gym_db';
+import { getWorkoutExercises,getWorkoutSets,updateWorkoutSet,getWorkoutById,endWorkout,cancelWorkout, addSetToWorkoutExercise, getNextSetNumber, deleteWorkoutSet, deleteWorkoutExercise } from '@/services/gym_db';
 
 const router = useRouter();
 // id from route
@@ -466,11 +465,6 @@ const addNewSet = async (exercise: any) => {
   }
 };
 
-const onDragEnd = async () => {
-  const exerciseIds = workoutExercises.value.map(ex => ex.id);
-  await updateWorkoutExerciseOrder(workoutId, exerciseIds);
-};
-
 //timer 
 const startTime = ref<string | null>(null);
 const seconds = ref(0);
@@ -535,7 +529,9 @@ const saveTimerState = () => {
 
 const restoreTimerState = () => {
   const saved = sessionStorage.getItem('restTimer');
-  if (saved) {
+  if (!saved) return;
+
+  try {
     const { endTime } = JSON.parse(saved);
     const remaining = Math.max(0, Math.ceil((endTime - Date.now()) / 1000));
     if (remaining > 0) {
@@ -543,6 +539,8 @@ const restoreTimerState = () => {
     } else {
       sessionStorage.removeItem('restTimer');
     }
+  } catch {
+    sessionStorage.removeItem('restTimer');
   }
 };
 
@@ -582,6 +580,7 @@ const onSkipRestTimer = (event: Event) => {
   restTimer.value.isActive = false;
 
   stopRestTimer();
+  sessionStorage.removeItem('restTimer');
 };
 
 const adjustRestTimer = (seconds: number) => {
