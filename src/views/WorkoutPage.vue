@@ -18,45 +18,49 @@
 
 
 
-       <div v-for="ex in workoutExercises" :key="ex.id" class="exercise-sliding-item">
-        <ion-card class="exercise-card">
-            <ion-card-header>
-              <div class="exercise-header">
-                <ion-card-title>{{ ex.name }}</ion-card-title>
-                <div class="rest-settings" @click="editRestTime(ex)">
-                  <ion-icon :icon="timerOutline"></ion-icon>
-                  <span>{{ ex.rest_seconds }}s</span>
+      <Draggable v-model="workoutExercises" item-key="id" @end="onDragEnd" class="exercise-list">
+        <template #item="{ element: ex }">
+          <div class="exercise-sliding-item">
+            <ion-card class="exercise-card">
+              <ion-card-header>
+                <div class="exercise-header">
+                  <ion-card-title>{{ ex.name }}</ion-card-title>
+                  <div class="rest-settings" @click="editRestTime(ex)">
+                    <ion-icon :icon="timerOutline"></ion-icon>
+                    <span>{{ ex.rest_seconds }}s</span>
+                  </div>
                 </div>
-              </div>
-            </ion-card-header>
-            <ion-card-content>
-              <ion-item-sliding class="set-sliding" v-for="set in ex.sets" :key="set.id">
-                <ion-item lines="none" class="set">
-                  <ion-checkbox slot="start" v-model="set.completed" @ionChange="() => handleSetChange(ex, set)" class="checkbox"></ion-checkbox>
-                  <div class="input-container">
-                    <ion-input fill="outline" type="number" placeholder="kg" v-model.number="set.weight" @ionBlur="saveSet(set)" class="input-small"></ion-input>
-                    <span class="unit">Kg</span>
-                  </div>
-                  <div class="input-container">
-                    <ion-input fill="outline" type="number" placeholder="reps" v-model.number="set.reps" @ionBlur="saveSet(set)" class="input-small"></ion-input>
-                    <span class="unit">reps</span>
-                  </div>
-                </ion-item>
-                <ion-item-options side="end">
-                  <ion-item-option color="danger" @click="handleRemoveSet(ex.id, set.id)">
-                    Remove
-                  </ion-item-option>
-                </ion-item-options>
-              </ion-item-sliding>
+              </ion-card-header>
+              <ion-card-content>
+                <ion-item-sliding class="set-sliding" v-for="set in ex.sets" :key="set.id">
+                  <ion-item lines="none" class="set">
+                    <ion-checkbox slot="start" v-model="set.completed" @ionChange="() => handleSetChange(ex, set)" class="checkbox"></ion-checkbox>
+                    <div class="input-container">
+                      <ion-input fill="outline" type="number" placeholder="kg" v-model.number="set.weight" @ionBlur="saveSet(set)" class="input-small"></ion-input>
+                      <span class="unit">Kg</span>
+                    </div>
+                    <div class="input-container">
+                      <ion-input fill="outline" type="number" placeholder="reps" v-model.number="set.reps" @ionBlur="saveSet(set)" class="input-small"></ion-input>
+                      <span class="unit">reps</span>
+                    </div>
+                  </ion-item>
+                  <ion-item-options side="end">
+                    <ion-item-option color="danger" @click="handleRemoveSet(ex.id, set.id)">
+                      Remove
+                    </ion-item-option>
+                  </ion-item-options>
+                </ion-item-sliding>
 
-              <!-- Add Set Button -->
-              <ion-button  expand="block" fill="outline" @click="addNewSet(ex)" class="add-set-btn">
-                <ion-icon class="add-set-icon" slot="center" :icon="addOutline"></ion-icon>
-                Add Set
-              </ion-button>
-            </ion-card-content>
-        </ion-card>
-      </div>
+                <!-- Add Set Button -->
+                <ion-button expand="block" fill="outline" @click="addNewSet(ex)" class="add-set-btn">
+                  <ion-icon class="add-set-icon" :icon="addOutline"></ion-icon>
+                  Add Set
+                </ion-button>
+              </ion-card-content>
+            </ion-card>
+          </div>
+        </template>
+      </Draggable>
 
       <!-- Add Exercise Button -->
       <div class="add-exercise-container">
@@ -98,10 +102,11 @@
 <script setup lang="ts">
 import { IonPage, IonHeader, IonToolbar, IonTitle, IonContent,IonButtons,IonButton,IonCard,IonCardHeader,IonCardContent,IonCheckbox,IonInput,IonCardTitle,onIonViewWillEnter,onIonViewDidEnter, alertController, IonIcon, IonItemSliding, IonItemOptions, IonItemOption, IonItem } from '@ionic/vue';
 import { ref, onUnmounted, computed } from 'vue';
+import Draggable from 'vuedraggable';
 import { useRouter,useRoute } from 'vue-router';
 import { addCircleOutline, addOutline, timerOutline } from 'ionicons/icons';
 
-import { getWorkoutExercises,getWorkoutSets,updateWorkoutSet,getWorkoutById,endWorkout,cancelWorkout, addSetToWorkoutExercise, getNextSetNumber, deleteWorkoutSet, deleteWorkoutExercise } from '@/services/gym_db';
+import { getWorkoutExercises,getWorkoutSets,updateWorkoutSet,getWorkoutById,endWorkout,cancelWorkout, addSetToWorkoutExercise, getNextSetNumber, deleteWorkoutSet, deleteWorkoutExercise, updateWorkoutExerciseOrder } from '@/services/gym_db';
 
 const router = useRouter();
 // id from route
@@ -291,6 +296,11 @@ const addNewSet = async (exercise: any) => {
   }
 };
 
+const onDragEnd = async () => {
+  const exerciseIds = workoutExercises.value.map(ex => ex.id);
+  await updateWorkoutExerciseOrder(workoutId, exerciseIds);
+};
+
 //timer 
 const startTime = ref<string | null>(null);
 const seconds = ref(0);
@@ -318,19 +328,70 @@ const restTimer = ref({
   total: 0
 });
 let restInterval: any = null;
+let audioContext: AudioContext | null = null;
+
+const playBeep = () => {
+  try {
+    if (!audioContext) {
+      audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+    }
+    const oscillator = audioContext.createOscillator();
+    const gainNode = audioContext.createGain();
+
+    oscillator.connect(gainNode);
+    gainNode.connect(audioContext.destination);
+
+    oscillator.frequency.value = 800;
+    oscillator.type = 'sine';
+    gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+    gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
+
+    oscillator.start(audioContext.currentTime);
+    oscillator.stop(audioContext.currentTime + 0.5);
+  } catch (e) {
+    console.warn('Audio playback failed:', e);
+  }
+};
+
+const saveTimerState = () => {
+  if (restTimer.value.isActive) {
+    sessionStorage.setItem('restTimer', JSON.stringify({
+      remaining: restTimer.value.remaining,
+      total: restTimer.value.total,
+      endTime: Date.now() + (restTimer.value.remaining * 1000)
+    }));
+  }
+};
+
+const restoreTimerState = () => {
+  const saved = sessionStorage.getItem('restTimer');
+  if (saved) {
+    const { endTime } = JSON.parse(saved);
+    const remaining = Math.max(0, Math.ceil((endTime - Date.now()) / 1000));
+    if (remaining > 0) {
+      startRestTimer(remaining);
+    } else {
+      sessionStorage.removeItem('restTimer');
+    }
+  }
+};
 
 const startRestTimer = (seconds: number) => {
   if (restInterval) clearInterval(restInterval);
-  
+
   restTimer.value.total = seconds;
   restTimer.value.remaining = seconds;
   restTimer.value.isActive = true;
+  sessionStorage.removeItem('restTimer');
 
   restInterval = setInterval(() => {
     if (restTimer.value.remaining > 0) {
       restTimer.value.remaining--;
+      saveTimerState();
     } else {
+      playBeep();
       stopRestTimer();
+      sessionStorage.removeItem('restTimer');
     }
   }, 1000);
 };
@@ -374,6 +435,7 @@ const restProgress = computed(() => {
 onIonViewWillEnter(async () => {
   await loadWorkout();
   startTimer();
+  restoreTimerState();
 });
 
 onIonViewDidEnter(async () => {
@@ -513,16 +575,16 @@ onUnmounted(() => {
 /* Rest Timer Overlay */
 .rest-timer-overlay {
   position: fixed;
-  bottom: 0;
+  top: 0;
   left: 0;
   right: 0;
   background: var(--ion-color-dark);
   color: white;
   padding: 16px;
   z-index: 1000;
-  border-top-left-radius: 16px;
-  border-top-right-radius: 16px;
-  box-shadow: 0 -2px 10px rgba(0,0,0,0.3);
+  border-bottom-left-radius: 16px;
+  border-bottom-right-radius: 16px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.3);
 }
 
 .rest-timer-content {
@@ -560,11 +622,24 @@ onUnmounted(() => {
 
 .rest-progress-bar {
   position: absolute;
-  bottom: 0;
+  top: 0;
   left: 0;
   height: 4px;
   background: var(--ion-color-primary);
   transition: width 1s linear;
+}
+
+.exercise-list {
+  width: 100%;
+}
+
+.sortable-chosen {
+  background-color: var(--ion-color-step-200) !important;
+  transition: background-color 0.2s;
+}
+
+.sortable-drag {
+  opacity: 0.8;
 }
 
 </style>

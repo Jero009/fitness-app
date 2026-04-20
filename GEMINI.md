@@ -53,3 +53,5 @@ This file provides foundational mandates and guidance for Gemini CLI when workin
 ### Workflow
 - **Verification**: After modifying database logic or UI components, ensure that the app still builds correctly and run unit tests if applicable.
 - **Android Sync**: If changing web assets that need to be tested on a device, always run `npx cap sync android`.
+## checking 
+Codex will check the code when you are done

@@ -58,3 +58,5 @@ npx cap open android   # Open in Android Studio
 ```
 
 Requires Android Studio and SDK configured.
+## checking 
+Codex will check the code when you are done

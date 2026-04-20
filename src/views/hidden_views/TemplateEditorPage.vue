@@ -5,9 +5,7 @@
             <ion-buttons slot="start">
               <ion-button class="button-red" @click="cancel()">Cancel</ion-button>
             </ion-buttons>
-
             <ion-title>EDIT TEMPLATE</ion-title>
-
             <ion-buttons slot="end">
               <ion-button class="button-yellow" @click="confirm()">Save</ion-button>
             </ion-buttons>
