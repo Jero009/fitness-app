@@ -315,17 +315,33 @@ import { ref, onUnmounted, computed } from 'vue';
 import { useRouter,useRoute } from 'vue-router';
 import { addCircleOutline, addOutline, timerOutline } from 'ionicons/icons';
 
-import { getWorkoutExercises,getWorkoutSets,updateWorkoutSet,getWorkoutById,endWorkout,cancelWorkout, addSetToWorkoutExercise, getNextSetNumber, deleteWorkoutSet, deleteWorkoutExercise, getLatestCompletedSetsForExercise } from '@/services/gym_db';
+import { getWorkoutExercises,getWorkoutSets,updateWorkoutSet,getWorkoutById,endWorkout,cancelWorkout, addSetToWorkoutExercise, getNextSetNumber, deleteWorkoutSet, deleteWorkoutExercise, getLatestCompletedSetsForExercise, updateWorkoutSetNumber } from '@/services/gym_db';
+
+interface WorkoutExercise {
+  id: number;
+  exercise_id: number;
+  name: string;
+  rest_seconds: number;
+  sets: WorkoutSet[];
+}
+
+interface WorkoutSet {
+  id: number;
+  set_number: number;
+  reps: number;
+  weight: number;
+  completed: number;
+  previous_weight: number;
+  previous_reps: number;
+}
 
 const router = useRouter();
-// id from route
 const route = useRoute();
 const workoutId = Number(route.params.id);
-console.log("Workout ID:", workoutId);
 
-// exercise data 
+// exercise data
 
-const workoutExercises = ref<any[]>([]);
+const workoutExercises = ref<WorkoutExercise[]>([]);
 
 
 const loadWorkout = async () => {
@@ -350,8 +366,6 @@ const loadWorkout = async () => {
   }
 
   workoutExercises.value = data;
-
-  console.log(workoutExercises.value);
 };
 
 // saving
@@ -410,8 +424,6 @@ const editRestTime = async (exercise: any) => {
 
 const saveWorkout = async ()=>{
   await endWorkout(workoutId);
-  console.log("Workout saved!");
-
   router.push('/tabs/Home');
 };
 
@@ -426,7 +438,6 @@ const handleCancelWorkout = async () => {
         role: 'confirm',
         handler: async () => {
           await cancelWorkout(workoutId);
-          console.log("Workout cancelled and deleted from DB");
           if (interval) clearInterval(interval);
           interval = null;
           router.push('/tabs/Home');
@@ -468,6 +479,11 @@ const handleRemoveSet = async (workoutExerciseId: number, setId: number) => {
               (ex) => Number(ex.id) !== Number(workoutExerciseId)
             );
             return;
+          }
+
+          // Persist set_number changes to database
+          for (const set of updatedSets) {
+            await updateWorkoutSetNumber(set.id, set.set_number);
           }
 
           workoutExercises.value = workoutExercises.value.map((ex) => {
@@ -564,10 +580,10 @@ const getRepsPlaceholder = (exercise: any, currentSet: any) => {
   return 'reps';
 };
 
-//timer 
+//timer
 const startTime = ref<string | null>(null);
 const seconds = ref(0);
-let interval: any = null;
+let interval: ReturnType<typeof setInterval> | null = null;
 
 const startTimer = () => {
   if (!startTime.value || interval) return;
@@ -590,7 +606,7 @@ const restTimer = ref({
   remaining: 0,
   total: 0
 });
-let restInterval: any = null;
+let restInterval: ReturnType<typeof setInterval> | null = null;
 let audioContext: AudioContext | null = null;
 
 const playBeep = () => {

@@ -688,6 +688,8 @@ export async function startWorkoutFromTemplate(templateId: number) {
   if (!db) return;
 
   try {
+    await db.execute('BEGIN TRANSACTION;');
+
     const result = await db.run(
       `INSERT INTO workout (id_workout_template) VALUES (?)`,
       [templateId]
@@ -695,19 +697,20 @@ export async function startWorkoutFromTemplate(templateId: number) {
     const workoutId = result.changes?.lastId;
 
     if (!workoutId) {
-      console.error('Failed to get workout ID after insert');
+      await db.execute('ROLLBACK;');
       return;
     }
 
     const templateExercises = await getTemplateExercises(templateId);
 
     for (const ex of templateExercises) {
-      if (!db) continue;
       const resultWE = await db.run(
         `INSERT INTO workout_exercise (workout_id, exercise_id, order_index) VALUES (?, ?, ?)`,
         [workoutId, ex.id_exercise, ex.order_index]
       );
       const workoutExerciseId = resultWE.changes?.lastId;
+
+      if (!workoutExerciseId) continue;
 
       for (let i = 0; i < ex.set_number; i++) {
         await db.run(
@@ -716,8 +719,11 @@ export async function startWorkoutFromTemplate(templateId: number) {
         );
       }
     }
+
+    await db.execute('COMMIT;');
     return workoutId;
   } catch (error) {
+    await db.execute('ROLLBACK;').catch(() => {});
     console.error('Error starting workout from template:', error);
     throw error;
   }
@@ -803,6 +809,17 @@ export async function deleteWorkoutSet(setId: number) {
   const result = await db.run(
     'DELETE FROM workout_exercise_sets WHERE id = ?',
     [setId]
+  );
+
+  return result;
+}
+
+export async function updateWorkoutSetNumber(setId: number, newSetNumber: number) {
+  if (!db) return;
+
+  const result = await db.run(
+    'UPDATE workout_exercise_sets SET set_number = ? WHERE id = ?',
+    [newSetNumber, setId]
   );
 
   return result;
@@ -937,12 +954,19 @@ export async function addExerciseToWorkout(
   if (!db) return;
 
   try {
+    await db.execute('BEGIN TRANSACTION;');
+
     // Insert the exercise into workout_exercise
     const resultWE = await db.run(
       `INSERT INTO workout_exercise (workout_id, exercise_id, order_index) VALUES (?, ?, ?)`,
       [workoutId, exerciseId, orderIndex]
     );
     const workoutExerciseId = resultWE.changes?.lastId;
+
+    if (!workoutExerciseId) {
+      await db.execute('ROLLBACK;');
+      return;
+    }
 
     // Insert the initial set(s) into workout_exercise_sets
     for (let i = 0; i < setNumber; i++) {
@@ -952,8 +976,10 @@ export async function addExerciseToWorkout(
       );
     }
 
+    await db.execute('COMMIT;');
     return workoutExerciseId;
   } catch (error) {
+    await db.execute('ROLLBACK;').catch(() => {});
     console.error('Error adding exercise to workout:', error);
     throw error;
   }

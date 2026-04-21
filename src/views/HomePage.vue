@@ -5,7 +5,7 @@
         <ion-title class="title">HOME</ion-title>
       </ion-toolbar>
   </ion-header>
-    <ion-content :fullscreen="true" class="home-content">
+    <ion-content :fullscreen="true">
       
       <!-- DEFAULT ACTIVE WORKOUT CARD -->
       <div v-if="activeWorkout" class="active-session-card" @click="backToWorkout()">
@@ -33,7 +33,7 @@
       </div>
 
       <!-- IF NOT ACTIVE BUT HAVE LATEST WORKOUT -->
-      <div v-else-if="latestWorkout" class="active-session-card finished-card" @click="startWorkout(templates[0]?.id)">
+      <div v-else-if="latestWorkout" class="active-session-card finished-card" @click="handleQuickStart">
         <div class="session-header">
           <span class="session-label">L A S T  S E S S I O N</span>
         </div>
@@ -161,21 +161,30 @@ const loadLatestWorkout = async () => {
   latestWorkout.value = workout || null;
 };
 
+const toTimestamp = (value: unknown): number => {
+  if (value === null || value === undefined) return NaN;
+  if (typeof value === 'number') return Number.isFinite(value) ? value : NaN;
+
+  const raw = String(value).trim();
+  if (!raw) return NaN;
+
+  const numeric = Number(raw);
+  if (!Number.isNaN(numeric) && Number.isFinite(numeric)) {
+    return numeric;
+  }
+
+  const normalized = raw.includes(' ') ? raw.replace(' ', 'T') : raw;
+  const hasTimezone = /(?:Z|[-+]\d{2}:?\d{2})$/i.test(normalized);
+  const candidate = hasTimezone ? normalized : `${normalized}Z`;
+
+  return new Date(candidate).getTime();
+};
+
 const formatDuration = (start: string, end: any) => {
   if (!start || !end) return '0h 0m 0s';
 
-  // parse start (string)
-  const s = new Date(start.replace(' ', 'T') + 'Z').getTime();
-
-  // parse end (can be string, number, or stringified number)
-  let e: number;
-  if (typeof end === 'number') {
-    e = end;
-  } else if (!isNaN(Number(end))) {
-    e = Number(end);
-  } else {
-    e = new Date(end.replace(' ', 'T') + 'Z').getTime();
-  }
+  const s = toTimestamp(start);
+  const e = toTimestamp(end);
 
   if (isNaN(s) || isNaN(e)) return 'Invalid time';
 
@@ -183,7 +192,6 @@ const formatDuration = (start: string, end: any) => {
   const totalSeconds = Math.floor(diff / 1000);
   const hours = Math.floor(totalSeconds / 3600);
   const minutes = Math.floor((totalSeconds % 3600) / 60);
-
 
   return `${hours}h ${minutes}m`;
 };
@@ -253,12 +261,23 @@ const selectedTemplateId = ref<number | undefined>(undefined);
 // prepare data
 const chartData = computed(() => {
   return workouts.value
-    .map(w => ({
-      date: new Date(w.time_start.replace(' ', 'T')).toLocaleDateString(),
-      kg: w.total_kg || 0
-    }))
-    .reverse(); // oldest → newest
+    .map(w => {
+      const ts = toTimestamp(w.time_start);
+      const label = Number.isFinite(ts) ? new Date(ts).toLocaleDateString() : 'Invalid date';
+      return {
+        date: label,
+        kg: w.total_kg || 0
+      };
+    })
+    .reverse(); // oldest -> newest
 });
+
+const canQuickStart = computed(() => templates.value.length > 0);
+
+const handleQuickStart = async () => {
+  if (!canQuickStart.value) return;
+  await startWorkout(templates.value[0].id);
+};
 
 // draw chart
 const renderChart = () => {
@@ -278,17 +297,85 @@ const renderChart = () => {
           data: chartData.value.map(d => d.kg),
           borderWidth: 2,
           tension: 0.3,
-
-
-          borderColor: '#D71921',
+          borderColor: '#ffd200',
           pointRadius: 4,
-          pointBackgroundColor: '#D71921',
+          pointHoverRadius: 5,
+          pointBackgroundColor: '#0b0b0b',
+          pointBorderColor: '#ffd200',
+          pointBorderWidth: 2,
+          fill: true,
+          backgroundColor: 'rgba(255, 210, 0, 0.08)',
         }
       ]
     },
     options: {
       responsive: true,
-      animation: false 
+      animation: false,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: {
+          display: true,
+          labels: {
+            color: '#ffd200',
+            font: {
+              family: 'Doto, sans-serif',
+              size: 10,
+              weight: '600'
+            }
+          }
+        },
+        tooltip: {
+          backgroundColor: '#111',
+          borderColor: 'rgba(255, 210, 0, 0.35)',
+          borderWidth: 1,
+          titleColor: '#ffd200',
+          bodyColor: '#fff',
+          titleFont: {
+            family: 'Doto, sans-serif',
+            size: 11,
+            weight: '700'
+          },
+          bodyFont: {
+            family: 'Doto, sans-serif',
+            size: 11,
+            weight: '600'
+          },
+          callbacks: {
+            label: (context) => ` ${context.parsed.y} kg`
+          }
+        }
+      },
+      scales: {
+        x: {
+          grid: {
+            color: 'rgba(255, 255, 255, 0.06)',
+            drawBorder: false
+          },
+          ticks: {
+            color: '#666',
+            font: {
+              family: 'Doto, sans-serif',
+              size: 10,
+              weight: '500'
+            }
+          }
+        },
+        y: {
+          grid: {
+            color: 'rgba(255, 255, 255, 0.08)',
+            drawBorder: false
+          },
+          ticks: {
+            color: '#666',
+            font: {
+              family: 'Doto, sans-serif',
+              size: 10,
+              weight: '500'
+            },
+            callback: (value) => `${value}kg`
+          }
+        }
+      }
     }
   });
 };
@@ -333,9 +420,6 @@ onUnmounted(() => {
 
 </script>
 <style scoped>
-.home-content {
-  --background: #0b0b0b;
-}
 
 /* ACTIVE SESSION CARD */
 .active-session-card {
@@ -535,18 +619,23 @@ onUnmounted(() => {
 /* CHART CONTAINER */
 .chart-container {
   margin: 20px;
-  padding: 16px;
-  background-color: #1a1a1a;
-  border-radius: 6px;
+  padding: 16px 16px 12px;
+  background: linear-gradient(160deg, rgba(255, 210, 0, 0.08), rgba(26, 26, 26, 0.85) 55%);
+  border: 1px solid rgba(255, 210, 0, 0.18);
+  border-radius: 8px;
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.45);
 }
 
 .chart-select {
   margin-bottom: 15px;
   width: 100%;
+  --placeholder-color: rgba(255, 210, 0, 0.65);
+  --color: #ffd200;
 }
 
 .chart-canvas {
   width: 100%;
   max-height: 250px;
+  height: 220px;
 }
 </style>
