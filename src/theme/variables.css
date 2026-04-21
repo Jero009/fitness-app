@@ -1,49 +1,115 @@
 :root {
   /* Colors */
-  --ion-color-primary: #1B1B1D;       /* main accent */
-  --ion-color-primary-rgb: 0,0,0;
+  --ion-color-primary: #131313;       /* main card/item background (floating effect) */
+  --ion-color-primary-rgb: 19,19,19;
   --ion-color-secondary: #ffffff;     /* background light */
   --ion-color-secondary-rgb: 255,255,255;
-  --ion-color-tertiary: #f5f5f5;      /* subtle contrast */
-  --ion-color-dark: #111111;
-  --ion-color-medium: #292929;
-  --ion-color-light: #fafafa;
+  --ion-color-tertiary: #f5f5f5; 
+  --ion-color-dark: #000000;          /* true black background */
+       
+  --ion-color-medium: #1b1b1b;        /* slightly lighter grey */
+  --ion-color-light: #ffffff;         /* true white for high contrast */
 
     /* Signature accent colors */
-  --ion-color-accent-red: #D71921;   /* bright red pop */
-  --ion-color-accent-yellow: #e2a704; /* bright yellow pop */
-
-    /*button*/
-    --ion-tab-button-color: var(--ion-color-medium); /* gray for inactive */
-    --ion-tab-button-color-selected: var(--ion-color-accent-red); /* red for active */
-    --ion-icon-color: var(--ion-color-medium); /* gray icons inactive */
-
+  --ion-color-accent-red: var(--ion-color-danger);   /* match Ionic danger exactly */
+  --ion-color-accent-yellow: #FFD700; /* vibrant gold pop */
 
   /* Toolbar & background */
-  --ion-toolbar-background: var(--ion-color-light);
-  --ion-toolbar-color: var(--ion-color-light);
-  --ion-content-background: var(--ion-color-secondary);
+  --ion-toolbar-background: var(--ion-color-primary);
+  --ion-content-background: var(--ion-color-dark);
+  --ion-tabs-bar-background: var(--ion-color-primary);
+  --ion-title-color: var(--ion-color-light);
 
   /* Cards & items */
-  --ion-card-background: var(--ion-color-secondary);
+  --ion-card-background: var(--ion-color-primary);
   --ion-card-color: var(--ion-color-light);
-  --ion-item-background: var(--ion-color-secondary);
-  --ion-item-color: var(--ion-color-dark);
-
+  --ion-item-background: var(--ion-color-primary);
   /* Font */
   --ion-font-family: 'Inter', sans-serif;
   --ion-font-size: 16px;
 
   /* Borders & spacing */
-  --ion-border-radius: 12px;
+  --ion-border-radius: 3px;
   --ion-padding: 16px;
   --ion-margin: 16px;
+  --ion-background-color: var(--ion-color-dark);
 }
+
+ion-alert.history-delete-alert {
+  --background: #111827;
+  --color: #f9fafb;
+  --backdrop-opacity: 0.4;
+  --border-radius: 14px;
+}
+
+ion-alert.history-delete-alert .alert-title {
+  color: #ffffff;
+}
+
+ion-alert.history-delete-alert .alert-message {
+  color: #ffffff;
+}
+
+ion-alert.history-delete-alert .alert-button-role-cancel {
+  color: #ffffff;
+}
+
+ion-alert.history-delete-alert .alert-button-role-destructive {
+  color:var(--ion-color-accent-red);
+  font-weight: 700;
+}
+
+ion-alert.rename-exercise-alert {
+  --background: #0f0f0f;
+  --color: #f9fafb;
+  --backdrop-opacity: 0.45;
+  --border-radius: 12px;
+}
+
+ion-alert.rename-exercise-alert .alert-title {
+  color: #ffffff;
+}
+
+ion-alert.rename-exercise-alert .alert-input {
+  color: #ffffff;
+  background: #1b1b1b;
+  border-radius: 6px;
+}
+
+ion-alert.rename-exercise-alert .alert-button {
+  color: #ffffff;
+}
+
+ion-modal.exercise-modal {
+  --background: #0b0b0b;
+  --color: #f9fafb;
+  --border-radius: 18px 18px 0 0;
+  --height: 72%;
+  --width: 100%;
+  --backdrop-opacity: 0.5;
+}
+
+
+
 ion-tab-bar {
   --color-selected: var(--ion-color-accent-red);  /* active tab text & icon */
   --color: var(--ion-color-medium);              /* inactive tab text & icon */
   --background: var(--ion-color-dark);         /* tab bar background */
 }
+
+ion-toolbar {
+  --color: var(--ion-color-light);
+}
+
+ion-title,
+ion-title.title {
+  color: var(--ion-color-light);
+}
+
+ion-page {
+  --background: var(--ion-color-dark); /* page background */
+}
+
 ion-checkbox {
   --size: 24px;                        /* checkbox size */
   --border-color: var(--ion-color-accent-red); /* border when unchecked */
@@ -63,29 +129,49 @@ ion-card-subtitle, ion-label,ion-item {
   font-family: 'Doto', sans-serif;
   color: var(--ion-color-light);
 }
-
-ion-button {
-  --background: var(--ion-color-accent-red) !important;
-  --background-activated: var(--ion-color-accent-yellow) !important;
-  --color: #ffffff; 
-  --color-activated: #000000;
-  --border-radius: 5px !important;
+.button-red {
+  --background: var(--ion-color-accent-red)!important;
+  --color: #000000 !important; 
+  --color: var(--ion-color-light);
+  --border-radius: 3px !important;
   font-family: Doto;
 }
+.button-white {
+  --background: var(--ion-color-light)!important;
+  --color: #000000 !important; 
+  --color: var(--ion-color-dark);
+  --border-radius: 3px !important;
+  font-family: Doto;
+}
+.button-yellow {
+  --background: var(--ion-color-accent-yellow)!important;
+  --color: #000000 !important; 
+  --color: var(--ion-color-dark);
+  --border-radius: 3px !important;
+  font-family: Doto;
+}
+
+.set{
+  width: 100%;
+  padding: 10px;
+  border-radius: 10px;
+  margin-bottom: 5px;
+  background-color: var(--ion-color-medium);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
 
 ion-select {
-  --background: var(--ion-color-medium);
+  --background: var(--ion-color-primary);
   --color: var(--ion-color-light);
-  --border-radius: 5px;
+  --border-radius: 3px;
   font-family: Doto;
-  margin:10px 0;
+  color:#ffffff;
+  
 }
 
-ion-select-option {
-  --background: var(--ion-color-medium);
-  --color: var(--ion-color-light);
-  font-family: Doto;
-}
 ion-action-sheet {
   width: 100%;
   --background: var(--ion-color-medium);
@@ -95,5 +181,10 @@ ion-action-sheet {
 ion-list {
   --background: var(--ion-color-medium);
   --color: var(--ion-color-light);
-
 }
+
+html, body, ion-app ion-content {
+  background: black !important;
+}
+
+

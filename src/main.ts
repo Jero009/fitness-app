@@ -21,8 +21,7 @@ import '@ionic/vue/css/text-transformation.css'
 import '@ionic/vue/css/flex-utils.css'
 import '@ionic/vue/css/display.css'
 
-/* Dark mode */
-import '@ionic/vue/css/palettes/dark.system.css'
+
 
 /* Theme */
 import './theme/variables.css'
@@ -34,6 +33,10 @@ const app = createApp(App)
 
 // ✅ Wait for router + DB
 router.isReady().then(async () => {
-  await initDB()
+  try {
+    await initDB()
+  } catch (error) {
+    console.error('Failed to initialize database, continuing without DB.', error)
+  }
   app.mount('#app')
 })

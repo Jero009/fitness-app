@@ -2,41 +2,41 @@
 <ion-page>
   <ion-header>
     <ion-toolbar>
-        <ion-title class="title">Exercises</ion-title>
+        <ion-title class="title">EXERCISES</ion-title>
       <ion-buttons slot="end">
-        <ion-button  @click="openModal">
+        <ion-button class="button-red" @click="openModal">
           <ion-icon :icon="add" ></ion-icon>
         </ion-button>
       </ion-buttons>
       </ion-toolbar>
   </ion-header>
   <ion-content class="ion-padding">
-    <ion-modal :is-open="isOpen" >
+    <ion-modal :is-open="isOpen" css-class="exercise-modal">
       <ion-header>
         <ion-toolbar>
           <ion-buttons slot="start">
-            <ion-button @click="cancel()">Cancel</ion-button>
+            <ion-button class="button-red" @click="cancel()">Cancel</ion-button>
           </ion-buttons>
           <ion-title>Add exercise</ion-title>
           <ion-buttons slot="end">
-            <ion-button :strong="true" @click="confirm()">Add</ion-button>
+            <ion-button class="button-red" :strong="true" @click="confirm()">Add</ion-button>
           </ion-buttons>
         </ion-toolbar>
       </ion-header>
       <ion-content class="ion-padding">
           <ion-input class="input"
             v-model="name"
-            placeholder="Enter exercise name"
+            placeholder="&nbsp;Enter exercise name"
           ></ion-input>
 
-          <ion-select v-model="muscleGroup" placeholder="Select muscle group" interface="action-sheet">
+          <ion-select v-model="muscleGroup" placeholder="&nbsp;Select muscle group" interface="action-sheet">
             <ion-select-option v-for="mg in muscleGroups" :key="mg.id" :value="mg.id">
               {{ mg.name }}
             </ion-select-option>
           </ion-select>
 
 
-          <ion-select v-model="equipment" placeholder="Select equipment" interface="action-sheet">
+          <ion-select v-model="equipment" placeholder="&nbsp;Select equipment" interface="action-sheet">
             <ion-select-option v-for="eq in equipmentList" :key="eq.id" :value="eq.id">
               {{ eq.name }}
             </ion-select-option>
@@ -55,26 +55,57 @@
               <div class="exercise-list-container">
 
                   <ion-select v-model="selectedMuscleGroup" placeholder="Filter by muscle group" interface="action-sheet" class="muscle-group-select">
+                    <ion-select-option value="">&nbsp;All</ion-select-option>
                     <ion-select-option v-for="mg in muscleGroups" :key="mg.id" :value="mg.name">
                       {{ mg.name }}
                     </ion-select-option>
                   </ion-select>
+                  <ion-list class="exercise-list" lines="none">
 
-
-                        <ion-item class="exercise-item" v-for="ex in filteredExercises" :key="ex.id" lines="none">
-                          {{ ex.name }}
-                          <ion-button slot="end" @click="renameEx(ex)">Rename</ion-button>
-                        </ion-item>
-
+                    <ion-item class="exercise-item" v-for="ex in filteredExercises" :key="ex.id" lines="none">
+                      {{ ex.name }}
+                      <ion-button class="button-yellow" slot="end" @click="renameEx(ex)">Rename</ion-button>
+                    </ion-item>
+                  </ion-list>
             </div>
         
   </ion-content>
   </ion-page>
 </template>
+<style>
+.exercise-list {
+  background: transparent;
+}
+.exercise-list-container {
+  width: 90%;
+  margin: auto;
+}
 
+.exercise-item {
+  margin: 10px auto ;
+  width: 100%;
+  background-color: var(--ion-color-medium);
+  border-radius: 10px;
+}
+.muscle-group-select{
+  margin:  auto ;
+  width: 100%;
+}
+
+
+.input {
+  margin:0;
+  background-color: var(--ion-color-primary);
+  color:var(--ion-color-light);
+  border-radius: 3px;
+  font-family: doto;
+}
+
+
+</style>
 <script setup lang="ts">
-import { IonPage, IonHeader, IonToolbar, IonTitle, IonContent,IonList,IonItem,IonButton,IonIcon,IonButtons,IonModal,IonInput ,onIonViewWillEnter,
-   IonRefresher, IonRefresherContent, RefresherCustomEvent,alertController,IonSelect,IonSelectOption  } from '@ionic/vue';
+import { IonPage, IonHeader, IonToolbar, IonTitle, IonContent, IonItem, IonButton, IonIcon, IonButtons, IonModal, IonInput, onIonViewWillEnter,
+   IonRefresher, IonRefresherContent, RefresherCustomEvent, alertController, IonSelect, IonSelectOption } from '@ionic/vue';
 import { add} from 'ionicons/icons'
 import { ref,onMounted,computed  } from 'vue';
 import { addExercise, getExercises,renameExercise,getMuscleGroups, getEquipment } from '@/services/gym_db'
@@ -150,6 +181,7 @@ const filteredExercises = computed(() => {
 const renameEx = async (ex: exercise) => {
   const alert = await alertController.create({
     header: 'Rename Exercise',
+    cssClass: 'rename-exercise-alert',
 
     inputs: [
       {
@@ -205,23 +237,3 @@ onIonViewWillEnter(() => {
 
 
 </script>
-<style>
-.exercise-item {
-  margin: 10px auto ;
-  width: 100%;
-  background-color: var(--ion-color-medium);
-  border-radius: 10px;
-}
-.input {
-  margin:0;
-  background-color: var(--ion-color-primary);
-  border-radius: 10px;
-  font-family: doto;
-}
-
-.muscle-group-select{
-  margin:  auto ;
-  width: 100%;
-}
-
-</style>

@@ -2,7 +2,7 @@
 <ion-page>
   <ion-header>
     <ion-toolbar>
-        <ion-title class="title">Exercises</ion-title>
+        <ion-title class="title">EXERCISES</ion-title>
       </ion-toolbar>
   </ion-header>
   <ion-content class="ion-padding">
@@ -14,51 +14,87 @@
           <ion-refresher slot="fixed" @ionRefresh="handleRefresh($event)">
             <ion-refresher-content></ion-refresher-content>
           </ion-refresher>
-            <div class="card-template">
-                <ion-item>
-                  <ion-select v-model="selectedMuscleGroup" placeholder="Filter by muscle group" interface="action-sheet">
+            <div class="exercise-list-container">
+                  <ion-select v-model="selectedMuscleGroup" placeholder="Filter by muscle group" interface="action-sheet" class="muscle-group-select">
+                    <ion-select-option value="">&nbsp;All</ion-select-option>
                     <ion-select-option v-for="mg in muscleGroups" :key="mg.id" :value="mg.name">
                       {{ mg.name }}
                     </ion-select-option>
                   </ion-select>
-                </ion-item>
-
-                      <ion-list class="exercise-list" lines="full">
-                        <ion-item class="exercise-item" v-for="ex in filteredExercises" :key="ex.id" @click="selectExercise(ex)">
-                          {{ ex.name }}
-                        </ion-item>
-                      </ion-list>
+                <ion-list class="exercise-list" lines="none">
+                  <ion-item class="exercise-item" v-for="ex in filteredExercises" :key="ex.id" @click="selectExercise(ex)" lines="none">
+                    {{ ex.name }}
+                  </ion-item>
+                </ion-list>
             </div>
         
   </ion-content>
   </ion-page>
 </template>
+<style>
 
+.exercise-list {
+  background: transparent;
+}
+
+.exercise-list-container {
+  width: 90%;
+  margin: auto;
+}
+
+.exercise-item {
+  margin: 10px auto ;
+  width: 100%;
+  background-color: var(--ion-color-medium);
+  border-radius: 10px;
+}
+
+.muscle-group-select{
+  margin:  auto ;
+  width: 100%;
+
+}
+
+</style>
 <script setup lang="ts">
-import { IonPage, IonHeader, IonToolbar, IonTitle, IonContent,IonList,IonItem ,onIonViewWillEnter,
-   IonRefresher, IonRefresherContent, RefresherCustomEvent,IonSelect,IonSelectOption  } from '@ionic/vue';
-import { ref,onMounted,computed  } from 'vue';
-import {  getExercises,getMuscleGroups, getEquipment } from '@/services/gym_db'
-import { useRouter,useRoute } from 'vue-router';
+import { IonPage, IonHeader, IonToolbar, IonTitle, IonContent, IonList, IonItem, IonSelect, IonSelectOption, IonRefresher, IonRefresherContent, onIonViewWillEnter } from '@ionic/vue';
+import type { RefresherCustomEvent } from '@ionic/vue';
+import { ref, onMounted, computed } from 'vue';
+import { getExercises, getMuscleGroups, addExerciseToWorkout, getNextWorkoutOrderIndex } from '@/services/gym_db';
+import { useRouter, useRoute } from 'vue-router';
 const router = useRouter();
 
-// template id 
 const route = useRoute();
 
+// exercise selection - handles both template and workout contexts
+const selectExercise = async (exercise: exercise) => {
+  const workoutIdQuery = route.query.workoutId;
 
-// exercise selection for template creation
-const selectExercise = (exercise: exercise) => {
-  localStorage.setItem('selectedExerciseForTemplate', JSON.stringify(exercise));
+  if (workoutIdQuery) {
+    const workoutId = Number(workoutIdQuery);
+    // Adding exercise to an active workout
+    const orderIndex = await getNextWorkoutOrderIndex(workoutId);
+    await addExerciseToWorkout(workoutId, exercise.id, orderIndex, 3, 10, 0);
 
-  const templateId = Number(route.query.templateId);
-
-  if (!isNaN(templateId)) {
+    // Navigate back to the workout page
     router.push({
-      name: 'TemplateEditor',
-      params: { id: templateId }
+      name: 'Workout',
+      params: { id: workoutId.toString() }
     });
   } else {
-    router.push({ name: 'TemplateBuilder' });
+    // Original template behavior
+    localStorage.setItem('selectedExerciseForTemplate', JSON.stringify(exercise));
+
+    const templateIdQuery = route.query.templateId;
+
+    if (templateIdQuery) {
+      router.push({
+        name: 'TemplateEditor',
+        params: { id: templateIdQuery.toString() }
+      });
+    } else {
+      router.push({ name: 'TemplateBuilder' });
+    }
   }
 };
 
@@ -82,9 +118,8 @@ const LoadExercises = async () =>{
   exercises.value = data;
   
 };
-// get muscle group and equipment for select options
+// get muscle group for select options
 const muscleGroups = ref<any[]>([]);
-const equipmentList = ref<any[]>([]);
 
 
 
@@ -108,21 +143,11 @@ const handleRefresh = async (event: RefresherCustomEvent) => {
 onMounted(() => {
     LoadExercises()
     getMuscleGroups().then(data => muscleGroups.value = data);
-    getEquipment().then(data => equipmentList.value = data);
 });
 
 onIonViewWillEnter(() => {
     LoadExercises()
     getMuscleGroups().then(data => muscleGroups.value = data);
-    getEquipment().then(data => equipmentList.value = data);
-
 });
 
 </script>
-<style>
-.exercise-list {
-  margin: 10px auto ;
-  width: 100%;
-}
-
-</style>
