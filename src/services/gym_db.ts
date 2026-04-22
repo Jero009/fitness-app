@@ -860,6 +860,7 @@ export async function getWorkouts() {
     FROM workout w
     LEFT JOIN workout_template wt 
       ON wt.id = w.id_workout_template
+    WHERE w.time_end IS NOT NULL
     ORDER BY w.time_start DESC
   `);
 

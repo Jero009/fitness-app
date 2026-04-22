@@ -327,10 +327,19 @@ console.log("Workout ID:", workoutId);
 
 const workoutExercises = ref<any[]>([]);
 
+const normalizeDateInput = (value: unknown): string | null => {
+  if (value === null || value === undefined) return null;
+  const raw = String(value).trim();
+  if (!raw) return null;
+  const normalized = raw.includes(' ') ? raw.replace(' ', 'T') : raw;
+  const hasTimezone = /(?:Z|[-+]\d{2}:?\d{2})$/i.test(normalized);
+  return hasTimezone ? normalized : `${normalized}Z`;
+};
+
 
 const loadWorkout = async () => {
   const workout = await getWorkoutById(workoutId);
-  startTime.value = workout?.time_start ? workout.time_start.replace(' ', 'T') + 'Z' : null;
+  startTime.value = normalizeDateInput(workout?.time_start);
 
   const data = await getWorkoutExercises(workoutId);
 

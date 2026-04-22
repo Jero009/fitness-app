@@ -34,7 +34,14 @@
                 </ion-card-header>
             </ion-card>
             <div class="card-container">
-              <ion-card class="card" v-for="template in templates" :key="template.id" @click="startWorkout(template.id)">
+              <ion-card
+                class="card"
+                :class="{ 'card-disabled': activeWorkout }"
+                v-for="template in templates"
+                :key="template.id"
+                :aria-disabled="activeWorkout"
+                @click="startWorkout(template.id)"
+              >
                   <ion-card-header>
                       <ion-card-title class="card-title">{{ template.name }}</ion-card-title>
                       <ion-card-subtitle>{{ template.created_at }}</ion-card-subtitle>
@@ -72,7 +79,6 @@ const router = useRouter();
 
 const startWorkout = async (templateId: number) => {
   if (activeWorkout.value) {
-    await backToWorkout();
     return;
   }
 
@@ -121,21 +127,42 @@ const loadLatestWorkout = async () => {
   latestWorkout.value = workout || null;
 };
 
+const toTimestamp = (value: unknown): number => {
+  if (value === null || value === undefined) return NaN;
+
+  if (typeof value === 'number') {
+    return Number.isFinite(value) ? value : NaN;
+  }
+
+  const raw = String(value).trim();
+  if (!raw) return NaN;
+
+  const numeric = Number(raw);
+  if (!Number.isNaN(numeric) && Number.isFinite(numeric)) {
+    return numeric;
+  }
+
+  const normalized = raw.includes(' ') ? raw.replace(' ', 'T') : raw;
+  const hasTimezone = /(?:Z|[-+]\d{2}:?\d{2})$/i.test(normalized);
+  const candidate = hasTimezone ? normalized : `${normalized}Z`;
+
+  return new Date(candidate).getTime();
+};
+
+const normalizeDateInput = (value: unknown): string | null => {
+  if (value === null || value === undefined) return null;
+  const raw = String(value).trim();
+  if (!raw) return null;
+  const normalized = raw.includes(' ') ? raw.replace(' ', 'T') : raw;
+  const hasTimezone = /(?:Z|[-+]\d{2}:?\d{2})$/i.test(normalized);
+  return hasTimezone ? normalized : `${normalized}Z`;
+};
+
 const formatDuration = (start: string, end: any) => {
   if (!start || !end) return '0h 0m 0s';
 
-  // parse start (string)
-  const s = new Date(start.replace(' ', 'T') + 'Z').getTime();
-
-  // parse end (can be string, number, or stringified number)
-  let e: number;
-  if (typeof end === 'number') {
-    e = end;
-  } else if (!isNaN(Number(end))) {
-    e = Number(end);
-  } else {
-    e = new Date(end.replace(' ', 'T') + 'Z').getTime();
-  }
+  const s = toTimestamp(start);
+  const e = toTimestamp(end);
 
   if (isNaN(s) || isNaN(e)) return 'Invalid time';
 
@@ -159,7 +186,7 @@ let interval: ReturnType<typeof setInterval> | null = null;
 const loadActiveWorkout = async () => {
   const workout = await getActiveWorkout();
   if (workout && workout.time_start) {
-    startTime.value = workout.time_start.replace(' ', 'T') + 'Z';
+    startTime.value = normalizeDateInput(workout.time_start);
     startTimer();
     activeWorkout.value = true;
   } else {
@@ -305,6 +332,11 @@ onUnmounted(() => {
   aspect-ratio: 1/1;
   box-sizing: border-box;
   text-align: center;
+}
+
+.card-disabled {
+  opacity: 0.5;
+  pointer-events: none;
 }
 .card-title {
   font-size: 3em;
