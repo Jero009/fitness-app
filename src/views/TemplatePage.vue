@@ -384,7 +384,7 @@
 </style>
 
 <script setup lang="ts">
-import { IonPage, IonHeader, IonToolbar, IonTitle, IonContent, IonCard, IonCardHeader, IonCardContent, IonCardSubtitle, IonCardTitle, IonList, IonItem, IonButton, IonIcon, IonButtons, IonRefresher, IonRefresherContent, onIonViewWillEnter } from '@ionic/vue';
+import { IonPage, IonHeader, IonToolbar, IonTitle, IonContent, IonButton, IonIcon, IonButtons, IonRefresher, IonRefresherContent, onIonViewWillEnter } from '@ionic/vue';
 import type { RefresherCustomEvent } from '@ionic/vue';
 import { add } from 'ionicons/icons';
 import { ref, onMounted, computed } from 'vue';

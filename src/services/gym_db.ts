@@ -134,6 +134,7 @@ export async function initDB() {
     workout_id INTEGER,
     exercise_id INTEGER,
     order_index INTEGER,
+    rest_seconds INTEGER,
     FOREIGN KEY (workout_id)
       REFERENCES workout(id)
       ON DELETE CASCADE,
@@ -591,7 +592,12 @@ export async function addExerciseToTemplate(
 }
 export async function getTemplates() {
   if (!db) return [];
-  const result = await db.query('SELECT * FROM workout_template;');
+  const result = await db.query(`
+    SELECT wt.*, COUNT(wte.id) as exercise_count
+    FROM workout_template wt
+    LEFT JOIN workout_template_exercise wte ON wte.id_workout_template = wt.id
+    GROUP BY wt.id
+  `);
   return result.values || [];
 
 }
@@ -603,6 +609,7 @@ export async function getTemplateExercises(templateId: number) {
       wte.id,
       e.name,
       wte.id_exercise,
+      e.rest_seconds,
       wte.set_number,
       wte.rep_number,
       wte.order_index
@@ -647,6 +654,28 @@ export async function renameExercise(id: number, newName: string) {
     console.error('Error renaming exercise:', error);
     throw error;
   }
+}
+
+export async function updateExerciseRestSeconds(exerciseId: number, restSeconds: number) {
+  if (!db) return;
+
+  const result = await db.run(
+    `UPDATE exercise SET rest_seconds = ? WHERE id = ?`,
+    [restSeconds, exerciseId]
+  );
+
+  return result;
+}
+
+export async function updateWorkoutExerciseRestSeconds(workoutExerciseId: number, restSeconds: number) {
+  if (!db) return;
+
+  const result = await db.run(
+    `UPDATE workout_exercise SET rest_seconds = ? WHERE id = ?`,
+    [restSeconds, workoutExerciseId]
+  );
+
+  return result;
 }
 
 export async function getExercises() {
@@ -694,9 +723,14 @@ export async function startWorkoutFromTemplate(templateId: number) {
       `INSERT INTO workout (id_workout_template) VALUES (?)`,
       [templateId]
     );
-    const workoutId = result.changes?.lastId;
+    let workoutId = Number(result.changes?.lastId);
 
-    if (!workoutId) {
+    if (!Number.isFinite(workoutId) || workoutId <= 0) {
+      const insertedIdResult = await db.query('SELECT last_insert_rowid() AS id');
+      workoutId = Number(insertedIdResult.values?.[0]?.id);
+    }
+
+    if (!Number.isFinite(workoutId) || workoutId <= 0) {
       await db.execute('ROLLBACK;');
       return;
     }
@@ -705,8 +739,8 @@ export async function startWorkoutFromTemplate(templateId: number) {
 
     for (const ex of templateExercises) {
       const resultWE = await db.run(
-        `INSERT INTO workout_exercise (workout_id, exercise_id, order_index) VALUES (?, ?, ?)`,
-        [workoutId, ex.id_exercise, ex.order_index]
+        `INSERT INTO workout_exercise (workout_id, exercise_id, order_index, rest_seconds) VALUES (?, ?, ?, ?)`,
+        [workoutId, ex.id_exercise, ex.order_index, Number(ex.rest_seconds) || 60]
       );
       const workoutExerciseId = resultWE.changes?.lastId;
 
@@ -737,7 +771,7 @@ export async function getWorkoutExercises(workoutId: number) {
       we.id,
       we.exercise_id,
       e.name,
-      e.rest_seconds
+      COALESCE(we.rest_seconds, e.rest_seconds) AS rest_seconds
     FROM workout_exercise we
     JOIN exercise e ON e.id = we.exercise_id
     WHERE we.workout_id = ?
@@ -923,13 +957,17 @@ export async function saveWorkoutTotalKg(workoutId: number,) {
 // In your gym_db.ts
 export async function hasActiveWorkout() {
   if (!db) return false;
-  const result = await db.query('SELECT id FROM workout WHERE time_end IS NULL LIMIT 1');
+  const result = await db.query(
+    'SELECT id FROM workout WHERE time_end IS NULL ORDER BY id DESC LIMIT 1'
+  );
   return result.values && result.values.length > 0;
 }
 
 export async function getActiveWorkout() {
   if (!db) return null;
-  const result = await db.query('SELECT * FROM workout WHERE time_end IS NULL LIMIT 1');
+  const result = await db.query(
+    'SELECT * FROM workout WHERE time_end IS NULL ORDER BY id DESC LIMIT 1'
+  );
   return result.values?.[0] || null;
 }
 
@@ -956,10 +994,16 @@ export async function addExerciseToWorkout(
   try {
     await db.execute('BEGIN TRANSACTION;');
 
+    const exerciseResult = await db.query(
+      'SELECT rest_seconds FROM exercise WHERE id = ? LIMIT 1',
+      [exerciseId]
+    );
+    const restSeconds = Number(exerciseResult.values?.[0]?.rest_seconds) || 60;
+
     // Insert the exercise into workout_exercise
     const resultWE = await db.run(
-      `INSERT INTO workout_exercise (workout_id, exercise_id, order_index) VALUES (?, ?, ?)`,
-      [workoutId, exerciseId, orderIndex]
+      `INSERT INTO workout_exercise (workout_id, exercise_id, order_index, rest_seconds) VALUES (?, ?, ?, ?)`,
+      [workoutId, exerciseId, orderIndex, restSeconds]
     );
     const workoutExerciseId = resultWE.changes?.lastId;
 

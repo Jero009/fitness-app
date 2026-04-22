@@ -310,12 +310,11 @@
 
 </style>
 <script setup lang="ts">
-import { IonPage, IonHeader, IonToolbar, IonTitle, IonContent,IonButtons,IonButton,IonCard,IonCardHeader,IonCardContent,IonCheckbox,IonInput,IonCardTitle,onIonViewWillEnter,onIonViewDidEnter, alertController, IonIcon, IonItemSliding, IonItemOptions, IonItemOption, IonItem } from '@ionic/vue';
-import { ref, onUnmounted, computed } from 'vue';
-import { useRouter,useRoute } from 'vue-router';
+import { IonPage, IonHeader, IonToolbar, IonTitle, IonContent,IonButtons,IonButton,IonCard,IonCardHeader,IonCardContent,IonCheckbox,IonInput,IonCardTitle,onIonViewWillEnter,onIonViewDidEnter, alertController, IonIcon, IonItemSliding, IonItemOptions, IonItemOption, IonItem,} from '@ionic/vue';
 import { addCircleOutline, addOutline, timerOutline } from 'ionicons/icons';
-
-import { getWorkoutExercises,getWorkoutSets,updateWorkoutSet,getWorkoutById,endWorkout,cancelWorkout, addSetToWorkoutExercise, getNextSetNumber, deleteWorkoutSet, deleteWorkoutExercise, getLatestCompletedSetsForExercise, updateWorkoutSetNumber } from '@/services/gym_db';
+import { ref,computed,onUnmounted  } from 'vue';
+import { useRouter,useRoute } from 'vue-router';
+import { getWorkoutExercises,getWorkoutSets,updateWorkoutSet,getWorkoutById,endWorkout,cancelWorkout, addSetToWorkoutExercise, getNextSetNumber, deleteWorkoutSet, deleteWorkoutExercise, getLatestCompletedSetsForExercise, updateWorkoutSetNumber, updateWorkoutExerciseRestSeconds } from '@/services/gym_db';
 
 interface WorkoutExercise {
   id: number;
@@ -330,14 +329,14 @@ interface WorkoutSet {
   set_number: number;
   reps: number;
   weight: number;
-  completed: number;
+  completed: boolean;
   previous_weight: number;
   previous_reps: number;
 }
 
 const router = useRouter();
 const route = useRoute();
-const workoutId = Number(route.params.id);
+const workoutId = computed(() => Number(route.params.id));
 
 // exercise data
 
@@ -345,14 +344,15 @@ const workoutExercises = ref<WorkoutExercise[]>([]);
 
 
 const loadWorkout = async () => {
-  const workout = await getWorkoutById(workoutId);
+  if (!workoutId.value) return;
+  const workout = await getWorkoutById(workoutId.value);
   startTime.value = workout?.time_start ? workout.time_start.replace(' ', 'T') + 'Z' : null;
 
-  const data = await getWorkoutExercises(workoutId);
+  const data = await getWorkoutExercises(workoutId.value);
 
   for (const ex of data) {
       const sets = await getWorkoutSets(ex.id);
-      const previousSets = await getLatestCompletedSetsForExercise(ex.exercise_id, workoutId);
+      const previousSets = await getLatestCompletedSetsForExercise(ex.exercise_id, workoutId.value);
       const previousSetByNumber = new Map<number, any>(
         previousSets.map((row: any) => [Number(row.set_number), row])
       );
@@ -413,8 +413,12 @@ const editRestTime = async (exercise: any) => {
       { text: 'Cancel', role: 'cancel' },
       {
         text: 'Save',
-        handler: (data) => {
-          exercise.rest_seconds = parseInt(data.restSeconds) || 60;
+        handler: async (data) => {
+          const parsed = Number.parseInt(String(data.restSeconds), 10);
+          const nextRestSeconds = Number.isFinite(parsed) && parsed > 0 ? parsed : 60;
+
+          exercise.rest_seconds = nextRestSeconds;
+          await updateWorkoutExerciseRestSeconds(Number(exercise.id), nextRestSeconds);
         }
       }
     ]
@@ -423,8 +427,23 @@ const editRestTime = async (exercise: any) => {
 };
 
 const saveWorkout = async ()=>{
-  await endWorkout(workoutId);
-  router.push('/tabs/Home');
+  try {
+    if (!workoutId.value) return;
+    await endWorkout(workoutId.value);
+    if (interval) {
+      clearInterval(interval);
+      interval = null;
+    }
+    router.replace('/tabs/Home');
+  } catch (error) {
+    console.error("Failed to stop workout:", error);
+    const errAlert = await alertController.create({
+      header: 'Error',
+      message: 'Failed to stop workout: ' + (error as Error).message,
+      buttons: ['OK']
+    });
+    await errAlert.present();
+  }
 };
 
 const handleCancelWorkout = async () => {
@@ -437,7 +456,8 @@ const handleCancelWorkout = async () => {
         text: 'Yes, Cancel',
         role: 'confirm',
         handler: async () => {
-          await cancelWorkout(workoutId);
+          if (!workoutId.value) return;
+          await cancelWorkout(workoutId.value);
           if (interval) clearInterval(interval);
           interval = null;
           router.push('/tabs/Home');
@@ -503,9 +523,10 @@ const handleRemoveSet = async (workoutExerciseId: number, setId: number) => {
 
 // Add new exercise to workout
 const addNewExercise = async () => {
+  if (!workoutId.value) return;
   router.push({
     name: 'ExercisePicker',
-    query: { workoutId: workoutId.toString() }
+    query: { workoutId: workoutId.value.toString() }
   });
 };
 
@@ -530,7 +551,7 @@ const addNewSet = async (exercise: any) => {
         set_number: nextSetNum,
         reps: defaultReps,
         weight: 0,
-        completed: 0,
+        completed: false,
         previous_weight: 0,
         previous_reps: 0
       });

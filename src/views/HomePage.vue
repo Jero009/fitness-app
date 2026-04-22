@@ -320,7 +320,7 @@ const renderChart = () => {
             font: {
               family: 'Doto, sans-serif',
               size: 10,
-              weight: '600'
+              weight: 600
             }
           }
         },
@@ -333,12 +333,12 @@ const renderChart = () => {
           titleFont: {
             family: 'Doto, sans-serif',
             size: 11,
-            weight: '700'
+            weight: 700
           },
           bodyFont: {
             family: 'Doto, sans-serif',
             size: 11,
-            weight: '600'
+            weight: 600
           },
           callbacks: {
             label: (context) => ` ${context.parsed.y} kg`
@@ -348,29 +348,33 @@ const renderChart = () => {
       scales: {
         x: {
           grid: {
-            color: 'rgba(255, 255, 255, 0.06)',
-            drawBorder: false
+            color: 'rgba(255, 255, 255, 0.06)'
+          },
+          border: {
+            display: false
           },
           ticks: {
             color: '#666',
             font: {
               family: 'Doto, sans-serif',
               size: 10,
-              weight: '500'
+              weight: 500
             }
           }
         },
         y: {
           grid: {
-            color: 'rgba(255, 255, 255, 0.08)',
-            drawBorder: false
+            color: 'rgba(255, 255, 255, 0.08)'
+          },
+          border: {
+            display: false
           },
           ticks: {
             color: '#666',
             font: {
               family: 'Doto, sans-serif',
               size: 10,
-              weight: '500'
+              weight: 500
             },
             callback: (value) => `${value}kg`
           }

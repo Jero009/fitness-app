@@ -261,7 +261,7 @@
 }
 </style>
 <script setup lang="ts">
-import { IonPage, IonHeader, IonToolbar, IonTitle, IonContent, IonItem, IonButton, IonIcon, IonButtons, IonModal, IonInput, onIonViewWillEnter,
+import { IonPage, IonHeader, IonToolbar, IonTitle, IonContent, IonButton, IonIcon, IonButtons, IonModal, IonInput, onIonViewWillEnter,
    IonRefresher, IonRefresherContent, RefresherCustomEvent, alertController, IonSelect, IonSelectOption } from '@ionic/vue';
 import { add} from 'ionicons/icons'
 import { ref,onMounted,computed  } from 'vue';

@@ -94,7 +94,6 @@
   </ion-page>
 </template>
 <style scoped>
-¸
 
 .title {
   font-family: 'Doto', sans-serif;
@@ -371,8 +370,8 @@
 </style>
 
 <script setup lang="ts">
-import { IonPage, IonHeader, IonToolbar, IonTitle, IonContent,IonCard,IonCardHeader,IonCardContent,IonCardSubtitle,IonCardTitle,IonList,IonItem, 
-IonRefresher, IonRefresherContent, RefresherCustomEvent, onIonViewWillEnter, IonButton, alertController, IonButtons, IonIcon } from '@ionic/vue';
+import { IonPage, IonHeader, IonToolbar, IonTitle, IonContent,
+IonRefresher, IonRefresherContent, RefresherCustomEvent, onIonViewWillEnter, IonButton, alertController, IonIcon } from '@ionic/vue';
 import { getWorkouts,getWorkoutHistoryExercises, cancelWorkout, exportDatabaseToSQL, importDatabaseFromSQL } from '@/services/gym_db'
 import { onMounted ,ref, computed } from 'vue';
 import { cloudUploadOutline, downloadOutline } from 'ionicons/icons';
