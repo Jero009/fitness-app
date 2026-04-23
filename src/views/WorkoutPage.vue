@@ -5,6 +5,9 @@
         <ion-title slot="start" class="title">Workout</ion-title>
         <div class="timer">{{ formatTime() }}</div>
         <ion-buttons  slot="end">
+          <ion-button @click="isReorderMode = !isReorderMode" :color="isReorderMode ? 'warning' : ''">
+            <ion-icon :icon="reorderThreeOutline"></ion-icon>
+          </ion-button>
           <ion-button class="button-red" @click="saveWorkout">stop</ion-button>
         </ion-buttons>
       </ion-toolbar>
@@ -16,45 +19,59 @@
         </ion-toolbar>
       </ion-header>
 
-       <div v-for="ex in workoutExercises" :key="ex.id" class="exercise-sliding-item">
-        <ion-card class="exercise-card">
-            <ion-card-header>
-              <div class="exercise-header">
-                <ion-card-title>{{ ex.name }}</ion-card-title>
-                <div class="rest-settings" @click="editRestTime(ex)">
-                  <ion-icon :icon="timerOutline"></ion-icon>
-                  <span>{{ ex.rest_seconds }}s</span>
-                </div>
-              </div>
-            </ion-card-header>
-            <ion-card-content>
-              <ion-item-sliding class="set-sliding" v-for="set in ex.sets" :key="set.id">
-                <ion-item lines="none" class="set">
-                  <ion-checkbox slot="start" v-model="set.completed" @ionChange="(ev) => handleSetChange(ex, set, ev)" class="checkbox"></ion-checkbox>
-                  <div class="input-container metric-field">
-                    <ion-input fill="outline" type="number" :placeholder="getWeightPlaceholder(ex, set)" v-model.number="set.weight" @ionBlur="saveSet(set)" class="input-small"></ion-input>
-                    <span class="unit">Kg</span>
+      <Draggable 
+        v-model="workoutExercises" 
+        item-key="id" 
+        handle=".reorder-handle"
+        @end="onReorderEnd"
+      >
+        <template #item="{ element: ex }">
+          <div class="exercise-sliding-item">
+            <ion-card class="exercise-card">
+                <ion-card-header>
+                  <div class="exercise-header">
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                      <div class="reorder-handle" v-if="isReorderMode">
+                        <ion-icon :icon="reorderThreeOutline" style="font-size: 1.5rem;"></ion-icon>
+                      </div>
+                      <ion-card-title>{{ ex.name }}</ion-card-title>
+                    </div>
+                    <div class="rest-settings" @click="editRestTime(ex)">
+                      <ion-icon :icon="timerOutline"></ion-icon>
+                      <span>{{ ex.rest_seconds }}s</span>
+                    </div>
                   </div>
-                  <div class="input-container metric-field">
-                    <ion-input fill="outline" type="number" :placeholder="getRepsPlaceholder(ex, set)" v-model.number="set.reps" @ionBlur="saveSet(set)" class="input-small"></ion-input>
-                    <span class="unit">reps</span>
-                  </div>
-                </ion-item>
-                <ion-item-options side="end">
-                  <ion-item-option color="danger" @click="handleRemoveSet(ex.id, set.id)">
-                    Remove
-                  </ion-item-option>
-                </ion-item-options>
-              </ion-item-sliding>
+                </ion-card-header>
+                <ion-card-content>
+                  <ion-item-sliding class="set-sliding" v-for="set in ex.sets" :key="set.id">
+                    <ion-item lines="none" class="set">
+                      <ion-checkbox slot="start" v-model="set.completed" @ionChange="(ev) => handleSetChange(ex, set, ev)" class="checkbox"></ion-checkbox>
+                      <div class="input-container metric-field">
+                        <ion-input fill="outline" type="number" :placeholder="getWeightPlaceholder(ex, set)" v-model.number="set.weight" @ionBlur="saveSet(set)" class="input-small"></ion-input>
+                        <span class="unit">Kg</span>
+                      </div>
+                      <div class="input-container metric-field">
+                        <ion-input fill="outline" type="number" :placeholder="getRepsPlaceholder(ex, set)" v-model.number="set.reps" @ionBlur="saveSet(set)" class="input-small"></ion-input>
+                        <span class="unit">reps</span>
+                      </div>
+                    </ion-item>
+                    <ion-item-options side="end">
+                      <ion-item-option color="danger" @click="handleRemoveSet(ex.id, set.id)">
+                        Remove
+                      </ion-item-option>
+                    </ion-item-options>
+                  </ion-item-sliding>
 
-              <!-- Add Set Button -->
-              <ion-button  expand="block" fill="outline" @click="addNewSet(ex)" class="add-set-btn">
-                <ion-icon class="add-set-icon" :icon="addOutline"></ion-icon>
-                Add Set
-              </ion-button>
-            </ion-card-content>
-        </ion-card>
-      </div>
+                  <!-- Add Set Button -->
+                  <ion-button  expand="block" fill="outline" @click="addNewSet(ex)" class="add-set-btn">
+                    <ion-icon class="add-set-icon" :icon="addOutline"></ion-icon>
+                    Add Set
+                  </ion-button>
+                </ion-card-content>
+            </ion-card>
+          </div>
+        </template>
+      </Draggable>
 
       <!-- Add Exercise Button -->
       <div class="add-exercise-container">
@@ -308,14 +325,26 @@
   transition: width 1s linear;
 }
 
+.reorder-handle {
+  cursor: grab;
+  color: var(--ion-color-medium);
+  display: flex;
+  align-items: center;
+}
+
+.reorder-handle:active {
+  cursor: grabbing;
+}
+
 </style>
 <script setup lang="ts">
 import { IonPage, IonHeader, IonToolbar, IonTitle, IonContent,IonButtons,IonButton,IonCard,IonCardHeader,IonCardContent,IonCheckbox,IonInput,IonCardTitle,onIonViewWillEnter,onIonViewDidEnter, alertController, IonIcon, IonItemSliding, IonItemOptions, IonItemOption, IonItem } from '@ionic/vue';
 import { ref, onUnmounted, computed } from 'vue';
 import { useRouter,useRoute } from 'vue-router';
-import { addCircleOutline, addOutline, timerOutline } from 'ionicons/icons';
+import { addCircleOutline, addOutline, timerOutline, reorderThreeOutline } from 'ionicons/icons';
+import Draggable from 'vuedraggable';
 
-import { getWorkoutExercises,getWorkoutSets,updateWorkoutSet,getWorkoutById,endWorkout,cancelWorkout, addSetToWorkoutExercise, getNextSetNumber, deleteWorkoutSet, deleteWorkoutExercise, getLatestCompletedSetsForExercise } from '@/services/gym_db';
+import { getWorkoutExercises,getWorkoutSets,updateWorkoutSet,getWorkoutById,endWorkout,cancelWorkout, addSetToWorkoutExercise, getNextSetNumber, deleteWorkoutSet, deleteWorkoutExercise, getLatestCompletedSetsForExercise, updateWorkoutExerciseOrder } from '@/services/gym_db';
 
 const router = useRouter();
 // id from route
@@ -326,6 +355,7 @@ console.log("Workout ID:", workoutId);
 // exercise data 
 
 const workoutExercises = ref<any[]>([]);
+const isReorderMode = ref(false);
 
 const normalizeDateInput = (value: unknown): string | null => {
   if (value === null || value === undefined) return null;
@@ -361,6 +391,13 @@ const loadWorkout = async () => {
   workoutExercises.value = data;
 
   console.log(workoutExercises.value);
+};
+
+const onReorderEnd = async () => {
+  console.log('Reorder ended. Updating DB...');
+  for (let i = 0; i < workoutExercises.value.length; i++) {
+    await updateWorkoutExerciseOrder(workoutExercises.value[i].id, i);
+  }
 };
 
 // saving
