@@ -11,11 +11,10 @@
           <ion-title size="large">Home</ion-title>
         </ion-toolbar>
       </ion-header>
-
-            <ion-card class="top-card">
+          <div class="top-card-container">
+            <ion-card class="top-card" v-if="!activeWorkout">
                 <ion-card-header > 
                 <ion-card-title >Stats for the last workout</ion-card-title>
-
                 <ion-card-subtitle>{{ latestWorkout?.time_end}}</ion-card-subtitle>
                 </ion-card-header>
                 <ion-card-content>
@@ -23,7 +22,6 @@
                 <span>{{ formatDuration(latestWorkout?.time_start, latestWorkout?.time_end) }}</span>
                 </ion-card-content>
             </ion-card>
-
             <ion-card class="card-active-workout" v-if="activeWorkout"  @click="backToWorkout()">
                 <ion-card-header >
                 <ion-card-title class="active-workout-title">active workout</ion-card-title>
@@ -33,6 +31,8 @@
                 </ion-card-content>
                 </ion-card-header>
             </ion-card>
+          </div>
+          <div class="card-card-container">
             <div class="card-container">
               <ion-card
                 class="card"
@@ -59,6 +59,7 @@
                 </ion-select>
                 <canvas ref="chartRef" ></canvas>
               </ion-card>
+            </div>
     </ion-content>
   </ion-page>
 </template>
@@ -280,8 +281,6 @@ const renderChart = () => {
   });
 };
 
-
-
 // Watch for template selection and update chart data
 watch(selectedTemplateId, async (templateId) => {
   if (templateId === undefined || templateId === null) {
@@ -317,21 +316,25 @@ onUnmounted(() => {
   if (chart) chart.destroy();
 });
 
-
 </script>
 <style>
+.card-card-container {
+  width: 100%;
+}
 .card-container {
+  width: 100%;
+
+  margin: auto;
   display: flex;
   flex-wrap: wrap;
-  column-gap: 8px; /* horizontal space between cards */
+
   justify-content: center;
 }
 .card {
-  flex: 0 1 calc(45% - 8px); /* 50% minus half the column-gap */
-  max-width: calc(45% - 8px);
+  max-width: 44%;
   aspect-ratio: 1/1;
-  box-sizing: border-box;
   text-align: center;
+
 }
 
 .card-disabled {
@@ -343,13 +346,22 @@ onUnmounted(() => {
   font-weight: bold;
 }
 .card-active-workout{
- margin: 10px 20px;
+  height: 20vh;
+  width: 90%;
+  margin: auto;
  background-color: var(--ion-color-accent-yellow);
  color: var(--ion-color-primary);
 }
 .top-card{
-  margin: 10px 20px;
+  height: 20vh;
+  width: 90%;
+  margin: auto;
  
+}
+.top-card-container{
+  width: 100%;
+  height: 20vh;
+  margin: 5px 0;
 }
 .active-workout-title{
   color: var(--ion-color-dark);
@@ -363,7 +375,6 @@ onUnmounted(() => {
   display: flex;
   justify-content: center;
   align-items: center;
-  height: 100%;
 }
 .chart-card {
   width: 90%;
