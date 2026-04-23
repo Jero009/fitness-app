@@ -847,6 +847,15 @@ export async function deleteWorkoutExercise(workoutExerciseId: number) {
   );
 }
 
+export async function updateWorkoutExerciseOrder(workoutExerciseId: number, orderIndex: number) {
+  if (!db) return;
+
+  return await db.run(
+    'UPDATE workout_exercise SET order_index = ? WHERE id = ?',
+    [orderIndex, workoutExerciseId]
+  );
+}
+
 export async function getWorkouts() {
   if (!db) return [];
 
