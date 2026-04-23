@@ -26,6 +26,9 @@
                   <span>{{ ex.rest_seconds }}s</span>
                 </div>
               </div>
+              <div v-if="ex.previous_set_count > 0" class="last-workout-summary">
+                Last workout: {{ ex.previous_set_count }} set{{ ex.previous_set_count === 1 ? '' : 's' }}
+              </div>
             </ion-card-header>
             <ion-card-content>
               <ion-item-sliding class="set-sliding" v-for="set in ex.sets" :key="set.id">
@@ -38,6 +41,9 @@
                   <div class="input-container metric-field">
                     <ion-input fill="outline" type="number" :placeholder="getRepsPlaceholder(ex, set)" v-model.number="set.reps" @ionBlur="saveSet(set)" class="input-small"></ion-input>
                     <span class="unit">reps</span>
+                  </div>
+                  <div v-if="hasPreviousSetData(set)" class="last-set-values">
+                    Last: {{ formatPreviousSet(set) }}
                   </div>
                 </ion-item>
                 <ion-item-options side="end">
@@ -139,6 +145,13 @@
   align-items: center;
   color:var(--ion-color-light)
 }
+
+.last-workout-summary {
+  margin-top: 6px;
+  font-size: 0.8rem;
+  color: rgba(255, 255, 255, 0.65);
+}
+
 .rest-settings {
   display: flex;
   align-items: center;
@@ -163,6 +176,14 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
+  flex-wrap: wrap;
+}
+
+.last-set-values {
+  width: 100%;
+  margin-top: 8px;
+  font-size: 0.8rem;
+  color: rgba(255, 255, 255, 0.62);
 }
 
 .set-sliding {
@@ -356,6 +377,8 @@ const loadWorkout = async () => {
         previous_weight: Number(previousSetByNumber.get(Number(s.set_number))?.weight) || 0,
         previous_reps: Number(previousSetByNumber.get(Number(s.set_number))?.reps) || 0
       }));
+
+      ex.previous_set_count = previousSets.length;
   }
 
   workoutExercises.value = data;
@@ -571,6 +594,20 @@ const getRepsPlaceholder = (exercise: any, currentSet: any) => {
   }
 
   return 'reps';
+};
+
+const hasPreviousSetData = (set: any) => {
+  const previousWeight = Number(set?.previous_weight);
+  const previousReps = Number(set?.previous_reps);
+  return previousWeight > 0 || previousReps > 0;
+};
+
+const formatPreviousSet = (set: any) => {
+  const previousWeight = Number(set?.previous_weight);
+  const previousReps = Number(set?.previous_reps);
+  const weightLabel = previousWeight > 0 ? `${previousWeight} kg` : '-';
+  const repsLabel = previousReps > 0 ? `${previousReps} reps` : '-';
+  return `${weightLabel} x ${repsLabel}`;
 };
 
 //timer 
