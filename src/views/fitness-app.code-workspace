@@ -1,0 +1,12 @@
+{
+	"folders": [
+		{
+			"path": "../.."
+		}
+	],
+	"settings": {
+		"chat.tools.terminal.autoApprove": {
+			"npm run -s lint": true
+		}
+	}
+}

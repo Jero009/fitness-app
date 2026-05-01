@@ -5,9 +5,6 @@
         <ion-title slot="start" class="title">Workout</ion-title>
         <div class="timer">{{ formatTime() }}</div>
         <ion-buttons  slot="end">
-          <ion-button @click="isReorderMode = !isReorderMode" :color="isReorderMode ? 'warning' : ''">
-            <ion-icon :icon="reorderThreeOutline"></ion-icon>
-          </ion-button>
           <ion-button class="button-red" @click="saveWorkout">stop</ion-button>
         </ion-buttons>
       </ion-toolbar>
@@ -19,23 +16,32 @@
         </ion-toolbar>
       </ion-header>
 
-      <Draggable 
-        v-model="workoutExercises" 
-        item-key="id" 
-        handle=".reorder-handle"
-        @end="onReorderEnd"
-      >
-        <template #item="{ element: ex }">
-          <div class="exercise-sliding-item">
-            <ion-card class="exercise-card">
-                <ion-card-header>
-                  <div class="exercise-header">
-                    <div style="display: flex; align-items: center; gap: 10px;">
-                      <div class="reorder-handle" v-if="isReorderMode">
-                        <ion-icon :icon="reorderThreeOutline" style="font-size: 1.5rem;"></ion-icon>
-                      </div>
-                      <ion-card-title>{{ ex.name }}</ion-card-title>
-                    </div>
+      <div class="exercises-list">
+        <div v-for="(ex, index) in workoutExercises" :key="ex.id" class="exercise-sliding-item">
+          <ion-card class="exercise-card">
+            <ion-card-header>
+              <div class="exercise-header">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                  <div class="reorder-buttons">
+                    <ion-button
+                      fill="clear"
+                      size="small"
+                      @click="moveExerciseUp(index)"
+                      :disabled="index === 0"
+                      class="reorder-btn">
+                      <ion-icon :icon="chevronUpOutline"></ion-icon>
+                    </ion-button>
+                    <ion-button
+                      fill="clear"
+                      size="small"
+                      @click="moveExerciseDown(index)"
+                      :disabled="index === workoutExercises.length - 1"
+                      class="reorder-btn">
+                      <ion-icon :icon="chevronDownOutline"></ion-icon>
+                    </ion-button>
+                  </div>
+                  <ion-card-title>{{ ex.name }}</ion-card-title>
+                </div>
                     <div class="rest-settings" @click="editRestTime(ex)">
                       <ion-icon :icon="timerOutline"></ion-icon>
                       <span>{{ ex.rest_seconds }}s</span>
@@ -68,10 +74,9 @@
                     Add Set
                   </ion-button>
                 </ion-card-content>
-            </ion-card>
-          </div>
-        </template>
-      </Draggable>
+          </ion-card>
+        </div>
+      </div>
 
       <!-- Add Exercise Button -->
       <div class="add-exercise-container">
@@ -154,7 +159,8 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  color:var(--ion-color-light)
+  color:var(--ion-color-light);
+  gap: 8px;
 }
 .rest-settings {
   display: flex;
@@ -325,15 +331,26 @@
   transition: width 1s linear;
 }
 
-.reorder-handle {
-  cursor: grab;
-  color: var(--ion-color-medium);
+.reorder-buttons {
   display: flex;
-  align-items: center;
+  flex-direction: column;
+  gap: 2px;
 }
 
-.reorder-handle:active {
-  cursor: grabbing;
+.reorder-btn {
+  --padding-start: 4px;
+  --padding-end: 4px;
+  min-width: 28px;
+  height: 28px;
+}
+
+.reorder-btn ion-icon {
+  font-size: 1.2rem;
+}
+
+.reorder-btn:disabled {
+  opacity: 0.3;
+  pointer-events: none;
 }
 
 </style>
@@ -341,8 +358,7 @@
 import { IonPage, IonHeader, IonToolbar, IonTitle, IonContent,IonButtons,IonButton,IonCard,IonCardHeader,IonCardContent,IonCheckbox,IonInput,IonCardTitle,onIonViewWillEnter,onIonViewDidEnter, alertController, IonIcon, IonItemSliding, IonItemOptions, IonItemOption, IonItem } from '@ionic/vue';
 import { ref, onUnmounted, computed } from 'vue';
 import { useRouter,useRoute } from 'vue-router';
-import { addCircleOutline, addOutline, timerOutline, reorderThreeOutline } from 'ionicons/icons';
-import Draggable from 'vuedraggable';
+import { addCircleOutline, addOutline, timerOutline, chevronUpOutline, chevronDownOutline } from 'ionicons/icons';
 
 import { getWorkoutExercises,getWorkoutSets,updateWorkoutSet,getWorkoutById,endWorkout,cancelWorkout, addSetToWorkoutExercise, getNextSetNumber, deleteWorkoutSet, deleteWorkoutExercise, getLatestCompletedSetsForExercise, updateWorkoutExerciseOrder } from '@/services/gym_db';
 
@@ -355,7 +371,6 @@ console.log("Workout ID:", workoutId);
 // exercise data 
 
 const workoutExercises = ref<any[]>([]);
-const isReorderMode = ref(false);
 
 const normalizeDateInput = (value: unknown): string | null => {
   if (value === null || value === undefined) return null;
@@ -393,11 +408,27 @@ const loadWorkout = async () => {
   console.log(workoutExercises.value);
 };
 
-const onReorderEnd = async () => {
-  console.log('Reorder ended. Updating DB...');
-  for (let i = 0; i < workoutExercises.value.length; i++) {
-    await updateWorkoutExerciseOrder(workoutExercises.value[i].id, i);
-  }
+const moveExerciseUp = async (index: number) => {
+  if (index === 0) return;
+  await swapExercises(index, index - 1);
+};
+
+const moveExerciseDown = async (index: number) => {
+  if (index === workoutExercises.value.length - 1) return;
+  await swapExercises(index, index + 1);
+};
+
+const swapExercises = async (index1: number, index2: number) => {
+  const ex1 = workoutExercises.value[index1];
+  const ex2 = workoutExercises.value[index2];
+
+  // Swap in UI
+  [workoutExercises.value[index1], workoutExercises.value[index2]] =
+  [workoutExercises.value[index2], workoutExercises.value[index1]];
+
+  // Update order_index in DB for both exercises
+  await updateWorkoutExerciseOrder(ex1.id, index2);
+  await updateWorkoutExerciseOrder(ex2.id, index1);
 };
 
 // saving
