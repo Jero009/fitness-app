@@ -147,6 +147,7 @@
 .exercise-sliding-item {
   margin: 0 8px;
   background-color: transparent;
+  transition: transform 0.2s ease;
 }
 
 .exercise-slide-host {
@@ -335,21 +336,23 @@
   display: flex;
   flex-direction: column;
   gap: 2px;
+  margin-right: 4px;
 }
 
 .reorder-btn {
-  --padding-start: 4px;
-  --padding-end: 4px;
-  min-width: 28px;
-  height: 28px;
+  --padding-start: 2px;
+  --padding-end: 2px;
+  min-width: 24px;
+  height: 24px;
 }
 
 .reorder-btn ion-icon {
-  font-size: 1.2rem;
+  font-size: 1.1rem;
+  color: var(--ion-color-accent-red);
 }
 
 .reorder-btn:disabled {
-  opacity: 0.3;
+  opacity: 0.2;
   pointer-events: none;
 }
 
@@ -419,16 +422,14 @@ const moveExerciseDown = async (index: number) => {
 };
 
 const swapExercises = async (index1: number, index2: number) => {
-  const ex1 = workoutExercises.value[index1];
-  const ex2 = workoutExercises.value[index2];
-
   // Swap in UI
   [workoutExercises.value[index1], workoutExercises.value[index2]] =
   [workoutExercises.value[index2], workoutExercises.value[index1]];
 
-  // Update order_index in DB for both exercises
-  await updateWorkoutExerciseOrder(ex1.id, index2);
-  await updateWorkoutExerciseOrder(ex2.id, index1);
+  // Update ALL order_index values to ensure DB consistency
+  for (let i = 0; i < workoutExercises.value.length; i++) {
+    await updateWorkoutExerciseOrder(workoutExercises.value[i].id, i);
+  }
 };
 
 // saving

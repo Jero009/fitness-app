@@ -129,6 +129,11 @@ ion-card-subtitle, ion-label,ion-item {
   font-family: 'Doto', sans-serif;
   color: var(--ion-color-light);
 }
+ion-card-title {
+  color: var(--ion-color-light);
+  font-size: 1.2rem;
+  font-weight: bold;
+}
 .button-red {
   --background: var(--ion-color-accent-red)!important;
   --color: #000000 !important; 
