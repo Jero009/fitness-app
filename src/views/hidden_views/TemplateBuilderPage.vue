@@ -2,7 +2,7 @@
   <ion-page>
       <ion-header collapse="condense">
         <ion-toolbar>
-          <ion-title size="large">Template</ion-title>
+          <ion-title size="large">CREATE TEMPLATE</ion-title>
         </ion-toolbar>
       </ion-header>
     <ion-content :fullscreen="true">
@@ -10,68 +10,91 @@
         <ion-header>
           <ion-toolbar>
             <ion-buttons slot="start">
-              <ion-button @click="cancel()">Cancel</ion-button>
+              <ion-button class="button-red" @click="cancel()">Cancel</ion-button>
             </ion-buttons>
 
             <ion-title>Create Template</ion-title>
 
             <ion-buttons slot="end">
-              <ion-button @click="confirm()">Save</ion-button>
+              <ion-button class="button-yellow" @click="confirm()">Save</ion-button>
             </ion-buttons>
           </ion-toolbar>
         </ion-header>
 
           <!-- Template name -->
-          <ion-item>
-            <ion-input
-              v-model="TemplateName"
-              placeholder="Template name"
-            />
-          </ion-item>
 
-          <!-- Exercise list -->
-            <ion-item>
-              <ion-button @click="goToExercisePicker">Add exercise</ion-button>
-            </ion-item>
+              <ion-item class="template-top">
+                <ion-input
+                  v-model="TemplateName"
+                  placeholder="Template name"
+                />
+              </ion-item >
+                <ion-item class="template-top">
+                  <ion-button class="button-red" @click="goToExercisePicker">Add exercise</ion-button>
+                </ion-item>
+
                 <Draggable v-model="selectedExercises" item-key="id">
                   <template #item="{ element: ex, index }">
-                    <ion-item class="exercise-item">
-                      <div style="flex: 1;">
-                        {{ ex.name }}
-                      </div>
-                      <ion-input
-                      label="Sets"  label-placement="floating" 
-                      :clear-on-edit="true"
-                        type="number"
-                        v-model="ex.set_number"
-                        style="width: 60px"
-                        placeholder="Sets"
-                      ></ion-input>
-                      
-                      <ion-input
-                      label="Reps" label-placement="floating"
-                      :clear-on-edit="true"
-                        type="number"
-                        v-model="ex.rep_number"
-                        style="width: 60px"
-                        placeholder="Reps"
-                      ></ion-input>
-                    </ion-item>
+                    <ion-item-sliding>
+                      <ion-item class="exercise-item">
+                        <div style="flex: 1;">
+                          {{ ex.name }}
+                        </div>
+                        <ion-input
+                        label="Sets"  label-placement="floating" 
+                        :clear-on-edit="true"
+                          type="number"
+                          v-model="ex.set_number"
+                          style="width: 60px"
+                          placeholder="Sets"
+                        ></ion-input>
+                        
+                        <ion-input
+                        label="Reps" label-placement="floating"
+                        :clear-on-edit="true"
+                          type="number"
+                          v-model="ex.rep_number"
+                          style="width: 60px"
+                          placeholder="Reps"
+                        ></ion-input>
+                      </ion-item>
+                      <ion-item-options side="end">
+                        <ion-item-option color="danger" @click="removeSelectedExercise(index)">Remove</ion-item-option>
+                      </ion-item-options>
+                    </ion-item-sliding>
                   </template>
                 </Draggable>
         </ion-content>
   </ion-page>
 </template>
+<style>
+.exercise-item {
+  margin: 10px auto ;
+  width: 100%;
+  background-color: var(--ion-color-medium);
+  border-radius: 10px;
+}
 
+.card-template{
+  margin: 10px auto ;
+  width: 90%;
+}
+
+.sortable-chosen {
+  background: var(--ion-color-primary-medium) !important; /* Light blue */
+  transition: background 0.2s;
+}
+.template-top {
+  background-color: var(--ion-color-medium) !important;
+}
+
+</style>
 <script setup lang="ts">
-import { IonPage, IonHeader, IonToolbar, IonTitle, IonContent, IonCard, IonCardHeader,
-IonCardContent, IonCardSubtitle, IonCardTitle, IonList, IonItem, IonButton, IonIcon, IonButtons, IonModal, IonInput, onIonViewWillEnter, IonSelect, IonSelectOption, 
-IonRefresher, IonRefresherContent, RefresherCustomEvent } from '@ionic/vue';
-import { add, swapVerticalOutline } from 'ionicons/icons';
-import { createTemplate, getExercises,addExerciseToTemplate,getTemplates ,getTemplateExercises, deleteTemplate } from '@/services/gym_db'
-import { ref ,onMounted} from 'vue';
+import { IonPage, IonHeader, IonToolbar, IonTitle, IonContent, IonItem, IonButton, IonButtons, IonInput, IonItemSliding, IonItemOptions, IonItemOption, onIonViewWillEnter } from '@ionic/vue';
+import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import Draggable from 'vuedraggable';
+import { createTemplate, getExercises, addExerciseToTemplate } from '@/services/gym_db';
 
 const router = useRouter();
 
@@ -87,7 +110,6 @@ const goToExercisePicker = () => {
 
 //create template
 const TemplateName = ref('');
-const selectedTemplateId = ref<number | null>(null);
 
 
 const cancel = () => {
@@ -136,6 +158,10 @@ const exercises = ref<exercise[]>([])
 
 const selectedExercises = ref<SelectedExercise[]>([]);
 
+const removeSelectedExercise = (index: number) => {
+  selectedExercises.value.splice(index, 1);
+};
+
 type SelectedExercise = {
   id: number;
   name: string;
@@ -161,18 +187,8 @@ const LoadExercises = async () =>{
 
 
 
-//refresh 
-
-const handleRefresh = async (event: RefresherCustomEvent) => {
-  await LoadExercises();
-
-  event.target.complete();
-};
-
-
 onMounted(() => {
     LoadExercises()
-
 });
 
 onIonViewWillEnter(() => {
@@ -186,8 +202,8 @@ onIonViewWillEnter(() => {
         selectedExercises.value.push({
           id: ex.id,
           name: ex.name,
-          set_number: ex.set_number || 0,
-          rep_number: ex.rep_number || 0
+          set_number: 3,
+          rep_number: 10
         });
       }
     } catch (e) {
@@ -195,9 +211,6 @@ onIonViewWillEnter(() => {
     }
     localStorage.removeItem('selectedExerciseForTemplate');
   }
-
-  LoadExercises();
-
 });
 </script>
 
@@ -205,15 +218,3 @@ onIonViewWillEnter(() => {
 
 
 
-<style>
-.card-template{
-  margin: 10px auto ;
-  width: 90%;
-}
-
-.sortable-chosen {
-  background: var(--ion-color-primary-medium) !important; /* Light blue */
-  transition: background 0.2s;
-}
-
-</style>

@@ -2,7 +2,7 @@
   <ion-page>
     <ion-header>
       <ion-toolbar class="toolbar-flex">
-        <ion-title class="title">Home</ion-title>
+        <ion-title class="title">HOME</ion-title>
       </ion-toolbar>
     </ion-header>
     <ion-content :fullscreen="true">
@@ -11,11 +11,10 @@
           <ion-title size="large">Home</ion-title>
         </ion-toolbar>
       </ion-header>
-
-            <ion-card class="top-card">
+          <div class="top-card-container">
+            <ion-card class="top-card" v-if="!activeWorkout">
                 <ion-card-header > 
                 <ion-card-title >Stats for the last workout</ion-card-title>
-
                 <ion-card-subtitle>{{ latestWorkout?.time_end}}</ion-card-subtitle>
                 </ion-card-header>
                 <ion-card-content>
@@ -23,7 +22,6 @@
                 <span>{{ formatDuration(latestWorkout?.time_start, latestWorkout?.time_end) }}</span>
                 </ion-card-content>
             </ion-card>
-
             <ion-card class="card-active-workout" v-if="activeWorkout"  @click="backToWorkout()">
                 <ion-card-header >
                 <ion-card-title class="active-workout-title">active workout</ion-card-title>
@@ -33,8 +31,17 @@
                 </ion-card-content>
                 </ion-card-header>
             </ion-card>
+          </div>
+          <div class="card-card-container">
             <div class="card-container">
-              <ion-card class="card" v-for="template in templates" :key="template.id" :disabled="activeWorkout" @click="startWorkout(template.id)">
+              <ion-card
+                class="card"
+                :class="{ 'card-disabled': activeWorkout }"
+                v-for="template in templates"
+                :key="template.id"
+                :aria-disabled="activeWorkout"
+                @click="startWorkout(template.id)"
+              >
                   <ion-card-header>
                       <ion-card-title class="card-title">{{ template.name }}</ion-card-title>
                       <ion-card-subtitle>{{ template.created_at }}</ion-card-subtitle>
@@ -52,13 +59,14 @@
                 </ion-select>
                 <canvas ref="chartRef" ></canvas>
               </ion-card>
+            </div>
     </ion-content>
   </ion-page>
 </template>
 
 <script setup lang="ts">
-import { IonPage, IonHeader, IonToolbar, IonTitle, IonContent, IonCard, IonCardHeader, IonCardSubtitle, IonCardContent, IonCardTitle, onIonViewWillEnter, IonIcon, IonButton,IonSelect,IonSelectOption } from '@ionic/vue';
-import { getTemplates, startWorkoutFromTemplate, hasActiveWorkout, getActiveWorkout, getWorkoutById,getLatestWorkout,getWorkoutsByTemplate,getWorkoutsByName } from '@/services/gym_db';
+import { IonPage, IonHeader, IonToolbar, IonTitle, IonContent, IonCard, IonCardHeader, IonCardSubtitle, IonCardContent, IonCardTitle, onIonViewWillEnter, IonIcon, IonSelect, IonSelectOption } from '@ionic/vue';
+import { getTemplates, startWorkoutFromTemplate, getActiveWorkout, getLatestWorkout, getWorkoutsByName } from '@/services/gym_db';
 import { ref, onMounted, onUnmounted,computed,watch } from 'vue';
 import { barbellSharp } from 'ionicons/icons';
 import { useRouter } from 'vue-router';
@@ -71,7 +79,16 @@ const activeWorkout = ref(false);
 const router = useRouter();
 
 const startWorkout = async (templateId: number) => {
+  if (activeWorkout.value) {
+    return;
+  }
+
   const workoutId = await startWorkoutFromTemplate(templateId);
+
+  if (!workoutId) {
+    console.error('Failed to start workout');
+    return;
+  }
 
   router.push(`/workout/${workoutId}`);
 };
@@ -108,26 +125,45 @@ const latestWorkout = ref<any>(null);
 
 const loadLatestWorkout = async () => {
   const workout = await getLatestWorkout();
-  if (workout) {
-    latestWorkout.value = workout;
+  latestWorkout.value = workout || null;
+};
+
+const toTimestamp = (value: unknown): number => {
+  if (value === null || value === undefined) return NaN;
+
+  if (typeof value === 'number') {
+    return Number.isFinite(value) ? value : NaN;
   }
+
+  const raw = String(value).trim();
+  if (!raw) return NaN;
+
+  const numeric = Number(raw);
+  if (!Number.isNaN(numeric) && Number.isFinite(numeric)) {
+    return numeric;
+  }
+
+  const normalized = raw.includes(' ') ? raw.replace(' ', 'T') : raw;
+  const hasTimezone = /(?:Z|[-+]\d{2}:?\d{2})$/i.test(normalized);
+  const candidate = hasTimezone ? normalized : `${normalized}Z`;
+
+  return new Date(candidate).getTime();
+};
+
+const normalizeDateInput = (value: unknown): string | null => {
+  if (value === null || value === undefined) return null;
+  const raw = String(value).trim();
+  if (!raw) return null;
+  const normalized = raw.includes(' ') ? raw.replace(' ', 'T') : raw;
+  const hasTimezone = /(?:Z|[-+]\d{2}:?\d{2})$/i.test(normalized);
+  return hasTimezone ? normalized : `${normalized}Z`;
 };
 
 const formatDuration = (start: string, end: any) => {
   if (!start || !end) return '0h 0m 0s';
 
-  // parse start (string)
-  const s = new Date(start.replace(' ', 'T')).getTime();
-
-  // parse end (can be string, number, or stringified number)
-  let e: number;
-  if (typeof end === 'number') {
-    e = end;
-  } else if (!isNaN(Number(end))) {
-    e = Number(end);
-  } else {
-    e = new Date(end.replace(' ', 'T')).getTime();
-  }
+  const s = toTimestamp(start);
+  const e = toTimestamp(end);
 
   if (isNaN(s) || isNaN(e)) return 'Invalid time';
 
@@ -151,7 +187,7 @@ let interval: ReturnType<typeof setInterval> | null = null;
 const loadActiveWorkout = async () => {
   const workout = await getActiveWorkout();
   if (workout && workout.time_start) {
-    startTime.value = workout.time_start.replace(' ', 'T');
+    startTime.value = normalizeDateInput(workout.time_start);
     startTimer();
     activeWorkout.value = true;
   } else {
@@ -200,7 +236,7 @@ const chartRef = ref<any>(null);
 let chart: any = null;
 
 const workouts = ref<any[]>([]);
-const selectedTemplateId = ref<number | null>(null);
+const selectedTemplateId = ref<number | undefined>(undefined);
 
 // prepare data
 const chartData = computed(() => {
@@ -245,20 +281,15 @@ const renderChart = () => {
   });
 };
 
-
-
-// Watch for template selection and update chart data (only one watcher)
+// Watch for template selection and update chart data
 watch(selectedTemplateId, async (templateId) => {
-  console.log('WATCHER TRIGGERED. Template selected:', templateId, typeof templateId); /// this doesnt show------------------------------------
-  if (!templateId) {
+  if (templateId === undefined || templateId === null) {
     workouts.value = [];
     renderChart();
     return;
   }
   const numId = Number(templateId);
-  console.log('Fetching workouts for templateId:', numId);
   const data = await getWorkoutsByName(numId);
-  console.log('Fetched workouts:', data);
   workouts.value = data || [];
   renderChart();
 });
@@ -285,34 +316,52 @@ onUnmounted(() => {
   if (chart) chart.destroy();
 });
 
-
 </script>
 <style>
+.card-card-container {
+  width: 100%;
+}
 .card-container {
+  width: 100%;
+
+  margin: auto;
   display: flex;
   flex-wrap: wrap;
-  column-gap: 8px; /* horizontal space between cards */
+
   justify-content: center;
 }
 .card {
-  flex: 0 1 calc(45% - 8px); /* 50% minus half the column-gap */
-  max-width: calc(45% - 8px);
+  max-width: 44%;
   aspect-ratio: 1/1;
-  box-sizing: border-box;
   text-align: center;
+
+}
+
+.card-disabled {
+  opacity: 0.5;
+  pointer-events: none;
 }
 .card-title {
   font-size: 3em;
   font-weight: bold;
 }
 .card-active-workout{
- margin: 10px 20px;
+  height: 20vh;
+  width: 90%;
+  margin: auto;
  background-color: var(--ion-color-accent-yellow);
  color: var(--ion-color-primary);
 }
 .top-card{
-  margin: 10px 20px;
+  height: 20vh;
+  width: 90%;
+  margin: auto;
  
+}
+.top-card-container{
+  width: 100%;
+  height: 20vh;
+  margin: 5px 0;
 }
 .active-workout-title{
   color: var(--ion-color-dark);
@@ -326,13 +375,11 @@ onUnmounted(() => {
   display: flex;
   justify-content: center;
   align-items: center;
-  height: 100%;
 }
 .chart-card {
   width: 90%;
   margin: auto;
   padding: 10px;
   border-radius: 10px;
-  background-color: var(--ion-color-dark);
 }
 </style>

@@ -8,6 +8,11 @@ const routes: Array<RouteRecordRaw> = [
     redirect: '/tabs/Home'
   },
   {
+    path: '/workout/:id',
+    name: 'Workout',
+    component: () => import('@/views/WorkoutPage.vue')
+  },
+  {
     path: '/tabs/',
     component: TabsPage,
     children: [
@@ -18,10 +23,6 @@ const routes: Array<RouteRecordRaw> = [
       {
         path: 'Home',
         component: () => import('@/views/HomePage.vue')
-      },
-      {
-        path: '/workout/:id',
-        component: () => import('@/views/WorkoutPage.vue')
       },
       {
         path: 'Template',

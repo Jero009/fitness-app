@@ -1,10 +1,14 @@
-import { mount } from '@vue/test-utils'
-import Tab1Page from '@/views/Tab1Page.vue'
 import { describe, expect, test } from 'vitest'
+import { formatDuration, formatTime } from '@/utils/timeFormat'
 
-describe('Tab1Page.vue', () => {
-  test('renders tab 1 Tab1Page', () => {
-    const wrapper = mount(Tab1Page)
-    expect(wrapper.text()).toMatch('Tab 1 page')
+describe('timeFormat utils', () => {
+  test('formats hh:mm:ss values correctly', () => {
+    expect(formatTime(3661)).toBe('01:01:01')
+  })
+
+  test('parses ISO end timestamps with timezone correctly', () => {
+    const start = '2026-04-22 10:00:00'
+    const end = '2026-04-22T10:30:00.000Z'
+    expect(formatDuration(start, end)).toBe('0h 30m 0s')
   })
 })
