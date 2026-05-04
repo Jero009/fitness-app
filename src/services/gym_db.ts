@@ -772,6 +772,21 @@ export async function getLatestCompletedSetsForExercise(exerciseId: number, excl
   return result.values || [];
 }
 
+export async function getLatestCompletedSetDefaultsForExercise(exerciseId: number, excludeWorkoutId?: number) {
+  const latestSets = await getLatestCompletedSetsForExercise(exerciseId, excludeWorkoutId);
+
+  if (!latestSets.length) {
+    return { reps: 10, weight: 0 };
+  }
+
+  const lastSet = latestSets[latestSets.length - 1];
+
+  return {
+    reps: Number(lastSet?.reps) > 0 ? Number(lastSet.reps) : 10,
+    weight: Number(lastSet?.weight) > 0 ? Number(lastSet.weight) : 0,
+  };
+}
+
 export async function getWorkoutSets(workoutExerciseId: number) {
   if (!db) return [];
 

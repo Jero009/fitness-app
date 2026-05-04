@@ -363,7 +363,7 @@ import { ref, onUnmounted, computed } from 'vue';
 import { useRouter,useRoute } from 'vue-router';
 import { addCircleOutline, addOutline, timerOutline, chevronUpOutline, chevronDownOutline } from 'ionicons/icons';
 
-import { getWorkoutExercises,getWorkoutSets,updateWorkoutSet,getWorkoutById,endWorkout,cancelWorkout, addSetToWorkoutExercise, getNextSetNumber, deleteWorkoutSet, deleteWorkoutExercise, getLatestCompletedSetsForExercise, updateWorkoutExerciseOrder } from '@/services/gym_db';
+import { getWorkoutExercises,getWorkoutSets,updateWorkoutSet,getWorkoutById,endWorkout,cancelWorkout, addSetToWorkoutExercise, getNextSetNumber, deleteWorkoutSet, deleteWorkoutExercise, getLatestCompletedSetsForExercise, getLatestCompletedSetDefaultsForExercise, updateWorkoutExerciseOrder } from '@/services/gym_db';
 
 const router = useRouter();
 // id from route
@@ -574,13 +574,15 @@ const addNewExercise = async () => {
 // Add new set to existing exercise
 const addNewSet = async (exercise: any) => {
   const nextSetNum = await getNextSetNumber(exercise.id);
-  const defaultReps = exercise.sets && exercise.sets.length > 0 ? exercise.sets[0].reps : 10;
+  const previousWorkoutDefaults = await getLatestCompletedSetDefaultsForExercise(exercise.exercise_id, workoutId);
+  const defaultReps = previousWorkoutDefaults.reps;
+  const defaultWeight = previousWorkoutDefaults.weight;
 
   const newSetId = await addSetToWorkoutExercise(
     exercise.id,
     nextSetNum,
     defaultReps,
-    0
+    defaultWeight
   );
 
   if (newSetId) {
@@ -591,10 +593,10 @@ const addNewSet = async (exercise: any) => {
         id: newSetId,
         set_number: nextSetNum,
         reps: defaultReps,
-        weight: 0,
+        weight: defaultWeight,
         completed: 0,
-        previous_weight: 0,
-        previous_reps: 0
+        previous_weight: defaultWeight,
+        previous_reps: defaultReps
       });
     }
   }

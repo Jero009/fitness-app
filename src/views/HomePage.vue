@@ -5,61 +5,94 @@
         <ion-title class="title">HOME</ion-title>
       </ion-toolbar>
     </ion-header>
-    <ion-content :fullscreen="true">
       <ion-header collapse="condense">
         <ion-toolbar>
           <ion-title size="large">Home</ion-title>
         </ion-toolbar>
       </ion-header>
-          <div class="top-card-container">
-            <ion-card class="top-card" v-if="!activeWorkout">
-                <ion-card-header > 
-                <ion-card-title >Stats for the last workout</ion-card-title>
-                <ion-card-subtitle>{{ latestWorkout?.time_end}}</ion-card-subtitle>
-                </ion-card-header>
-                <ion-card-content>
-                <span>Total weight lifted: {{ latestWorkout?.total_kg || 0 }} kg</span>
-                <span>{{ formatDuration(latestWorkout?.time_start, latestWorkout?.time_end) }}</span>
-                </ion-card-content>
+    <ion-content :fullscreen="true" class="home-content">
+      <div class="home-shell">
+        <section class="hero-wrap">
+          <div class="top-cards">
+            <ion-card v-if="!activeWorkout" class="summary-card">
+              <div class="card-topline">
+                <p class="section-kicker">Last workout</p>
+              </div>
+
+              <div class="summary-card__body">
+
+                <div class="card-metrics">
+                  <div class="card-metric">
+                    <span>Time</span>
+                    <strong>{{ formatDuration(latestWorkout?.time_start, latestWorkout?.time_end) }}</strong>
+                  </div>
+                  <div class="card-metric">
+                    <span>Total load</span>
+                    <strong>{{ `${latestWorkout?.total_kg || 0} kg` }}</strong>
+                  </div>
+                  <div class="card-metric card-metric-wide">
+                    <span>Completed</span>
+                    <strong>{{ formatWorkoutDate(latestWorkout?.time_end) }}</strong>
+                  </div>
+                </div>
+              </div>
             </ion-card>
-            <ion-card class="card-active-workout" v-if="activeWorkout"  @click="backToWorkout()">
-                <ion-card-header >
-                <ion-card-title class="active-workout-title">active workout</ion-card-title>
-                <ion-card-subtitle>Click to continue</ion-card-subtitle>
-                <ion-card-content class="active-workout-content">
-                  <div class="timer-active">{{ formatTime() }}</div>
-                </ion-card-content>
-                </ion-card-header>
+
+            <ion-card v-else class="active-card" @click="backToWorkout()">
+              <div class="card-topline">
+                <p class="section-kicker">Active workout</p>
+              </div>
+
+              <div class="active-card__body">
+                <div class="active-card__timer">
+                  <span>Timer</span>
+                  <strong>{{ formatTime() }}</strong>
+                </div>
+              </div>
             </ion-card>
           </div>
-          <div class="card-card-container">
-            <div class="card-container">
-              <ion-card
-                class="card"
-                :class="{ 'card-disabled': activeWorkout }"
-                v-for="template in templates"
-                :key="template.id"
-                :aria-disabled="activeWorkout"
-                @click="startWorkout(template.id)"
-              >
-                  <ion-card-header>
-                      <ion-card-title class="card-title">{{ template.name }}</ion-card-title>
-                      <ion-card-subtitle>{{ template.created_at }}</ion-card-subtitle>
-                  </ion-card-header>
-                  <ion-card-content>
-                    <ion-icon :icon="barbellSharp"></ion-icon>
-                  </ion-card-content>
-              </ion-card>
+        </section>
+
+        <section class="workout-section">
+
+          <div class="workout-grid">
+            <ion-card
+              class="workout-tile"
+              :class="{ 'workout-tile-disabled': activeWorkout }"
+              v-for="template in templates"
+              :key="template.id"
+              :aria-disabled="activeWorkout"
+              @click="startWorkout(template.id)"
+            >
+              <div class="workout-tile__icon">
+                <ion-icon :icon="barbellSharp"></ion-icon>
+              </div>
+              <div class="workout-tile__copy">
+                <span>Workout</span>
+                <strong>{{ template.name }}</strong>
+                <small>{{ template.created_at }}</small>
+              </div>
+            </ion-card>
+          </div>
+        </section>
+
+        <ion-card class="graph-card">
+          <div class="graph-card__header">
+            <div>
+              <p class="section-kicker">Progress</p>
+              <h3>Load trend</h3>
             </div>
-              <ion-card class="chart-card">
-                <ion-select placeholder="Select template" interface="action-sheet" v-model="selectedTemplateId"><!--this doesnt triger-->
-                  <ion-select-option v-for="t in templates" :key="t.id" :value="t.id">
-                    {{ t.name }}
-                  </ion-select-option>
-                </ion-select>
-                <canvas ref="chartRef" ></canvas>
-              </ion-card>
-            </div>
+            <ion-select placeholder="Select template" interface="action-sheet" v-model="selectedTemplateId">
+              <ion-select-option v-for="t in templates" :key="t.id" :value="t.id">
+                {{ t.name }}
+              </ion-select-option>
+            </ion-select>
+          </div>
+          <div class="chart-frame">
+            <canvas ref="chartRef"></canvas>
+          </div>
+        </ion-card>
+      </div>
     </ion-content>
   </ion-page>
 </template>
@@ -118,6 +151,10 @@ const loadTemplates = async () => {
     return;
   }
   templates.value = data;
+
+  if (data.length && !data.some(template => template.id === selectedTemplateId.value)) {
+    selectedTemplateId.value = data[0].id;
+  }
 };
 //latest workout 
 
@@ -174,6 +211,21 @@ const formatDuration = (start: string, end: any) => {
 
 
   return `${hours}h ${minutes}m`;
+};
+
+const formatWorkoutDate = (value: unknown) => {
+  const normalized = normalizeDateInput(value);
+
+  if (!normalized) return 'No session yet';
+
+  const date = new Date(normalized);
+
+  if (Number.isNaN(date.getTime())) return 'No session yet';
+
+  return new Intl.DateTimeFormat(undefined, {
+    month: 'short',
+    day: 'numeric',
+  }).format(date);
 };
 
 
@@ -276,7 +328,31 @@ const renderChart = () => {
     },
     options: {
       responsive: true,
-      animation: false 
+      animation: false,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: {
+          display: false,
+        },
+      },
+      scales: {
+        x: {
+          ticks: {
+            color: '#b9b9b9',
+          },
+          grid: {
+            color: 'rgba(255, 255, 255, 0.06)',
+          },
+        },
+        y: {
+          ticks: {
+            color: '#b9b9b9',
+          },
+          grid: {
+            color: 'rgba(255, 255, 255, 0.06)',
+          },
+        },
+      }
     }
   });
 };
@@ -318,68 +394,206 @@ onUnmounted(() => {
 
 </script>
 <style>
-.card-card-container {
-  width: 100%;
+ion-content.home-content {
+  --padding-top: 16px;
+  --padding-bottom: 24px;
 }
-.card-container {
-  width: 100%;
 
-  margin: auto;
+.home-shell {
+  padding: 16px;
+  display: grid;
+  gap: 18px;
+}
+
+.hero-wrap,
+.workout-section {
+  display: grid;
+  gap: 12px;
+}
+
+.top-cards {
+  display: grid;
+  gap: 12px;
+}
+
+.section-heading {
   display: flex;
-  flex-wrap: wrap;
-
-  justify-content: center;
-}
-.card {
-  max-width: 44%;
-  aspect-ratio: 1/1;
-  text-align: center;
-
+  justify-content: space-between;
+  align-items: end;
+  gap: 12px;
+  margin-bottom: 12px;
 }
 
-.card-disabled {
-  opacity: 0.5;
+.section-heading h3,
+.hero-copy h2,
+.graph-card__header h3 {
+  margin: 0;
+}
+
+
+.summary-card,
+.graph-card,
+.workout-tile {
+  border-radius: 10px;
+  background: var(--ion-color-primary);
+}
+
+.summary-card,
+.active-card {
+  margin: 0;
+  padding: 18px;
+  width: 100%;
+  min-height: 190px;
+}
+
+
+.active-card {
+  background: var(--ion-color-accent-yellow);
+}
+
+.card-topline,
+.graph-card__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+
+.summary-card__body,
+.active-card__body {
+  display: grid;
+  gap: 18px;
+  margin-top: 18px;
+}
+
+
+.card-metrics {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.card-metric,
+.active-card__timer {
+  border-radius: 10px;
+  padding: 14px;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.card-metric span,
+.active-card__timer span,
+.workout-tile__copy span {
+  display: block;
+  margin-bottom: 8px;
+  color: rgba(255, 255, 255, 0.58);
+  font-size: 0.8rem;
+}
+
+.card-metric strong,
+.active-card__timer strong {
+  display: block;
+  font-size: 1rem;
+}
+
+.card-metric-wide {
+  grid-column: 1 / -1;
+}
+
+.workout-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.workout-section {
+  margin-top: 4px;
+}
+
+.workout-tile {
+  margin: 0;
+  aspect-ratio: 1 / 1;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.workout-tile-disabled {
+  opacity: 0.52;
   pointer-events: none;
 }
-.card-title {
-  font-size: 3em;
-  font-weight: bold;
-}
-.card-active-workout{
-  height: 20vh;
-  width: 90%;
-  margin: auto;
- background-color: var(--ion-color-accent-yellow);
- color: var(--ion-color-primary);
-}
-.top-card{
-  height: 20vh;
-  width: 90%;
-  margin: auto;
- 
-}
-.top-card-container{
-  width: 100%;
-  height: 20vh;
-  margin: 5px 0;
-}
-.active-workout-title{
-  color: var(--ion-color-dark);
-}
-.timer-active {
-  font-family: 'Doto', sans-serif;
-  pointer-events: none; 
-  color: var(--ion-color-dark)
-}
-.active-workout-content{
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-.chart-card {
-  width: 90%;
-  margin: auto;
-  padding: 10px;
+
+.workout-tile__icon {
+  width: 54px;
+  height: 54px;
   border-radius: 10px;
+  display: grid;
+  place-items: center;
+  background:var(--ion-color-primary);
+}
+
+.workout-tile__icon ion-icon {
+  font-size: 1.6rem;
+  color: var(--ion-color-light);
+}
+
+.workout-tile__copy strong {
+  display: block;
+  font-size: 1rem;
+  line-height: 1.2;
+}
+
+.workout-tile__copy small {
+  display: block;
+  margin-top: 8px;
+  color: rgba(255, 255, 255, 0.44);
+}
+
+.graph-card {
+  margin: 0;
+  padding: 18px;
+}
+
+.graph-card__header ion-select {
+  min-width: 132px;
+}
+
+.chart-frame {
+  margin-top: 16px;
+  height: 240px;
+}
+
+.chart-frame canvas {
+  width: 100% !important;
+  height: 100% !important;
+}
+
+@media (min-width: 700px) {
+  .home-shell {
+    max-width: 760px;
+    margin: 0 auto;
+    padding: 20px;
+  }
+
+  .summary-card,
+  .active-card {
+    padding: 24px;
+  }
+
+  .top-cards {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-items: stretch;
+  }
+
+  .summary-card__body,
+  .active-card__body {
+    grid-template-columns: 1.1fr 0.9fr;
+    align-items: end;
+  }
+
+  .workout-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
 }
 </style>

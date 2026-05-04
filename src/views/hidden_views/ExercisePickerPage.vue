@@ -60,7 +60,7 @@
 import { IonPage, IonHeader, IonToolbar, IonTitle, IonContent, IonList, IonItem, IonSelect, IonSelectOption, IonRefresher, IonRefresherContent, onIonViewWillEnter } from '@ionic/vue';
 import type { RefresherCustomEvent } from '@ionic/vue';
 import { ref, onMounted, computed } from 'vue';
-import { getExercises, getMuscleGroups, addExerciseToWorkout, getNextWorkoutOrderIndex } from '@/services/gym_db';
+import { getExercises, getMuscleGroups, addExerciseToWorkout, getNextWorkoutOrderIndex, getLatestCompletedSetDefaultsForExercise } from '@/services/gym_db';
 import { useRouter, useRoute } from 'vue-router';
 const router = useRouter();
 
@@ -74,7 +74,8 @@ const selectExercise = async (exercise: exercise) => {
     const workoutId = Number(workoutIdQuery);
     // Adding exercise to an active workout
     const orderIndex = await getNextWorkoutOrderIndex(workoutId);
-    await addExerciseToWorkout(workoutId, exercise.id, orderIndex, 3, 10, 0);
+    const defaults = await getLatestCompletedSetDefaultsForExercise(exercise.id, workoutId);
+    await addExerciseToWorkout(workoutId, exercise.id, orderIndex, 3, defaults.reps, defaults.weight);
 
     // Navigate back to the workout page
     router.push({

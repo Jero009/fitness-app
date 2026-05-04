@@ -29,7 +29,7 @@
   --ion-font-size: 16px;
 
   /* Borders & spacing */
-  --ion-border-radius: 3px;
+  --ion-border-radius: 10px;
   --ion-padding: 16px;
   --ion-margin: 16px;
   --ion-background-color: var(--ion-color-dark);
@@ -63,7 +63,7 @@ ion-alert.rename-exercise-alert {
   --background: #0f0f0f;
   --color: #f9fafb;
   --backdrop-opacity: 0.45;
-  --border-radius: 12px;
+  --border-radius: 10px;
 }
 
 ion-alert.rename-exercise-alert .alert-title {
@@ -73,7 +73,7 @@ ion-alert.rename-exercise-alert .alert-title {
 ion-alert.rename-exercise-alert .alert-input {
   color: #ffffff;
   background: #1b1b1b;
-  border-radius: 6px;
+  border-radius: 10px;
 }
 
 ion-alert.rename-exercise-alert .alert-button {
