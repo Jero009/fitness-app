@@ -709,10 +709,21 @@ export async function startWorkoutFromTemplate(templateId: number) {
       );
       const workoutExerciseId = resultWE.changes?.lastId;
 
+      const previousSets = await getLatestCompletedSetsForExercise(ex.id_exercise);
+
       for (let i = 0; i < ex.set_number; i++) {
+        let reps = ex.rep_number;
+        let weight = 0;
+
+        if (previousSets.length > 0) {
+          const prevSet = previousSets[i] || previousSets[previousSets.length - 1];
+          reps = prevSet.reps;
+          weight = prevSet.weight;
+        }
+
         await db.run(
           'INSERT INTO workout_exercise_sets (workout_exercise_id,set_number,reps,weight) values(?, ?, ?, ?)',
-          [workoutExerciseId, i + 1, ex.rep_number, 0]
+          [workoutExerciseId, i + 1, reps, weight]
         );
       }
     }
@@ -955,9 +966,9 @@ export async function addExerciseToWorkout(
   workoutId: number,
   exerciseId: number,
   orderIndex: number,
-  setNumber: number,
-  repNumber: number,
-  weight: number = 0
+  defaultSetNumber: number = 3,
+  defaultRepNumber: number = 10,
+  defaultWeight: number = 0
 ) {
   if (!db) return;
 
@@ -969,12 +980,23 @@ export async function addExerciseToWorkout(
     );
     const workoutExerciseId = resultWE.changes?.lastId;
 
-    // Insert the initial set(s) into workout_exercise_sets
-    for (let i = 0; i < setNumber; i++) {
-      await db.run(
-        'INSERT INTO workout_exercise_sets (workout_exercise_id, set_number, reps, weight) VALUES (?, ?, ?, ?)',
-        [workoutExerciseId, i + 1, repNumber, weight]
-      );
+    const previousSets = await getLatestCompletedSetsForExercise(exerciseId, workoutId);
+
+    if (previousSets.length > 0) {
+      for (let i = 0; i < previousSets.length; i++) {
+        await db.run(
+          'INSERT INTO workout_exercise_sets (workout_exercise_id, set_number, reps, weight) VALUES (?, ?, ?, ?)',
+          [workoutExerciseId, i + 1, previousSets[i].reps, previousSets[i].weight]
+        );
+      }
+    } else {
+      // Insert the initial set(s) into workout_exercise_sets using defaults
+      for (let i = 0; i < defaultSetNumber; i++) {
+        await db.run(
+          'INSERT INTO workout_exercise_sets (workout_exercise_id, set_number, reps, weight) VALUES (?, ?, ?, ?)',
+          [workoutExerciseId, i + 1, defaultRepNumber, defaultWeight]
+        );
+      }
     }
 
     return workoutExerciseId;

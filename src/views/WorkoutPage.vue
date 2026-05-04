@@ -574,9 +574,16 @@ const addNewExercise = async () => {
 // Add new set to existing exercise
 const addNewSet = async (exercise: any) => {
   const nextSetNum = await getNextSetNumber(exercise.id);
-  const previousWorkoutDefaults = await getLatestCompletedSetDefaultsForExercise(exercise.exercise_id, workoutId);
-  const defaultReps = previousWorkoutDefaults.reps;
-  const defaultWeight = previousWorkoutDefaults.weight;
+  const previousSets = await getLatestCompletedSetsForExercise(exercise.exercise_id, workoutId);
+  
+  let defaultReps = 10;
+  let defaultWeight = 0;
+
+  if (previousSets.length > 0) {
+    const prevSet = previousSets.find((s: any) => Number(s.set_number) === nextSetNum) || previousSets[previousSets.length - 1];
+    defaultReps = prevSet.reps;
+    defaultWeight = prevSet.weight;
+  }
 
   const newSetId = await addSetToWorkoutExercise(
     exercise.id,

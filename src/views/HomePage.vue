@@ -78,10 +78,6 @@
 
         <ion-card class="graph-card">
           <div class="graph-card__header">
-            <div>
-              <p class="section-kicker">Progress</p>
-              <h3>Load trend</h3>
-            </div>
             <ion-select placeholder="Select template" interface="action-sheet" v-model="selectedTemplateId">
               <ion-select-option v-for="t in templates" :key="t.id" :value="t.id">
                 {{ t.name }}
