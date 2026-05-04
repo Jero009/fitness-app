@@ -15,7 +15,7 @@
         </ion-buttons>
       </ion-toolbar>
     </ion-header>
-    <ion-content :fullscreen="true">
+    <ion-content :fullscreen="true" class="home-content">
       <input
         ref="importInput"
         type="file"
@@ -31,8 +31,9 @@
           <ion-refresher slot="fixed" @ionRefresh="handleRefresh($event)">
             <ion-refresher-content></ion-refresher-content>
           </ion-refresher>
-          <div v-for="w in workouts" :key="w.id">
-            <ion-card class="card-template">
+          <div class="home-shell">
+            <div v-for="w in workouts" :key="w.id">
+              <ion-card class="card-template">
                 <ion-card-header>
                   <div class="card-header-flex">
                     <div>
@@ -45,21 +46,111 @@
                 </ion-card-header>
                 <ion-card-content>
                   <ion-list >
-                      <ion-item v-for="ex in w.exercises" :key="ex.id">
-                        <span>{{ ex.name  }} &nbsp; {{ ex.set_count  }} x {{ ex.reps }} </span>
+                      <ion-item class="exercise-row" v-for="ex in w.exercises" :key="ex.id">
+                        <div class="exercise-copy">{{ ex.name  }} &nbsp; {{ ex.set_count  }} x {{ ex.reps }} </div>
                       </ion-item>
                   </ion-list>
                 </ion-card-content>
-            </ion-card>
+              </ion-card>
+            </div>
           </div>
     </ion-content>
   </ion-page>
 </template>
 <style scoped>
+ion-content.home-content {
+  --padding-top: 16px;
+  --padding-bottom: 24px;
+}
+
+.home-shell {
+  padding: 16px;
+  display: grid;
+  gap: 18px;
+  max-width: 760px;
+  margin: 0 auto;
+  width: min(100%, 760px);
+  justify-items: stretch;
+}
+
+.home-shell > div {
+  width: 100%;
+}
+
+.card-template {
+  border-radius: var(--ion-border-radius, 10px);
+  background: var(--ion-card-background);
+  color: var(--ion-card-color);
+  margin: 0;
+  padding: 18px;
+  min-height: 120px;
+  width: 100%;
+  box-shadow: none;
+}
+
 .card-header-flex {
   display: flex;
   justify-content: space-between;
-  align-items: flex-start;
+  align-items: center;
+  gap: 12px;
+}
+
+.card-template ion-card-title {
+  margin: 0;
+  color: var(--ion-color-light);
+  font-weight: 600;
+}
+
+.card-template ion-card-subtitle {
+  color: rgba(255, 255, 255, 0.58);
+  margin-top: 6px;
+  display: block;
+}
+
+
+
+.card-template ion-card-content {
+  background: transparent;
+  padding: 0;
+}
+
+.card-template ion-list {
+  background: transparent;
+  padding: 0;
+}
+
+.card-template ion-list ion-item {
+  background: transparent;
+  margin-top: 8px;
+  padding: 0;
+}
+
+.card-template ion-list ion-item.exercise-row {
+  --background: rgba(255, 255, 255, 0.035);
+  --border-radius: 8px;
+  --inner-border-width: 0px;
+  --box-shadow: none;
+  border: none;
+  box-shadow: none;
+  padding: 8px 12px;
+  width: 100%;
+}
+
+.card-template ion-list ion-item .exercise-copy {
+  color: var(--ion-color-light);
+  width: 100%;
+}
+
+@media (min-width: 700px) {
+  .home-shell {
+    max-width: 760px;
+    margin: 0 auto;
+    padding: 20px;
+  }
+
+  .card-template {
+    padding: 24px;
+  }
 }
 </style>
 
