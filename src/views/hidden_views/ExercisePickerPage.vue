@@ -15,8 +15,8 @@
             <ion-refresher-content></ion-refresher-content>
           </ion-refresher>
             <div class="exercise-list-container">
-                  <ion-select v-model="selectedMuscleGroup" placeholder="Filter by muscle group" interface="action-sheet" class="muscle-group-select">
-                    <ion-select-option value="">&nbsp;All</ion-select-option>
+                  <ion-select v-model="selectedMuscleGroup" placeholder="Filter by muscle group" interface="action-sheet" :interface-options="{ cssClass: 'app-action-sheet' }" class="muscle-group-select app-select">
+                    <ion-select-option value="">All</ion-select-option>
                     <ion-select-option v-for="mg in muscleGroups" :key="mg.id" :value="mg.name">
                       {{ mg.name }}
                     </ion-select-option>

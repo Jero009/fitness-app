@@ -10,7 +10,7 @@
       </ion-buttons>
       </ion-toolbar>
   </ion-header>
-  <ion-content class="ion-padding">
+  <ion-content class="exercise-content">
     <ion-modal :is-open="isOpen" css-class="exercise-modal">
       <ion-header>
         <ion-toolbar>
@@ -23,24 +23,26 @@
           </ion-buttons>
         </ion-toolbar>
       </ion-header>
-      <ion-content class="ion-padding">
-          <ion-input class="input"
-            v-model="name"
-            placeholder="&nbsp;Enter exercise name"
-          ></ion-input>
+      <ion-content class="exercise-modal-content">
+          <div class="modal-form">
+            <ion-input
+              class="input"
+              v-model="name"
+              placeholder="Enter exercise name"
+            ></ion-input>
 
-          <ion-select v-model="muscleGroup" placeholder="&nbsp;Select muscle group" interface="action-sheet">
-            <ion-select-option v-for="mg in muscleGroups" :key="mg.id" :value="mg.id">
-              {{ mg.name }}
-            </ion-select-option>
-          </ion-select>
+            <ion-select v-model="muscleGroup" placeholder="Select muscle group" interface="action-sheet" :interface-options="{ cssClass: 'app-action-sheet' }" class="app-select">
+              <ion-select-option v-for="mg in muscleGroups" :key="mg.id" :value="mg.id">
+                {{ mg.name }}
+              </ion-select-option>
+            </ion-select>
 
-
-          <ion-select v-model="equipment" placeholder="&nbsp;Select equipment" interface="action-sheet">
-            <ion-select-option v-for="eq in equipmentList" :key="eq.id" :value="eq.id">
-              {{ eq.name }}
-            </ion-select-option>
-          </ion-select>
+            <ion-select v-model="equipment" placeholder="Select equipment" interface="action-sheet" :interface-options="{ cssClass: 'app-action-sheet' }" class="app-select">
+              <ion-select-option v-for="eq in equipmentList" :key="eq.id" :value="eq.id">
+                {{ eq.name }}
+              </ion-select-option>
+            </ion-select>
+          </div>
 
       </ion-content>
     </ion-modal>
@@ -52,53 +54,173 @@
           <ion-refresher slot="fixed" @ionRefresh="handleRefresh($event)">
             <ion-refresher-content></ion-refresher-content>
           </ion-refresher>
-              <div class="exercise-list-container">
+              <div class="exercise-shell">
+                <section class="exercise-hero">
+                  <ion-button class="add-exercise-button button-red" @click="openModal">
+                    <ion-icon :icon="add"></ion-icon>
+                    Add exercise
+                  </ion-button>
+                </section>
 
-                  <ion-select v-model="selectedMuscleGroup" placeholder="Filter by muscle group" interface="action-sheet" class="muscle-group-select">
-                    <ion-select-option value="">&nbsp;All</ion-select-option>
+                <div class="exercise-panel">
+                  <ion-select v-model="selectedMuscleGroup" placeholder="Filter by muscle group" interface="action-sheet" :interface-options="{ cssClass: 'app-action-sheet' }" class="muscle-group-select app-select">
+                    <ion-select-option value="">All</ion-select-option>
                     <ion-select-option v-for="mg in muscleGroups" :key="mg.id" :value="mg.name">
                       {{ mg.name }}
                     </ion-select-option>
                   </ion-select>
-                  <ion-list class="exercise-list" lines="none">
 
+                  <ion-list class="exercise-list" lines="none">
                     <ion-item class="exercise-item" v-for="ex in filteredExercises" :key="ex.id" lines="none">
-                      {{ ex.name }}
-                      <ion-button class="button-yellow" slot="end" @click="renameEx(ex)">Rename</ion-button>
+                      <div class="exercise-item__content">
+                        <div class="exercise-item__name">{{ ex.name }}</div>
+                        <div class="exercise-item__meta">
+                          <span>{{ ex.muscle_group }}</span>
+                          <span>{{ ex.equipment }}</span>
+                        </div>
+                      </div>
+                      <ion-button class="button-yellow exercise-item__action" slot="end" @click="renameEx(ex)">Rename</ion-button>
                     </ion-item>
                   </ion-list>
+                </div>
             </div>
         
   </ion-content>
   </ion-page>
 </template>
 <style>
+.exercise-content {
+  --padding-top: 16px;
+  --padding-bottom: 24px;
+}
+
+.exercise-shell {
+  padding: 16px;
+  display: grid;
+  gap: 18px;
+  max-width: 760px;
+  margin: 0 auto;
+  width: min(100%, 760px);
+}
+
+.exercise-hero {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.exercise-hero__copy h2 {
+  margin: 4px 0 6px;
+  color: var(--ion-color-light);
+  font-size: 1.4rem;
+}
+
+.exercise-hero__text,
+.section-kicker {
+  margin: 0;
+  color: rgba(255, 255, 255, 0.62);
+}
+
+.section-kicker {
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-size: 0.72rem;
+}
+
+.add-exercise-button {
+  margin: 0;
+  min-width: 140px;
+}
+
+.exercise-panel {
+  display: grid;
+  gap: 14px;
+}
+
 .exercise-list {
   background: transparent;
+  padding: 0;
 }
-.exercise-list-container {
-  width: 90%;
-  margin: auto;
+
+.muscle-group-select {
+  width: 100%;
 }
 
 .exercise-item {
-  margin: 10px auto ;
+  margin: 10px 0 0;
   width: 100%;
-  background-color: var(--ion-color-medium);
-  border-radius: 10px;
-}
-.muscle-group-select{
-  margin:  auto ;
-  width: 100%;
+  --border-radius: 14px;
+  --inner-border-width: 0;
+  --padding-start: 14px;
+  --padding-end: 10px;
+  --min-height: 76px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 14px;
 }
 
+.exercise-item__content {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+  padding: 12px 0;
+}
+
+.exercise-item__name {
+  color: var(--ion-color-light);
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.exercise-item__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.exercise-item__meta span {
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(255, 255, 255, 0.84);
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 0.78rem;
+}
+
+.exercise-item__action {
+  margin-left: 12px;
+}
+
+.modal-form {
+  display: grid;
+  gap: 12px;
+  padding: 16px;
+}
 
 .input {
-  margin:0;
+  margin: 0;
   background-color: var(--ion-color-primary);
-  color:var(--ion-color-light);
-  border-radius: 3px;
-  font-family: doto;
+  color: var(--ion-color-light);
+  border-radius: 10px;
+  font-family: Doto;
+}
+
+.modal-form ion-select {
+  --background: var(--ion-color-primary);
+  --color: var(--ion-color-light);
+  --border-radius: 10px;
+  font-family: Doto;
+}
+
+@media (max-width: 700px) {
+  .exercise-hero {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .add-exercise-button {
+    width: 100%;
+  }
 }
 
 

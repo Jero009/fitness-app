@@ -78,7 +78,7 @@
 
         <ion-card class="graph-card">
           <div class="graph-card__header">
-            <ion-select placeholder="Select template" interface="action-sheet" v-model="selectedTemplateId">
+            <ion-select placeholder="Select template" interface="action-sheet" :interface-options="{ cssClass: 'app-action-sheet' }" v-model="selectedTemplateId" class="app-select">
               <ion-select-option v-for="t in templates" :key="t.id" :value="t.id">
                 {{ t.name }}
               </ion-select-option>

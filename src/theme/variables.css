@@ -168,20 +168,34 @@ ion-card-title {
 }
 
 
-ion-select {
+ion-select.app-select {
   --background: var(--ion-color-primary);
   --color: var(--ion-color-light);
-  --border-radius: 3px;
+  --border-radius: 10px;
+  --padding-start: 14px;
+  --padding-end: 14px;
+  --placeholder-opacity: 0.72;
+  min-height: 48px;
   font-family: Doto;
-  color:#ffffff;
-  
+  color: #ffffff;
 }
 
-ion-action-sheet {
-  width: 100%;
-  --background: var(--ion-color-medium);
+ion-action-sheet.app-action-sheet {
+  --background: #121212;
   --color: var(--ion-color-light);
-  font-family: Doto,;
+  --button-background: transparent;
+  --button-background-hover: rgba(255, 255, 255, 0.05);
+  --button-background-hover-opacity: 1;
+  --button-color: var(--ion-color-light);
+  --button-color-hover: var(--ion-color-light);
+  --button-padding-start: 16px;
+  --button-padding-end: 16px;
+  --button-text-align: start;
+  font-family: Doto;
+}
+
+ion-action-sheet.app-action-sheet::part(content) {
+  border-radius: 16px 16px 0 0;
 }
 ion-list {
   --background: var(--ion-color-medium);
