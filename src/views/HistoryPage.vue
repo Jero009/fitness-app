@@ -47,7 +47,10 @@
                 <ion-card-content>
                   <ion-list >
                       <ion-item class="exercise-row" v-for="ex in w.exercises" :key="ex.id">
-                        <div class="exercise-copy">{{ ex.name  }} &nbsp; {{ ex.set_count  }} x {{ ex.reps }} </div>
+                        <div class="exercise-copy">
+                          <div class="exercise-copy__name">{{ ex.name }}</div>
+                          <div class="exercise-copy__stats">{{ ex.set_count }} sets &nbsp; {{ ex.reps }} reps</div>
+                        </div>
                       </ion-item>
                   </ion-list>
                 </ion-card-content>
@@ -137,8 +140,23 @@ ion-content.home-content {
 }
 
 .card-template ion-list ion-item .exercise-copy {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
   color: var(--ion-color-light);
   width: 100%;
+}
+
+.exercise-copy__name {
+  flex: 1;
+  text-align: left;
+}
+
+.exercise-copy__stats {
+  flex-shrink: 0;
+  text-align: right;
+  color: rgba(255, 255, 255, 0.84);
 }
 
 @media (min-width: 700px) {
