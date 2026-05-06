@@ -57,6 +57,7 @@
 .template-content {
   --padding-top: 16px;
   --padding-bottom: 24px;
+  scrollbar-gutter: stable;
 }
 
 .template-shell {
