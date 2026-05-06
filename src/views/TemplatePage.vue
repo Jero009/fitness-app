@@ -176,7 +176,7 @@
 </style>
 
 <script setup lang="ts">
-import { IonPage, IonHeader, IonToolbar, IonTitle, IonContent, IonCard, IonCardHeader, IonCardContent, IonCardSubtitle, IonCardTitle, IonList, IonItem, IonButton, IonIcon, IonButtons, IonRefresher, IonRefresherContent, onIonViewWillEnter } from '@ionic/vue';
+import { IonPage, IonHeader, IonToolbar, IonTitle, IonContent, IonCard, IonCardHeader, IonCardContent, IonCardSubtitle, IonCardTitle, IonList, IonItem, IonButton, IonIcon, IonButtons, IonRefresher, IonRefresherContent, onIonViewWillEnter, alertController } from '@ionic/vue';
 import type { RefresherCustomEvent } from '@ionic/vue';
 import { add } from 'ionicons/icons';
 import { ref, onMounted } from 'vue';
@@ -252,8 +252,29 @@ const LoadExercises = async () =>{
 
 // delete template and template exercise
 const deleteTemp = async (id: number) => {
-  await deleteTemplate(id);
-  await loadTemplates();
+  const template = templates.value.find(t => t.id === id);
+  const templateName = template?.name || 'this template';
+
+  const alert = await alertController.create({
+    header: 'Delete Template?',
+    message: `Are you sure you want to delete "${templateName}"? This action cannot be undone.`,
+    buttons: [
+      {
+        text: 'Cancel',
+        role: 'cancel'
+      },
+      {
+        text: 'Delete',
+        role: 'destructive',
+        handler: async () => {
+          await deleteTemplate(id);
+          await loadTemplates();
+        }
+      }
+    ]
+  });
+
+  await alert.present();
 };
 
 

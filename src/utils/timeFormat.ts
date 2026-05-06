@@ -1,3 +1,8 @@
+/**
+ * Centralized time and date formatting utilities
+ * Used across the app for consistent date/time handling
+ */
+
 const toTimestamp = (value: unknown): number => {
   if (value === null || value === undefined) return NaN;
 
@@ -20,7 +25,16 @@ const toTimestamp = (value: unknown): number => {
   return new Date(candidate).getTime();
 };
 
-export const formatDuration = (start: string, end: any) => {
+export const normalizeDateInput = (value: unknown): string | null => {
+  if (value === null || value === undefined) return null;
+  const raw = String(value).trim();
+  if (!raw) return null;
+  const normalized = raw.includes(' ') ? raw.replace(' ', 'T') : raw;
+  const hasTimezone = /(?:Z|[-+]\d{2}:?\d{2})$/i.test(normalized);
+  return hasTimezone ? normalized : `${normalized}Z`;
+};
+
+export const formatDuration = (start: string | undefined, end: string | undefined) => {
   if (!start || !end) return '0h 0m 0s';
 
   const s = toTimestamp(start);
@@ -43,3 +57,20 @@ export const formatTime = (secondsValue: number) => {
   const secs = secondsValue % 60;
   return `${String(hrs).padStart(2, '0')}:${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
 };
+
+export const formatWorkoutDate = (value: unknown) => {
+  const normalized = normalizeDateInput(value);
+
+  if (!normalized) return 'No session yet';
+
+  const date = new Date(normalized);
+
+  if (Number.isNaN(date.getTime())) return 'No session yet';
+
+  return new Intl.DateTimeFormat(undefined, {
+    month: 'short',
+    day: 'numeric',
+  }).format(date);
+};
+
+export { toTimestamp };

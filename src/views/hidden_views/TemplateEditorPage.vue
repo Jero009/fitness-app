@@ -82,7 +82,7 @@
 
 </style>
 <script setup lang="ts">
-import { IonPage, IonHeader, IonToolbar, IonTitle, IonContent, IonItem, IonButton, IonButtons, IonInput, IonItemSliding, IonItemOptions, IonItemOption, onIonViewWillEnter } from '@ionic/vue';
+import { IonPage, IonHeader, IonToolbar, IonTitle, IonContent, IonItem, IonButton, IonButtons, IonInput, IonItemSliding, IonItemOptions, IonItemOption, onIonViewWillEnter, toastController } from '@ionic/vue';
 import { ref } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import Draggable from 'vuedraggable';
@@ -91,8 +91,16 @@ import { getTemplateById, getTemplateExercisesByTemplateId, renameTemplate, edit
 const router = useRouter();
 const route = useRoute();
 
-
-
+// Toast helper
+const showToast = async (message: string, color: string = 'danger') => {
+  const toast = await toastController.create({
+    message,
+    duration: 2000,
+    position: 'top',
+    color,
+  });
+  await toast.present();
+};
 
 // exercise picker 
 const goToExercisePicker = () => {
@@ -105,7 +113,6 @@ const goToExercisePicker = () => {
 };
 
 const onDragEnd = () => {
-  console.log('New order:', exercises.value.map(e => e.name));
 };
 
 
@@ -127,15 +134,56 @@ const removeExercise = (index: number) => {
   exercises.value.splice(index, 1);
 };
 
+const validateTemplate = (): boolean => {
+  // Check template name
+  if (!TemplateName.value || !TemplateName.value.trim()) {
+    showToast('Please enter a template name');
+    return false;
+  }
+
+  // Check if exercises exist
+  if (exercises.value.length === 0) {
+    showToast('Please add at least one exercise');
+    return false;
+  }
+
+  // Check for duplicates and validate each exercise
+  const exerciseIds = new Set<number>();
+  for (const ex of exercises.value) {
+    // Check for duplicate exercises
+    if (exerciseIds.has(ex.id_exercise)) {
+      showToast(`Exercise "${ex.name}" is added multiple times. Please remove duplicates.`);
+      return false;
+    }
+    exerciseIds.add(ex.id_exercise);
+
+    // Check sets > 0
+    const sets = Number(ex.set_number);
+    if (isNaN(sets) || sets <= 0) {
+      showToast(`"${ex.name}": Sets must be greater than 0`);
+      return false;
+    }
+
+    // Check reps > 0
+    const reps = Number(ex.rep_number);
+    if (isNaN(reps) || reps <= 0) {
+      showToast(`"${ex.name}": Reps must be greater than 0`);
+      return false;
+    }
+  }
+
+  return true;
+};
+
 // saving changes doesnt work
 
 const confirm = async () => {
-  console.log("🔥 SAVE CLICKED");
-  const templateId = Number(route.params.id)
-  if (!TemplateName.value) return;
+  // Validate before saving
+  if (!validateTemplate()) return;
 
-  await renameTemplate(templateId, TemplateName.value);
-  console.log("✅ Template renamed");
+  const templateId = Number(route.params.id)
+
+  await renameTemplate(templateId, TemplateName.value.trim());
 
   // Delete exercises removed from the list.
   for (const rowId of removedExerciseRowIds.value) {
@@ -166,9 +214,9 @@ const confirm = async () => {
       );
     }
   }
-  console.log("✅ Template + exercises saved");
 
-  // reset state
+  // Show success and reset state
+  showToast('Template updated successfully!', 'success');
   exercises.value = [];
   removedExerciseRowIds.value = [];
   TemplateName.value = '';

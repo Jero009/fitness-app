@@ -362,6 +362,8 @@ import { IonPage, IonHeader, IonToolbar, IonTitle, IonContent,IonButtons,IonButt
 import { ref, onUnmounted, computed } from 'vue';
 import { useRouter,useRoute } from 'vue-router';
 import { addCircleOutline, addOutline, timerOutline, chevronUpOutline, chevronDownOutline } from 'ionicons/icons';
+import type { WorkoutExercise, WorkoutExerciseSet, LatestCompletedSet, Workout } from '@/types/models';
+import { normalizeDateInput } from '@/utils/timeFormat';
 
 import { getWorkoutExercises,getWorkoutSets,updateWorkoutSet,getWorkoutById,endWorkout,cancelWorkout, addSetToWorkoutExercise, getNextSetNumber, deleteWorkoutSet, deleteWorkoutExercise, getLatestCompletedSetsForExercise, getLatestCompletedSetDefaultsForExercise, updateWorkoutExerciseOrder } from '@/services/gym_db';
 
@@ -369,20 +371,10 @@ const router = useRouter();
 // id from route
 const route = useRoute();
 const workoutId = Number(route.params.id);
-console.log("Workout ID:", workoutId);
 
 // exercise data 
 
-const workoutExercises = ref<any[]>([]);
-
-const normalizeDateInput = (value: unknown): string | null => {
-  if (value === null || value === undefined) return null;
-  const raw = String(value).trim();
-  if (!raw) return null;
-  const normalized = raw.includes(' ') ? raw.replace(' ', 'T') : raw;
-  const hasTimezone = /(?:Z|[-+]\d{2}:?\d{2})$/i.test(normalized);
-  return hasTimezone ? normalized : `${normalized}Z`;
-};
+const workoutExercises = ref<WorkoutExercise[]>([]);
 
 
 const loadWorkout = async () => {
@@ -407,8 +399,6 @@ const loadWorkout = async () => {
   }
 
   workoutExercises.value = data;
-
-  console.log(workoutExercises.value);
 };
 
 const moveExerciseUp = async (index: number) => {
@@ -488,7 +478,6 @@ const editRestTime = async (exercise: any) => {
 
 const saveWorkout = async ()=>{
   await endWorkout(workoutId);
-  console.log("Workout saved!");
 
   router.push('/tabs/Home');
 };
@@ -504,7 +493,6 @@ const handleCancelWorkout = async () => {
         role: 'confirm',
         handler: async () => {
           await cancelWorkout(workoutId);
-          console.log("Workout cancelled and deleted from DB");
           if (interval) clearInterval(interval);
           interval = null;
           router.push('/tabs/Home');
@@ -596,14 +584,13 @@ const addNewSet = async (exercise: any) => {
     // Add the new set directly to the exercise's sets array
     const ex = workoutExercises.value.find(e => e.id === exercise.id);
     if (ex) {
+      if (!ex.sets) ex.sets = [];
       ex.sets.push({
         id: newSetId,
         set_number: nextSetNum,
         reps: defaultReps,
         weight: defaultWeight,
-        completed: 0,
-        previous_weight: defaultWeight,
-        previous_reps: defaultReps
+        completed: false
       });
     }
   }
@@ -731,10 +718,14 @@ const restoreTimerState = () => {
 };
 
 const startRestTimer = (seconds: number) => {
-  if (restInterval) clearInterval(restInterval);
+  // Stop any existing timer before starting a new one
+  stopRestTimer();
 
-  restTimer.value.total = seconds;
-  restTimer.value.remaining = seconds;
+  // Validate seconds input
+  const restSeconds = Math.max(1, Number(seconds) || 60);
+
+  restTimer.value.total = restSeconds;
+  restTimer.value.remaining = restSeconds;
   restTimer.value.isActive = true;
   sessionStorage.removeItem('restTimer');
 

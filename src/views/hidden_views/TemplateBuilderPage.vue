@@ -90,13 +90,24 @@
 
 </style>
 <script setup lang="ts">
-import { IonPage, IonHeader, IonToolbar, IonTitle, IonContent, IonItem, IonButton, IonButtons, IonInput, IonItemSliding, IonItemOptions, IonItemOption, onIonViewWillEnter } from '@ionic/vue';
+import { IonPage, IonHeader, IonToolbar, IonTitle, IonContent, IonItem, IonButton, IonButtons, IonInput, IonItemSliding, IonItemOptions, IonItemOption, onIonViewWillEnter, toastController } from '@ionic/vue';
 import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import Draggable from 'vuedraggable';
 import { createTemplate, getExercises, addExerciseToTemplate } from '@/services/gym_db';
 
 const router = useRouter();
+
+// Toast helper
+const showToast = async (message: string, color: string = 'danger') => {
+  const toast = await toastController.create({
+    message,
+    duration: 2000,
+    position: 'top',
+    color,
+  });
+  await toast.present();
+};
 
 // exercise picker 
 const goToExercisePicker = () => {
@@ -116,14 +127,55 @@ const cancel = () => {
   router.push({ name: 'Template' });
 };
 
+const validateTemplate = (): boolean => {
+  // Check template name
+  if (!TemplateName.value || !TemplateName.value.trim()) {
+    showToast('Please enter a template name');
+    return false;
+  }
+
+  // Check if exercises were added
+  if (selectedExercises.value.length === 0) {
+    showToast('Please add at least one exercise');
+    return false;
+  }
+
+  // Check for duplicates and validate each exercise
+  const exerciseIds = new Set<number>();
+  for (const ex of selectedExercises.value) {
+    // Check for duplicate exercises
+    if (exerciseIds.has(ex.id)) {
+      showToast(`Exercise "${ex.name}" is added multiple times. Please remove duplicates.`);
+      return false;
+    }
+    exerciseIds.add(ex.id);
+
+    // Check sets > 0
+    const sets = Number(ex.set_number);
+    if (isNaN(sets) || sets <= 0) {
+      showToast(`"${ex.name}": Sets must be greater than 0`);
+      return false;
+    }
+
+    // Check reps > 0
+    const reps = Number(ex.rep_number);
+    if (isNaN(reps) || reps <= 0) {
+      showToast(`"${ex.name}": Reps must be greater than 0`);
+      return false;
+    }
+  }
+
+  return true;
+};
 
 const confirm = async () => {
-  if (!TemplateName.value) return;
+  // Validate before creating template
+  if (!validateTemplate()) return;
 
-  const templateId = await createTemplate(TemplateName.value);
+  const templateId = await createTemplate(TemplateName.value.trim());
 
   if (!templateId) {
-    console.error("❌ No ID returned");
+    showToast('Failed to create template');
     return;
   }
 
@@ -140,9 +192,8 @@ const confirm = async () => {
     );
   }
 
-  console.log("✅ Template + exercises saved");
-
-  // reset state
+  // Show success and reset state
+  showToast('Template created successfully!', 'success');
   selectedExercises.value = [];
   TemplateName.value = '';
 

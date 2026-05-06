@@ -46,7 +46,7 @@
               <div class="active-card__body">
                 <div class="active-card__timer">
                   <span>Timer</span>
-                  <strong>{{ formatTime() }}</strong>
+                  <strong>{{ formatWorkoutTimer() }}</strong>
                 </div>
               </div>
             </ion-card>
@@ -100,6 +100,8 @@ import { ref, onMounted, onUnmounted,computed,watch } from 'vue';
 import { barbellSharp } from 'ionicons/icons';
 import { useRouter } from 'vue-router';
 import {Chart,LineController,LineElement,PointElement,LinearScale,CategoryScale} from 'chart.js';
+import type { WorkoutTemplate, Workout, WorkoutHistory } from '@/types/models';
+import { formatDuration, formatTime, normalizeDateInput, formatWorkoutDate, toTimestamp } from '@/utils/timeFormat';
 
 
 const activeWorkout = ref(false);
@@ -131,13 +133,7 @@ const backToWorkout = async () => {
 };
 
 // displaying templates
-const templates = ref<Template[]>([]);
-
-type Template = {
-  id: number;
-  name: string;
-  created_at: string;
-};
+const templates = ref<WorkoutTemplate[]>([]);
 
 const loadTemplates = async () => {
   const data = await getTemplates();
@@ -154,74 +150,11 @@ const loadTemplates = async () => {
 };
 //latest workout 
 
-const latestWorkout = ref<any>(null);
+const latestWorkout = ref<Workout | null>(null);
 
 const loadLatestWorkout = async () => {
   const workout = await getLatestWorkout();
   latestWorkout.value = workout || null;
-};
-
-const toTimestamp = (value: unknown): number => {
-  if (value === null || value === undefined) return NaN;
-
-  if (typeof value === 'number') {
-    return Number.isFinite(value) ? value : NaN;
-  }
-
-  const raw = String(value).trim();
-  if (!raw) return NaN;
-
-  const numeric = Number(raw);
-  if (!Number.isNaN(numeric) && Number.isFinite(numeric)) {
-    return numeric;
-  }
-
-  const normalized = raw.includes(' ') ? raw.replace(' ', 'T') : raw;
-  const hasTimezone = /(?:Z|[-+]\d{2}:?\d{2})$/i.test(normalized);
-  const candidate = hasTimezone ? normalized : `${normalized}Z`;
-
-  return new Date(candidate).getTime();
-};
-
-const normalizeDateInput = (value: unknown): string | null => {
-  if (value === null || value === undefined) return null;
-  const raw = String(value).trim();
-  if (!raw) return null;
-  const normalized = raw.includes(' ') ? raw.replace(' ', 'T') : raw;
-  const hasTimezone = /(?:Z|[-+]\d{2}:?\d{2})$/i.test(normalized);
-  return hasTimezone ? normalized : `${normalized}Z`;
-};
-
-const formatDuration = (start: string, end: any) => {
-  if (!start || !end) return '0h 0m 0s';
-
-  const s = toTimestamp(start);
-  const e = toTimestamp(end);
-
-  if (isNaN(s) || isNaN(e)) return 'Invalid time';
-
-  const diff = Math.max(0, e - s);
-  const totalSeconds = Math.floor(diff / 1000);
-  const hours = Math.floor(totalSeconds / 3600);
-  const minutes = Math.floor((totalSeconds % 3600) / 60);
-
-
-  return `${hours}h ${minutes}m`;
-};
-
-const formatWorkoutDate = (value: unknown) => {
-  const normalized = normalizeDateInput(value);
-
-  if (!normalized) return 'No session yet';
-
-  const date = new Date(normalized);
-
-  if (Number.isNaN(date.getTime())) return 'No session yet';
-
-  return new Intl.DateTimeFormat(undefined, {
-    month: 'short',
-    day: 'numeric',
-  }).format(date);
 };
 
 
@@ -263,7 +196,7 @@ const clearTimer = () => {
   }
 };
 
-const formatTime = () => {
+const formatWorkoutTimer = () => {
   const hrs = Math.floor(seconds.value / 3600);
   const mins = Math.floor((seconds.value % 3600) / 60);
   const secs = seconds.value % 60;
@@ -280,10 +213,10 @@ Chart.register(
   CategoryScale
 );
 
-const chartRef = ref<any>(null);
-let chart: any = null;
+const chartRef = ref<HTMLCanvasElement | null>(null);
+let chart: Chart | null = null;
 
-const workouts = ref<any[]>([]);
+const workouts = ref<WorkoutHistory[]>([]);
 const selectedTemplateId = ref<number | undefined>(undefined);
 
 // prepare data
@@ -296,7 +229,9 @@ const chartData = computed(() => {
     .reverse(); // oldest → newest
 });
 
-// draw chart
+// draw chart with debouncing
+let renderChartTimeout: ReturnType<typeof setTimeout> | null = null;
+
 const renderChart = () => {
   if (!chartRef.value) return;
 
@@ -353,17 +288,28 @@ const renderChart = () => {
   });
 };
 
+// Debounced chart rendering to prevent excessive redraws
+const debouncedRenderChart = () => {
+  if (renderChartTimeout) {
+    clearTimeout(renderChartTimeout);
+  }
+  renderChartTimeout = setTimeout(() => {
+    renderChart();
+    renderChartTimeout = null;
+  }, 300);
+};
+
 // Watch for template selection and update chart data
 watch(selectedTemplateId, async (templateId) => {
   if (templateId === undefined || templateId === null) {
     workouts.value = [];
-    renderChart();
+    debouncedRenderChart();
     return;
   }
   const numId = Number(templateId);
   const data = await getWorkoutsByName(numId);
   workouts.value = data || [];
-  renderChart();
+  debouncedRenderChart();
 });
 
 // Load all templates and latest workout on mount

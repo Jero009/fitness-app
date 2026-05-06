@@ -230,6 +230,7 @@ import { IonPage, IonHeader, IonToolbar, IonTitle, IonContent, IonItem, IonButto
    IonRefresher, IonRefresherContent, RefresherCustomEvent, alertController, IonSelect, IonSelectOption } from '@ionic/vue';
 import { add} from 'ionicons/icons'
 import { ref,onMounted,computed  } from 'vue';
+import type { Exercise, MuscleGroup, Equipment } from '@/types/models';
 import { addExercise, getExercises,renameExercise,getMuscleGroups, getEquipment } from '@/services/gym_db'
 
 //creqating exercise modal
@@ -238,7 +239,7 @@ import { addExercise, getExercises,renameExercise,getMuscleGroups, getEquipment 
     const muscleGroup = ref('')
     const equipment = ref('')
 
-const exercises = ref<exercise[]>([])
+const exercises = ref<Exercise[]>([])
 const selectedMuscleGroup = ref('');
 
 //modal opening 
@@ -267,22 +268,14 @@ const confirm = async () => {
 
 // get exercises from db
 
-type exercise = {
-  id: number;
-  name: string;
-  muscle_group: string;
-  equipment: string;
-}
-
-
 const LoadExercises = async () =>{
   const data = await getExercises();
   exercises.value = data;
   
 };
 // get muscle group and equipment for select options
-const muscleGroups = ref<any[]>([]);
-const equipmentList = ref<any[]>([]);
+const muscleGroups = ref<MuscleGroup[]>([]);
+const equipmentList = ref<Equipment[]>([]);
 
 
 
@@ -300,7 +293,7 @@ const filteredExercises = computed(() => {
 
 
 //rename exercise
-const renameEx = async (ex: exercise) => {
+const renameEx = async (ex: Exercise) => {
   const alert = await alertController.create({
     header: 'Rename Exercise',
     cssClass: 'rename-exercise-alert',

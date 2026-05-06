@@ -174,9 +174,10 @@ ion-content.home-content {
 
 <script setup lang="ts">
 import { IonPage, IonHeader, IonToolbar, IonTitle, IonContent,IonCard,IonCardHeader,IonCardContent,IonCardSubtitle,IonCardTitle,IonList,IonItem, 
-IonRefresher, IonRefresherContent, RefresherCustomEvent, onIonViewWillEnter, IonButton, alertController, IonButtons, IonIcon } from '@ionic/vue';
+IonRefresher, IonRefresherContent, RefresherCustomEvent, onIonViewWillEnter, IonButton, alertController, toastController, IonButtons, IonIcon } from '@ionic/vue';
 import { getWorkouts,getWorkoutHistoryExercises, cancelWorkout, exportDatabaseToSQL, importDatabaseFromSQL } from '@/services/gym_db'
 import { onMounted ,ref} from 'vue';
+import type { WorkoutHistory, WorkoutHistoryExercise } from '@/types/models';
 import { cloudUploadOutline, downloadOutline } from 'ionicons/icons';
 import { Capacitor } from '@capacitor/core';
 import { Directory, Encoding, Filesystem } from '@capacitor/filesystem';
@@ -185,8 +186,19 @@ import { FilePicker } from '@capawesome/capacitor-file-picker';
 
 
 
-const workouts = ref<any[]>([]);
+const workouts = ref<(WorkoutHistory & { exercises: WorkoutHistoryExercise[] })[]>([]);
 const importInput = ref<HTMLInputElement | null>(null);
+
+// Toast helper
+const showToast = async (message: string, color: string = 'danger', duration: number = 2000) => {
+  const toast = await toastController.create({
+    message,
+    duration,
+    position: 'top',
+    color,
+  });
+  await toast.present();
+};
 
 const LoadHistory = async () =>{
   const data = await getWorkouts();
@@ -270,12 +282,7 @@ const handleExport = async () => {
   const backup = await exportDatabaseToSQL();
 
   if (!backup) {
-    const alert = await alertController.create({
-      header: 'Export Failed',
-      message: 'Database is not initialized yet.',
-      buttons: ['OK']
-    });
-    await alert.present();
+    showToast('Database not initialized yet', 'warning');
     return;
   }
 
@@ -307,20 +314,10 @@ const handleExport = async () => {
       });
     }
 
-    const successAlert = await alertController.create({
-      header: 'Export Complete',
-      message: `Backup file ready: ${backup.fileName}`,
-      buttons: ['OK']
-    });
-    await successAlert.present();
+    showToast(`Backup ready: ${backup.fileName}`, 'success', 3000);
   } catch (error) {
     console.error('Export failed:', error);
-    const alert = await alertController.create({
-      header: 'Export Failed',
-      message: 'Could not export backup file. Please try again.',
-      buttons: ['OK']
-    });
-    await alert.present();
+    showToast('Export failed. Please try again.', 'danger');
   }
 };
 
@@ -358,18 +355,18 @@ const runImportWithConfirm = async (sqlContent: string) => {
       {
         text: 'Import',
         handler: async () => {
-          const result = await importDatabaseFromSQL(sqlContent);
+          try {
+            const result = await importDatabaseFromSQL(sqlContent);
 
-          const resultAlert = await alertController.create({
-            header: result.success ? 'Import Complete' : 'Import Failed',
-            message: result.message,
-            buttons: ['OK']
-          });
-
-          await resultAlert.present();
-
-          if (result.success) {
-            await LoadHistory();
+            if (result.success) {
+              showToast('Import successful!', 'success', 3000);
+              await LoadHistory();
+            } else {
+              showToast(`Import failed: ${result.message}`, 'danger');
+            }
+          } catch (error) {
+            console.error('Import error:', error);
+            showToast('Import failed. Please try again.', 'danger');
           }
         }
       }

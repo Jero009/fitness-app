@@ -60,6 +60,7 @@
 import { IonPage, IonHeader, IonToolbar, IonTitle, IonContent, IonList, IonItem, IonSelect, IonSelectOption, IonRefresher, IonRefresherContent, onIonViewWillEnter } from '@ionic/vue';
 import type { RefresherCustomEvent } from '@ionic/vue';
 import { ref, onMounted, computed } from 'vue';
+import type { MuscleGroup } from '@/types/models';
 import { getExercises, getMuscleGroups, addExerciseToWorkout, getNextWorkoutOrderIndex, getLatestCompletedSetDefaultsForExercise } from '@/services/gym_db';
 import { useRouter, useRoute } from 'vue-router';
 const router = useRouter();
@@ -120,7 +121,7 @@ const LoadExercises = async () =>{
   
 };
 // get muscle group for select options
-const muscleGroups = ref<any[]>([]);
+const muscleGroups = ref<MuscleGroup[]>([]);
 
 
 
