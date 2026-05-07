@@ -35,25 +35,29 @@
   --ion-background-color: var(--ion-color-dark);
 }
 
+ion-alert.app-confirm-alert,
 ion-alert.history-delete-alert {
-  --background: #111827;
+  --background: var(--ion-color-primary);
   --color: #f9fafb;
-  --backdrop-opacity: 0.4;
   --border-radius: 14px;
 }
 
+ion-alert.app-confirm-alert .alert-title,
 ion-alert.history-delete-alert .alert-title {
   color: #ffffff;
 }
 
+ion-alert.app-confirm-alert .alert-message,
 ion-alert.history-delete-alert .alert-message {
   color: #ffffff;
 }
 
+ion-alert.app-confirm-alert .alert-button-role-cancel,
 ion-alert.history-delete-alert .alert-button-role-cancel {
   color: #ffffff;
 }
 
+ion-alert.app-confirm-alert .alert-button-role-destructive,
 ion-alert.history-delete-alert .alert-button-role-destructive {
   color:var(--ion-color-accent-red);
   font-weight: 700;
@@ -181,13 +185,11 @@ ion-select.app-select {
 }
 
 ion-action-sheet.app-action-sheet {
-  --background: #121212;
+  --background: var(--ion-color-primary);
   --color: var(--ion-color-light);
   --button-background: transparent;
-  --button-background-hover: rgba(255, 255, 255, 0.05);
   --button-background-hover-opacity: 1;
   --button-color: var(--ion-color-light);
-  --button-color-hover: var(--ion-color-light);
   --button-padding-start: 16px;
   --button-padding-end: 16px;
   --button-text-align: start;

@@ -20,7 +20,6 @@
               </div>
 
               <div class="summary-card__body">
-
                 <div class="card-metrics">
                   <div class="card-metric">
                     <span>Time</span>
@@ -33,6 +32,42 @@
                   <div class="card-metric card-metric-wide">
                     <span>Completed</span>
                     <strong>{{ formatWorkoutDate(latestWorkout?.time_end) }}</strong>
+                  </div>
+                </div>
+
+                <div class="weekly-goal-panel">
+                  <div class="weekly-goal-panel__header">
+                    <div>
+                      <span class="weekly-goal-panel__label">This week</span>
+                      <strong>{{ weeklyCompletedWorkouts }} workout{{ weeklyCompletedWorkouts === 1 ? '' : 's' }}</strong>
+                    </div>
+                    <div class="weekly-goal-panel__selector">
+                      <span>Goal</span>
+                      <ion-select
+                        v-model="weeklyWorkoutGoal"
+                        interface="action-sheet"
+                        :interface-options="{ cssClass: 'app-action-sheet' }"
+                        class="app-select weekly-goal-select"
+                      >
+                        <ion-select-option v-for="goal in weeklyGoalOptions" :key="goal" :value="goal">
+                          {{ goal }} / week
+                        </ion-select-option>
+                      </ion-select>
+                    </div>
+                  </div>
+
+                  <div class="weekly-goal-panel__meta">
+                    <span>{{ weeklyGoalProgress }}% reached</span>
+                    <span>{{ weeklyCompletedWorkouts }} of {{ weeklyWorkoutGoal }}</span>
+                  </div>
+
+                  <div class="weekly-goal-dots" :aria-label="`Weekly goal progress: ${weeklyCompletedWorkouts} of ${weeklyWorkoutGoal}`">
+                    <span
+                      v-for="dot in weeklyGoalDots"
+                      :key="dot"
+                      class="weekly-goal-dot"
+                      :class="{ 'weekly-goal-dot--filled': dot <= weeklyCompletedWorkouts }"
+                    ></span>
                   </div>
                 </div>
               </div>
@@ -95,7 +130,7 @@
 
 <script setup lang="ts">
 import { IonPage, IonHeader, IonToolbar, IonTitle, IonContent, IonCard, IonCardHeader, IonCardSubtitle, IonCardContent, IonCardTitle, onIonViewWillEnter, IonIcon, IonSelect, IonSelectOption } from '@ionic/vue';
-import { getTemplates, startWorkoutFromTemplate, getActiveWorkout, getLatestWorkout, getWorkoutsByName } from '@/services/gym_db';
+import { getTemplates, startWorkoutFromTemplate, getActiveWorkout, getLatestWorkout, getWorkouts, getWorkoutsByName } from '@/services/gym_db';
 import { ref, onMounted, onUnmounted,computed,watch } from 'vue';
 import { barbellSharp } from 'ionicons/icons';
 import { useRouter } from 'vue-router';
@@ -156,6 +191,48 @@ const loadLatestWorkout = async () => {
   const workout = await getLatestWorkout();
   latestWorkout.value = workout || null;
 };
+
+const WEEKLY_GOAL_STORAGE_KEY = 'homeWeeklyGoal';
+const weeklyGoalOptions = [1, 2, 3, 4, 5, 6, 7, 8, 10, 12];
+const weeklyWorkoutGoal = ref(4);
+const weeklyCompletedWorkouts = ref(0);
+
+const getStartOfWeek = () => {
+  const start = new Date();
+  const currentDay = start.getDay();
+  const daysSinceMonday = currentDay === 0 ? 6 : currentDay - 1;
+  start.setHours(0, 0, 0, 0);
+  start.setDate(start.getDate() - daysSinceMonday);
+  return start;
+};
+
+const loadWeeklyGoal = () => {
+  const savedGoal = Number(localStorage.getItem(WEEKLY_GOAL_STORAGE_KEY));
+  weeklyWorkoutGoal.value = Number.isFinite(savedGoal) && savedGoal > 0 ? savedGoal : 4;
+};
+
+const loadWeeklyWorkoutCount = async () => {
+  const workoutsCompleted = await getWorkouts();
+  const weekStart = getStartOfWeek().getTime();
+
+  weeklyCompletedWorkouts.value = (workoutsCompleted || []).filter((workout: any) => {
+    const completedAt = new Date(String(workout.time_end).replace(' ', 'T')).getTime();
+    return Number.isFinite(completedAt) && completedAt >= weekStart;
+  }).length;
+};
+
+watch(weeklyWorkoutGoal, (goal) => {
+  localStorage.setItem(WEEKLY_GOAL_STORAGE_KEY, String(goal));
+});
+
+const weeklyGoalProgress = computed(() => {
+  if (!weeklyWorkoutGoal.value) return 0;
+  return Math.min(100, Math.round((weeklyCompletedWorkouts.value / weeklyWorkoutGoal.value) * 100));
+});
+
+const weeklyGoalDots = computed(() => {
+  return Array.from({ length: weeklyWorkoutGoal.value }, (_, index) => index + 1);
+});
 
 
 
@@ -276,6 +353,7 @@ const renderChart = () => {
           },
         },
         y: {
+          min: 0,
           ticks: {
             color: '#b9b9b9',
           },
@@ -317,6 +395,8 @@ onMounted(async () => {
   await loadActiveWorkout();
   await loadTemplates();
   await loadLatestWorkout();
+  loadWeeklyGoal();
+  await loadWeeklyWorkoutCount();
   renderChart();
 });
 
@@ -324,6 +404,8 @@ onIonViewWillEnter(async () => {
   await loadActiveWorkout();
   await loadTemplates();
   await loadLatestWorkout();
+  loadWeeklyGoal();
+  await loadWeeklyWorkoutCount();
   renderChart();
 });
 
@@ -409,6 +491,10 @@ ion-content.home-content {
   margin-top: 18px;
 }
 
+.summary-card__body {
+  align-items: start;
+}
+
 
 .card-metrics {
   display: grid;
@@ -436,6 +522,72 @@ ion-content.home-content {
 .active-card__timer strong {
   display: block;
   font-size: 1rem;
+}
+
+.weekly-goal-panel {
+  border-radius: 12px;
+  padding: 14px;
+  background: rgba(255, 255, 255, 0.05);
+  display: grid;
+  gap: 12px;
+}
+
+.weekly-goal-panel__header {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: flex-start;
+}
+
+.weekly-goal-panel__label,
+.weekly-goal-panel__selector span,
+.weekly-goal-panel__meta {
+  color: rgba(255, 255, 255, 0.62);
+  font-size: 0.8rem;
+}
+
+.weekly-goal-panel__header strong {
+  display: block;
+  margin-top: 6px;
+  color: var(--ion-color-light);
+  font-size: 1rem;
+}
+
+.weekly-goal-panel__selector {
+  display: grid;
+  gap: 6px;
+  justify-items: end;
+}
+
+.weekly-goal-select {
+  min-width: 138px;
+}
+
+.weekly-goal-panel__meta {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.weekly-goal-dots {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.weekly-goal-dot {
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.16);
+
+
+}
+
+.weekly-goal-dot--filled {
+  background: var(--ion-color-accent-red);
+  transform: scale(1.08);
 }
 
 .card-metric-wide {
@@ -532,6 +684,14 @@ ion-content.home-content {
   .active-card__body {
     grid-template-columns: 1.1fr 0.9fr;
     align-items: end;
+  }
+
+  .summary-card__body {
+    grid-template-columns: 1fr;
+  }
+
+  .weekly-goal-panel__header {
+    align-items: center;
   }
 
   .workout-grid {

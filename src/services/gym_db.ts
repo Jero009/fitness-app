@@ -16,6 +16,28 @@ const EXPORT_TABLES = [
   'equipment'
 ];
 
+const EXPORT_DELETE_TABLES = [
+  'workout_exercise_sets',
+  'workout_exercise',
+  'workout_template_exercise',
+  'workout',
+  'workout_template',
+  'exercise',
+  'muscle_group',
+  'equipment'
+];
+
+const EXPORT_INSERT_TABLES = [
+  'muscle_group',
+  'equipment',
+  'workout_template',
+  'exercise',
+  'workout',
+  'workout_template_exercise',
+  'workout_exercise',
+  'workout_exercise_sets'
+];
+
 function toSqlLiteral(value: unknown) {
   if (value === null || value === undefined) return 'NULL';
   if (typeof value === 'number') return Number.isFinite(value) ? String(value) : 'NULL';
@@ -95,6 +117,7 @@ export async function initDB() {
   CREATE TABLE IF NOT EXISTS workout (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     id_workout_template INTEGER,
+    name TEXT,
     time_start TEXT DEFAULT CURRENT_TIMESTAMP,
     time_end TEXT,
     total_kg INTEGER,
@@ -523,6 +546,26 @@ export async function initDB() {
 
   `);
 
+    const workoutColumns = await db.query(`PRAGMA table_info("workout");`);
+    const hasWorkoutNameColumn = (workoutColumns.values || []).some(
+      (column: any) => String(column.name) === 'name'
+    );
+
+    if (!hasWorkoutNameColumn) {
+      await db.execute(`ALTER TABLE workout ADD COLUMN name TEXT;`);
+    }
+
+    await db.execute(`
+      UPDATE workout
+      SET name = (
+        SELECT wt.name
+        FROM workout_template wt
+        WHERE wt.id = workout.id_workout_template
+      )
+      WHERE name IS NULL
+        AND id_workout_template IS NOT NULL;
+    `);
+
     console.log("✅ Tables created");
 
     return db;
@@ -688,9 +731,10 @@ export async function startWorkoutFromTemplate(templateId: number) {
   if (!db) return;
 
   try {
+    const template = await getTemplateById(templateId);
     const result = await db.run(
-      `INSERT INTO workout (id_workout_template) VALUES (?)`,
-      [templateId]
+      `INSERT INTO workout (id_workout_template, name) VALUES (?, ?)`,
+      [templateId, template?.name || null]
     );
     const workoutId = result.changes?.lastId;
 
@@ -888,7 +932,7 @@ export async function getWorkouts() {
   const result = await db.query(`
     SELECT 
       w.id,
-      wt.name,
+      COALESCE(w.name, wt.name) AS name,
       w.time_start,
       w.time_end,
       w.total_kg
@@ -1057,7 +1101,7 @@ export async function getWorkoutsByTemplate() {
   const result = await db.query(`
     SELECT
       w.id,
-      wt.name,
+      COALESCE(w.name, wt.name) AS name,
       w.time_start,
       w.time_end,
       w.total_kg
@@ -1085,7 +1129,7 @@ export async function getWorkoutsByName(id:number) {
   const result = await db.query(`
     SELECT 
       w.id,
-      wt.name,
+      COALESCE(w.name, wt.name) AS name,
       w.time_start,
       w.time_end,
       w.total_kg
@@ -1175,9 +1219,13 @@ export async function exportDatabaseToSQL() {
     ''
   ];
 
-  for (const table of EXPORT_TABLES) {
-    // Data-only backup: clear current table data and reinsert rows.
+  for (const table of EXPORT_DELETE_TABLES) {
     lines.push(`DELETE FROM "${table}";`);
+  }
+
+  lines.push('');
+
+  for (const table of EXPORT_INSERT_TABLES) {
 
     const columnResult = await db.query(`PRAGMA table_info("${table}");`);
     const columns = (columnResult.values || []).map((column: any) => String(column.name));
@@ -1224,12 +1272,90 @@ export async function importDatabaseFromSQL(sqlContent: string) {
     return { success: false, message: 'No valid SQL statements found in file.' };
   }
 
+  const deleteOrder = [
+    'workout_exercise_sets',
+    'workout_exercise',
+    'workout_template_exercise',
+    'workout',
+    'workout_template',
+    'exercise',
+    'muscle_group',
+    'equipment'
+  ];
+
+  const insertOrder = [
+    'muscle_group',
+    'equipment',
+    'workout_template',
+    'exercise',
+    'workout',
+    'workout_template_exercise',
+    'workout_exercise',
+    'workout_exercise_sets'
+  ];
+
+  const deleteStatementsByTable = new Map<string, string>();
+  const insertStatementsByTable = new Map<string, string[]>();
+  const passthroughStatements: string[] = [];
+
+  const deleteStatementPattern = /^DELETE\s+FROM\s+"?([A-Za-z_]+)"?$/i;
+  const insertStatementPattern = /^INSERT\s+INTO\s+"?([A-Za-z_]+)"?\s*\(/i;
+
+  for (const statement of statements) {
+    const normalizedStatement = statement.trim().replace(/;$/, '');
+
+    if (/^PRAGMA\s+foreign_keys\s*=\s*(ON|OFF)$/i.test(normalizedStatement)) {
+      continue;
+    }
+
+    const deleteMatch = normalizedStatement.match(deleteStatementPattern);
+    if (deleteMatch) {
+      deleteStatementsByTable.set(deleteMatch[1].toLowerCase(), `${normalizedStatement};`);
+      continue;
+    }
+
+    const insertMatch = normalizedStatement.match(insertStatementPattern);
+    if (insertMatch) {
+      const tableName = insertMatch[1].toLowerCase();
+      const existingStatements = insertStatementsByTable.get(tableName) || [];
+      existingStatements.push(`${normalizedStatement};`);
+      insertStatementsByTable.set(tableName, existingStatements);
+      continue;
+    }
+
+    passthroughStatements.push(`${normalizedStatement};`);
+  }
+
+  const isStructuredBackup = deleteStatementsByTable.size > 0 || insertStatementsByTable.size > 0;
+
   try {
     await db.execute('PRAGMA foreign_keys = OFF;');
     await db.execute('BEGIN TRANSACTION;');
 
-    for (const statement of statements) {
-      await db.execute(`${statement};`);
+    if (isStructuredBackup) {
+      for (const table of deleteOrder) {
+        const deleteStatement = deleteStatementsByTable.get(table);
+        if (deleteStatement) {
+          await db.execute(deleteStatement);
+        }
+      }
+
+      for (const table of insertOrder) {
+        const tableStatements = insertStatementsByTable.get(table);
+        if (!tableStatements) continue;
+
+        for (const statement of tableStatements) {
+          await db.execute(statement);
+        }
+      }
+
+      for (const statement of passthroughStatements) {
+        await db.execute(statement);
+      }
+    } else {
+      for (const statement of statements) {
+        await db.execute(`${statement};`);
+      }
     }
 
     await db.execute('COMMIT;');
