@@ -166,13 +166,22 @@
 .rest-settings {
   display: flex;
   align-items: center;
-  gap: 4px;
-  background: rgba(255, 255, 255, 0.06);
-  padding: 4px 8px;
-  border-radius: 3px;
-  font-size: 0.8rem;
-  color: var(--ion-color-primary);
+  gap: 6px;
+  background: rgba(255, 255, 255, 0.12);
+  padding: 8px 12px;
+  border-radius: 999px;
+  font-size: 0.82rem;
+  color: var(--ion-color-light);
   cursor: pointer;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.18);
+  transition: transform 0.15s ease, background 0.15s ease, border-color 0.15s ease;
+}
+
+.rest-settings:active {
+  transform: scale(0.98);
+  background: rgba(255, 255, 255, 0.16);
+  border-color: rgba(255, 255, 255, 0.24);
 }
 .set{
   width: 100%;
@@ -281,13 +290,14 @@
   top: calc(env(safe-area-inset-top, 0px) + 56px);
   left: 0;
   right: 0;
-  background: rgba(20, 20, 20, 0.98);
+  background: linear-gradient(180deg, rgba(24, 24, 24, 0.98), rgba(14, 14, 14, 0.98));
   color: white;
-  padding: 16px;
+  padding: 16px 18px 14px;
   z-index: 9999;
   border-bottom-left-radius: 16px;
   border-bottom-right-radius: 16px;
-  box-shadow: 0 6px 18px rgba(0,0,0,0.45);
+  box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 .rest-timer-content {
@@ -316,11 +326,17 @@
   display: flex;
   align-items: center;
   gap: 8px;
+  flex-wrap: wrap;
 }
 
 .skip-btn {
   --border-radius: 8px;
   font-weight: bold;
+}
+
+.rest-timer-controls ion-button {
+  --border-radius: 999px;
+  font-family: Doto;
 }
 
 .rest-progress-bar {
@@ -358,12 +374,13 @@
 
 </style>
 <script setup lang="ts">
-import { IonPage, IonHeader, IonToolbar, IonTitle, IonContent,IonButtons,IonButton,IonCard,IonCardHeader,IonCardContent,IonCheckbox,IonInput,IonCardTitle,onIonViewWillEnter,onIonViewDidEnter, alertController, IonIcon, IonItemSliding, IonItemOptions, IonItemOption, IonItem } from '@ionic/vue';
+import { IonPage, IonHeader, IonToolbar, IonTitle, IonContent,IonButtons,IonButton,IonCard,IonCardHeader,IonCardContent,IonCheckbox,IonInput,IonCardTitle,onIonViewWillEnter,onIonViewDidEnter, alertController, IonIcon, IonItemSliding, IonItemOptions, IonItemOption, IonItem, modalController } from '@ionic/vue';
 import { ref, onUnmounted, computed } from 'vue';
 import { useRouter,useRoute } from 'vue-router';
 import { addCircleOutline, addOutline, timerOutline, chevronUpOutline, chevronDownOutline } from 'ionicons/icons';
 import type { WorkoutExercise, WorkoutExerciseSet, LatestCompletedSet, Workout } from '@/types/models';
 import { normalizeDateInput } from '@/utils/timeFormat';
+import TimerDial from '@/components/TimerDial.vue';
 
 import { getWorkoutExercises,getWorkoutSets,updateWorkoutSet,getWorkoutById,endWorkout,cancelWorkout, addSetToWorkoutExercise, getNextSetNumber, deleteWorkoutSet, deleteWorkoutExercise, getLatestCompletedSetsForExercise, getLatestCompletedSetDefaultsForExercise, updateWorkoutExerciseOrder } from '@/services/gym_db';
 
@@ -453,39 +470,60 @@ const handleSetChange = async (exercise: any, set: any, event?: CustomEvent) => 
 };
 
 const editRestTime = async (exercise: any) => {
+  const modal = await modalController.create({
+    component: TimerDial,
+    componentProps: {
+      initialValue: exercise.rest_seconds || 60
+    },
+    cssClass: 'timer-dial-modal',
+    breakpoints: [0, 0.5, 1],
+    initialBreakpoint: 0.9,
+  });
+
+  await modal.present();
+
+  const { data, role } = await modal.onDidDismiss();
+  
+  if (role === 'confirm' && data !== undefined) {
+    exercise.rest_seconds = data;
+  }
+};
+
+modalController.onDidDismiss = function() {
+  return Promise.resolve({ data: undefined, role: 'cancel' });
+};
+
+const saveWorkout = async () => {
   const alert = await alertController.create({
-    header: 'Set Rest Time',
-    inputs: [
-      {
-        name: 'restSeconds',
-        type: 'number',
-        placeholder: 'Seconds',
-        value: exercise.rest_seconds
-      }
-    ],
+    header: 'End Workout?',
+    message: 'This will save the workout and return you to the home screen.',
+    cssClass: 'app-confirm-alert',
     buttons: [
       { text: 'Cancel', role: 'cancel' },
       {
-        text: 'Save',
-        handler: (data) => {
-          exercise.rest_seconds = parseInt(data.restSeconds) || 60;
+        text: 'End Workout',
+        role: 'destructive',
+        handler: async () => {
+          await endWorkout(workoutId);
+          if (interval) clearInterval(interval);
+          interval = null;
+          if (restInterval) clearInterval(restInterval);
+          restInterval = null;
+          sessionStorage.removeItem('restTimer');
+          router.push('/tabs/Home');
         }
       }
     ]
   });
+
   await alert.present();
-};
-
-const saveWorkout = async ()=>{
-  await endWorkout(workoutId);
-
-  router.push('/tabs/Home');
 };
 
 const handleCancelWorkout = async () => {
   const alert = await alertController.create({
     header: 'Cancel Workout?',
     message: 'Are you sure you want to cancel? This workout will not be saved.',
+    cssClass: 'app-confirm-alert',
     buttons: [
       { text: 'No', role: 'cancel' },
       {
@@ -508,6 +546,7 @@ const handleRemoveSet = async (workoutExerciseId: number, setId: number) => {
   const alert = await alertController.create({
     header: 'Remove Set?',
     message: 'This will remove only this set from the exercise.',
+    cssClass: 'app-confirm-alert',
     buttons: [
       { text: 'Cancel', role: 'cancel' },
       {
