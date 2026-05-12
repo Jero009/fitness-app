@@ -6,7 +6,17 @@
     </div>
 
     <div class="dial-wrapper">
-      <svg class="dial-svg" viewBox="0 0 300 300" @mousemove="handleMouseMove" @mouseleave="handleMouseLeave" @mouseup="handleMouseUp">
+      <svg 
+        class="dial-svg" 
+        viewBox="0 0 300 300" 
+        @mousedown="handleMouseDown"
+        @mousemove="handleMouseMove" 
+        @mouseleave="handleMouseLeave" 
+        @mouseup="handleMouseUp"
+        @touchstart="handleTouchStart"
+        @touchmove="handleTouchMove"
+        @touchend="handleTouchEnd"
+      >
         <!-- Background circle -->
         <circle cx="150" cy="150" r="140" class="dial-bg" />
         
@@ -28,14 +38,14 @@
         </g>
 
         <!-- Pointer/Handle -->
-        <circle 
-          cx="150" 
-          cy="50" 
-          r="12" 
-          class="pointer"
-          @mousedown="handleMouseDown"
-          :style="{ transform: `rotate(${rotation}deg) translateY(-100px)` }"
-        />
+        <g :transform="`rotate(${rotation} 150 150)`">
+          <circle 
+            cx="150" 
+            cy="30" 
+            r="12" 
+            class="pointer"
+          />
+        </g>
         
         <!-- Center circle -->
         <circle cx="150" cy="150" r="15" class="center-circle" />
@@ -121,14 +131,52 @@ const handleMouseDown = () => {
 
 const handleMouseMove = (event: MouseEvent) => {
   if (!isDragging.value) return;
+  event.preventDefault();
+  event.stopPropagation();
 
   const svg = event.currentTarget as SVGElement;
+  updateWheelValue(svg, event.clientX, event.clientY);
+};
+
+const handleMouseUp = () => {
+  isDragging.value = false;
+};
+
+const handleMouseLeave = () => {
+  isDragging.value = false;
+};
+
+const handleTouchStart = (event: TouchEvent) => {
+  if (event.touches.length > 0) {
+    isDragging.value = true;
+    event.preventDefault();
+    event.stopPropagation();
+  }
+};
+
+const handleTouchMove = (event: TouchEvent) => {
+  if (!isDragging.value || event.touches.length === 0) return;
+  event.preventDefault();
+  event.stopPropagation();
+
+  const svg = event.currentTarget as SVGElement;
+  const touch = event.touches[0];
+  updateWheelValue(svg, touch.clientX, touch.clientY);
+};
+
+const handleTouchEnd = (event: TouchEvent) => {
+  isDragging.value = false;
+  event.preventDefault();
+  event.stopPropagation();
+};
+
+const updateWheelValue = (svg: SVGElement, clientX: number, clientY: number) => {
   const rect = svg.getBoundingClientRect();
   const centerX = rect.left + rect.width / 2;
   const centerY = rect.top + rect.height / 2;
 
-  const x = event.clientX - centerX;
-  const y = event.clientY - centerY;
+  const x = clientX - centerX;
+  const y = clientY - centerY;
 
   // Calculate angle from center
   let angle = Math.atan2(y, x) * (180 / Math.PI);
@@ -139,14 +187,6 @@ const handleMouseMove = (event: MouseEvent) => {
   const newValue = Math.round((angle / 360) * 600);
   value.value = Math.max(1, Math.min(600, newValue));
   inputValue.value = value.value;
-};
-
-const handleMouseUp = () => {
-  isDragging.value = false;
-};
-
-const handleMouseLeave = () => {
-  isDragging.value = false;
 };
 
 const updateFromInput = () => {
@@ -174,6 +214,8 @@ defineExpose({
   display: flex;
   flex-direction: column;
   gap: 24px;
+  touch-action: none;
+  overflow: hidden;
 }
 
 .dial-header {
@@ -200,6 +242,7 @@ defineExpose({
   flex-direction: column;
   align-items: center;
   gap: 20px;
+  touch-action: none;
 }
 
 .dial-svg {
@@ -207,6 +250,9 @@ defineExpose({
   height: 280px;
   cursor: grab;
   user-select: none;
+  touch-action: none;
+  pointer-events: auto;
+  display: block;
 }
 
 .dial-svg:active {
@@ -252,7 +298,6 @@ defineExpose({
   stroke-width: 2;
   cursor: grab;
   box-shadow: 0 0 8px rgba(255, 195, 0, 0.3);
-  transform-origin: 150px 150px;
   transition: filter 0.1s ease;
 }
 

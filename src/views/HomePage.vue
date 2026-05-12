@@ -80,8 +80,13 @@
 
               <div class="active-card__body">
                 <div class="active-card__timer">
-                  <span>Timer</span>
+                  <span>Workout</span>
                   <strong>{{ formatWorkoutTimer() }}</strong>
+                </div>
+
+                <div v-if="activeRestTimer.isActive" class="active-card__timer active-card__timer--rest">
+                  <span>Rest</span>
+                  <strong>{{ formatRestTime(activeRestTimer.remaining) }}</strong>
                 </div>
               </div>
             </ion-card>
@@ -140,6 +145,12 @@ import { formatDuration, formatTime, normalizeDateInput, formatWorkoutDate, toTi
 
 
 const activeWorkout = ref(false);
+const activeRestTimer = ref({
+  isActive: false,
+  remaining: 0,
+  total: 0
+});
+let activeRestInterval: ReturnType<typeof setInterval> | null = null;
 
 // routing
 const router = useRouter();
@@ -234,6 +245,72 @@ const weeklyGoalDots = computed(() => {
   return Array.from({ length: weeklyWorkoutGoal.value }, (_, index) => index + 1);
 });
 
+const formatRestTime = (seconds: number) => {
+  const mins = Math.floor(seconds / 60);
+  const secs = seconds % 60;
+  return `${mins}:${String(secs).padStart(2, '0')}`;
+};
+
+const clearActiveRestTimer = (removeStorage = false) => {
+  if (activeRestInterval) {
+    clearInterval(activeRestInterval);
+    activeRestInterval = null;
+  }
+
+  activeRestTimer.value.isActive = false;
+  activeRestTimer.value.remaining = 0;
+  activeRestTimer.value.total = 0;
+
+  if (removeStorage) {
+    sessionStorage.removeItem('restTimer');
+  }
+};
+
+const restoreActiveRestTimer = () => {
+  const savedTimer = sessionStorage.getItem('restTimer');
+
+  if (!savedTimer) {
+    clearActiveRestTimer();
+    return;
+  }
+
+  try {
+    const parsedTimer = JSON.parse(savedTimer);
+    const total = Math.max(1, Number(parsedTimer.total) || Number(parsedTimer.remaining) || 0);
+    const endTime = Number(parsedTimer.endTime);
+
+    if (!Number.isFinite(endTime)) {
+      clearActiveRestTimer(true);
+      return;
+    }
+
+    if (activeRestInterval) {
+      clearInterval(activeRestInterval);
+      activeRestInterval = null;
+    }
+
+    activeRestTimer.value.isActive = true;
+    activeRestTimer.value.total = total;
+
+    const syncRestTimer = () => {
+      const remaining = Math.max(0, Math.ceil((endTime - Date.now()) / 1000));
+      activeRestTimer.value.remaining = remaining;
+
+      if (remaining <= 0) {
+        clearActiveRestTimer(true);
+      }
+    };
+
+    syncRestTimer();
+
+    if (activeRestTimer.value.isActive) {
+      activeRestInterval = setInterval(syncRestTimer, 1000);
+    }
+  } catch {
+    clearActiveRestTimer(true);
+  }
+};
+
 
 
 
@@ -248,10 +325,12 @@ const loadActiveWorkout = async () => {
     startTime.value = normalizeDateInput(workout.time_start);
     startTimer();
     activeWorkout.value = true;
+    restoreActiveRestTimer();
   } else {
     startTime.value = null;
     seconds.value = 0;
     activeWorkout.value = false;
+    clearActiveRestTimer(true);
     clearTimer();
   }
 };
@@ -413,6 +492,7 @@ onIonViewWillEnter(async () => {
 
 onUnmounted(() => {
   clearTimer();
+  clearActiveRestTimer();
   if (chart) chart.destroy();
 });
 
@@ -522,6 +602,10 @@ ion-content.home-content {
 .active-card__timer strong {
   display: block;
   font-size: 1rem;
+}
+
+.active-card__timer--rest {
+  background: rgba(255, 255, 255, 0.12);
 }
 
 .weekly-goal-panel {
@@ -684,6 +768,10 @@ ion-content.home-content {
   .active-card__body {
     grid-template-columns: 1.1fr 0.9fr;
     align-items: end;
+  }
+
+  .active-card__body {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .summary-card__body {

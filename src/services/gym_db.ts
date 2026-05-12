@@ -692,6 +692,22 @@ export async function renameExercise(id: number, newName: string) {
   }
 }
 
+export async function updateExerciseRestSeconds(id: number, restSeconds: number) {
+  if (!db) return;
+
+  try {
+    const result = await db.run(
+      `UPDATE exercise SET rest_seconds = ? WHERE id = ?`,
+      [restSeconds, id]
+    );
+
+    return result;
+  } catch (error) {
+    console.error('Error updating exercise rest seconds:', error);
+    throw error;
+  }
+}
+
 export async function getExercises() {
   if (!db) return [];
 
