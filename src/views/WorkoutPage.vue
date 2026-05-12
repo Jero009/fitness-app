@@ -128,20 +128,36 @@
   margin-left: 10px;
 }
 .btn-quickstart {
-  --background: var(--ion-color-accent-red);        
-  --background-activated: var(--ion-color-accent-yellow); 
-  --color: var(--ion-color-light);                                 
-  --color-activated: var(--ion-color-dark);                       
+  --background: var(--ion-color-accent-red);
+  --background-activated: var(--ion-color-accent-yellow);
+  --color: var(--ion-color-light);
+  --color-activated: var(--ion-color-dark);
   border-radius: 3px;
   padding: 0 16px;
 }
 /* exercise cards */
 .exercise-card{
   width: 100%;
-  margin: 20px auto ;
+  margin: 20px auto;
   background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  box-shadow: none;
+  border: 2px solid rgba(255, 255, 255, 0.12);
+  box-shadow: 0 0 0 rgba(255, 215, 0, 0.3), inset 0 0 12px rgba(0, 0, 0, 0.4);
+  transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+  position: relative;
+}
+
+.exercise-card:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 215, 0, 0.6);
+  box-shadow: 0 0 20px rgba(255, 215, 0, 0.4), inset 0 0 20px rgba(255, 215, 0, 0.08);
+  transform: translateY(-4px) scale(1.01);
+}
+
+.exercise-card:active {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: var(--ion-color-accent-yellow);
+  box-shadow: 0 0 30px rgba(255, 215, 0, 0.6), inset 0 0 30px rgba(255, 215, 0, 0.15);
+  transform: translateY(-6px) scale(1.02);
 }
 
 .exercise-sliding-item {
@@ -382,7 +398,7 @@ import type { WorkoutExercise, WorkoutExerciseSet, LatestCompletedSet, Workout }
 import { normalizeDateInput } from '@/utils/timeFormat';
 import TimerDial from '@/components/TimerDial.vue';
 
-import { getWorkoutExercises,getWorkoutSets,updateWorkoutSet,getWorkoutById,endWorkout,cancelWorkout, addSetToWorkoutExercise, getNextSetNumber, deleteWorkoutSet, deleteWorkoutExercise, getLatestCompletedSetsForExercise, getLatestCompletedSetDefaultsForExercise, updateWorkoutExerciseOrder } from '@/services/gym_db';
+import { getWorkoutExercises,getWorkoutSets,updateWorkoutSet,getWorkoutById,endWorkout,cancelWorkout, addSetToWorkoutExercise, getNextSetNumber, deleteWorkoutSet, deleteWorkoutExercise, getLatestCompletedSetsForExercise, getLatestCompletedSetDefaultsForExercise, updateWorkoutExerciseOrder, updateExerciseRestSeconds } from '@/services/gym_db';
 
 const router = useRouter();
 // id from route
@@ -485,12 +501,9 @@ const editRestTime = async (exercise: any) => {
   const { data, role } = await modal.onDidDismiss();
   
   if (role === 'confirm' && data !== undefined) {
-    exercise.rest_seconds = data;
+    exercise.rest_seconds = Number(data);
+    await updateExerciseRestSeconds(Number(exercise.exercise_id), Number(data));
   }
-};
-
-modalController.onDidDismiss = function() {
-  return Promise.resolve({ data: undefined, role: 'cancel' });
 };
 
 const saveWorkout = async () => {
@@ -801,8 +814,7 @@ const onSkipRestTimer = (event: Event) => {
 
 const adjustRestTimer = (seconds: number) => {
   restTimer.value.remaining = Math.max(0, restTimer.value.remaining + seconds);
-  // Also adjust total if we want the progress bar to reflect the new time relative to something
-  // But usually adjusting remaining is enough.
+  saveTimerState();
 };
 
 const formatRestTime = (seconds: number) => {

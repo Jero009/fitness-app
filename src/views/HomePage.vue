@@ -552,7 +552,20 @@ ion-content.home-content {
 
 
 .active-card {
-  background: var(--ion-color-accent-yellow);
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.02));
+  border: 2px solid rgba(255, 215, 0, 0.3);
+  position: relative;
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.active-card:hover {
+  border-color: rgba(255, 215, 0, 0.5);
+}
+
+.active-card:active {
+  border-color: var(--ion-color-accent-yellow);
+  transform: scale(0.98);
 }
 
 .card-topline,
@@ -604,8 +617,16 @@ ion-content.home-content {
   font-size: 1rem;
 }
 
+.active-card__timer strong {
+  color: var(--ion-color-accent-yellow);
+  font-weight: 700;
+  text-shadow: 0 0 8px rgba(255, 215, 0, 0.3);
+  font-family: 'Doto', sans-serif;
+}
+
 .active-card__timer--rest {
-  background: rgba(255, 255, 255, 0.12);
+  background: rgba(255, 215, 0, 0.1);
+  border: 1px solid rgba(255, 215, 0, 0.3);
 }
 
 .weekly-goal-panel {
