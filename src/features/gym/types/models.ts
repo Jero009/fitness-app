@@ -89,3 +89,27 @@ export interface SetDefaults {
   reps: number;
   weight: number;
 }
+
+export interface ExercisePR {
+  id: number;
+  exercise_id: number;
+  pr_weight: number;
+  pr_reps: number;
+  one_rep_max: number;
+  date_achieved: string;
+  workout_id?: number;
+}
+
+export interface ExerciseStats {
+  exercise_id: number;
+  exercise_name: string;
+  pr: ExercisePR | null;
+  history: WorkoutExerciseSet[];
+}
+
+export interface ExerciseHistoryPoint {
+  date: string;
+  weight: number;
+  reps: number;
+  volume: number;
+}

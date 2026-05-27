@@ -134,14 +134,14 @@
 </template>
 
 <script setup lang="ts">
-import { IonPage, IonHeader, IonToolbar, IonTitle, IonContent, IonCard, IonCardHeader, IonCardSubtitle, IonCardContent, IonCardTitle, onIonViewWillEnter, IonIcon, IonSelect, IonSelectOption } from '@ionic/vue';
-import { getTemplates, startWorkoutFromTemplate, getActiveWorkout, getLatestWorkout, getWorkouts, getWorkoutsByName } from '@/services/gym_db';
+import { IonPage, IonHeader, IonToolbar, IonTitle, IonContent, IonCard, onIonViewWillEnter, IonIcon, IonSelect, IonSelectOption } from '@ionic/vue';
+import { getTemplates, startWorkoutFromTemplate, getActiveWorkout, getLatestWorkout, getWorkouts, getWorkoutsByName } from '@/features/gym/services/gym_db';
 import { ref, onMounted, onUnmounted,computed,watch } from 'vue';
 import { barbellSharp } from 'ionicons/icons';
 import { useRouter } from 'vue-router';
 import {Chart,LineController,LineElement,PointElement,LinearScale,CategoryScale} from 'chart.js';
-import type { WorkoutTemplate, Workout, WorkoutHistory } from '@/types/models';
-import { formatDuration, formatTime, normalizeDateInput, formatWorkoutDate, toTimestamp } from '@/utils/timeFormat';
+import type { WorkoutTemplate, Workout, WorkoutHistory } from '@/features/gym/types/models';
+import { formatDuration, normalizeDateInput, formatWorkoutDate } from '@/shared/utils/timeFormat';
 
 
 const activeWorkout = ref(false);

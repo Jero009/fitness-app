@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'vitest'
-import { formatDuration, formatTime } from '@/utils/timeFormat'
+import { formatDuration, formatTime } from '@/shared/utils/timeFormat'
 
 describe('timeFormat utils', () => {
   test('formats hh:mm:ss values correctly', () => {

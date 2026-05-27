@@ -5,7 +5,7 @@ import router from './router'
 import { IonicVue } from '@ionic/vue'
 
 // ✅ DB
-import { initDB } from '@/services/gym_db'
+import { initDB } from '@/features/gym/services/gym_db'
 
 /* Core CSS */
 import '@ionic/vue/css/core.css'

@@ -141,23 +141,21 @@
   margin: 20px auto;
   background: rgba(255, 255, 255, 0.04);
   border: 2px solid rgba(255, 255, 255, 0.12);
-  box-shadow: 0 0 0 rgba(255, 215, 0, 0.3), inset 0 0 12px rgba(0, 0, 0, 0.4);
-  transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.18);
+  transition: transform 0.12s ease, background 0.12s ease;
   position: relative;
 }
 
 .exercise-card:hover {
-  background: rgba(255, 255, 255, 0.08);
-  border-color: rgba(255, 215, 0, 0.6);
-  box-shadow: 0 0 20px rgba(255, 215, 0, 0.4), inset 0 0 20px rgba(255, 215, 0, 0.08);
-  transform: translateY(-4px) scale(1.01);
+  background: rgba(255, 255, 255, 0.07);
+  border-color: rgba(255, 255, 255, 0.14);
+  transform: translateY(-2px);
 }
 
 .exercise-card:active {
-  background: rgba(255, 255, 255, 0.12);
-  border-color: var(--ion-color-accent-yellow);
-  box-shadow: 0 0 30px rgba(255, 215, 0, 0.6), inset 0 0 30px rgba(255, 215, 0, 0.15);
-  transform: translateY(-6px) scale(1.02);
+  background: rgba(255, 255, 255, 0.10);
+  border-color: rgba(255, 255, 255, 0.16);
+  transform: translateY(0);
 }
 
 .exercise-sliding-item {
@@ -394,11 +392,11 @@ import { IonPage, IonHeader, IonToolbar, IonTitle, IonContent,IonButtons,IonButt
 import { ref, onUnmounted, computed } from 'vue';
 import { useRouter,useRoute } from 'vue-router';
 import { addCircleOutline, addOutline, timerOutline, chevronUpOutline, chevronDownOutline } from 'ionicons/icons';
-import type { WorkoutExercise, WorkoutExerciseSet, LatestCompletedSet, Workout } from '@/types/models';
-import { normalizeDateInput } from '@/utils/timeFormat';
-import TimerDial from '@/components/TimerDial.vue';
+import type { WorkoutExercise } from '@/features/gym/types/models';
+import { normalizeDateInput } from '@/shared/utils/timeFormat';
+import TimerDial from '@/features/gym/components/TimerDial.vue';
 
-import { getWorkoutExercises,getWorkoutSets,updateWorkoutSet,getWorkoutById,endWorkout,cancelWorkout, addSetToWorkoutExercise, getNextSetNumber, deleteWorkoutSet, deleteWorkoutExercise, getLatestCompletedSetsForExercise, getLatestCompletedSetDefaultsForExercise, updateWorkoutExerciseOrder, updateExerciseRestSeconds } from '@/services/gym_db';
+import { getWorkoutExercises,getWorkoutSets,updateWorkoutSet,getWorkoutById,endWorkout,cancelWorkout, addSetToWorkoutExercise, getNextSetNumber, deleteWorkoutSet, deleteWorkoutExercise, getLatestCompletedSetsForExercise, updateWorkoutExerciseOrder, updateExerciseRestSeconds } from '@/features/gym/services/gym_db';
 
 const router = useRouter();
 // id from route

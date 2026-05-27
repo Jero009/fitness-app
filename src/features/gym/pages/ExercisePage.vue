@@ -71,15 +71,19 @@
                   </ion-select>
 
                   <ion-list class="exercise-list" lines="none">
-                    <ion-item class="exercise-item" v-for="ex in filteredExercises" :key="ex.id" lines="none">
+                    <ion-item class="exercise-item" v-for="ex in filteredExercises" :key="ex.id" lines="none" @click="viewExerciseDetail(ex.id)">
                       <div class="exercise-item__content">
                         <div class="exercise-item__name">{{ ex.name }}</div>
                         <div class="exercise-item__meta">
                           <span>{{ ex.muscle_group }}</span>
                           <span>{{ ex.equipment }}</span>
                         </div>
+                        <div v-if="exercisePRs[ex.id]" class="exercise-item__pr">
+                          <span class="pr-badge">PR: {{ exercisePRs[ex.id].pr_weight }} kg</span>
+                          <span class="pr-badge">1RM: {{ exercisePRs[ex.id].one_rep_max }} kg</span>
+                        </div>
                       </div>
-                      <ion-button class="button-yellow exercise-item__action" slot="end" @click="renameEx(ex)">Rename</ion-button>
+                      <ion-button class="button-yellow exercise-item__action" slot="end" @click.stop="renameEx(ex)">Rename</ion-button>
                     </ion-item>
                   </ion-list>
                 </div>
@@ -157,6 +161,12 @@
   --min-height: 76px;
   border: 1px solid rgba(255, 255, 255, 0.06);
   border-radius: 14px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.exercise-item:active {
+  background-color: rgba(255, 215, 0, 0.1);
 }
 
 .exercise-item__content {
@@ -189,6 +199,24 @@
 
 .exercise-item__action {
   margin-left: 12px;
+}
+
+.exercise-item__pr {
+  display: flex;
+  gap: 8px;
+  margin-top: 6px;
+  flex-wrap: wrap;
+}
+
+.pr-badge {
+  background: rgba(255, 215, 0, 0.2);
+  color: var(--ion-color-accent-yellow);
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
 .modal-form {
@@ -230,8 +258,9 @@ import { IonPage, IonHeader, IonToolbar, IonTitle, IonContent, IonItem, IonButto
    IonRefresher, IonRefresherContent, RefresherCustomEvent, alertController, IonSelect, IonSelectOption } from '@ionic/vue';
 import { add} from 'ionicons/icons'
 import { ref,onMounted,computed  } from 'vue';
-import type { Exercise, MuscleGroup, Equipment } from '@/types/models';
-import { addExercise, getExercises,renameExercise,getMuscleGroups, getEquipment } from '@/services/gym_db'
+import type { Exercise, MuscleGroup, Equipment } from '@/features/gym/types/models';
+import { addExercise, getExercises,renameExercise,getMuscleGroups, getEquipment, getExercisePR } from '@/features/gym/services/gym_db';
+import { useRouter } from 'vue-router';
 
 //creqating exercise modal
     const isOpen = ref(false);
@@ -239,8 +268,10 @@ import { addExercise, getExercises,renameExercise,getMuscleGroups, getEquipment 
     const muscleGroup = ref('')
     const equipment = ref('')
 
+const router = useRouter();
 const exercises = ref<Exercise[]>([])
 const selectedMuscleGroup = ref('');
+const exercisePRs = ref<Record<number, any>>({});
 
 //modal opening 
 
@@ -266,11 +297,24 @@ const confirm = async () => {
 };
 
 
+// Load PRs for all exercises
+const loadExercisePRs = async () => {
+  const prMap: Record<number, any> = {};
+  for (const ex of exercises.value) {
+    const pr = await getExercisePR(ex.id);
+    if (pr) {
+      prMap[ex.id] = pr;
+    }
+  }
+  exercisePRs.value = prMap;
+};
+
 // get exercises from db
 
 const LoadExercises = async () =>{
   const data = await getExercises();
   exercises.value = data;
+  await loadExercisePRs();
   
 };
 // get muscle group and equipment for select options
@@ -289,6 +333,16 @@ const filteredExercises = computed(() => {
 });
 
 
+
+
+
+// Navigate to exercise detail page
+const viewExerciseDetail = (exerciseId: number) => {
+  router.push({
+    name: 'ExerciseDetail',
+    params: { id: exerciseId.toString() }
+  });
+};
 
 
 
