@@ -67,7 +67,7 @@
         </ion-content>
   </ion-page>
 </template>
-<style>
+<style scoped>
 .exercise-item {
   margin: 10px auto ;
   width: 100%;
@@ -264,7 +264,6 @@ onIonViewWillEnter(() => {
   }
 });
 </script>
-
 
 
 

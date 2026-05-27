@@ -60,7 +60,7 @@
         </ion-content>
   </ion-page>
 </template>
-<style>
+<style scoped>
 .card-template{
   margin: 10px auto ;
   width: 90%;
