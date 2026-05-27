@@ -33,7 +33,7 @@
         <g class="tick-marks">
           <g v-for="i in 12" :key="`tick-${i}`" :transform="`rotate(${(i-1) * 30} 150 150)`">
             <line x1="150" y1="25" x2="150" y2="35" class="tick" />
-            <text x="150" y="50" class="tick-label">{{ (i-1) * 5 }}</text>
+            <text x="150" y="50" class="tick-label">{{ (i-1) * 20 }}</text>
           </g>
         </g>
 
@@ -57,7 +57,7 @@
           v-model.number="inputValue" 
           type="number" 
           min="1" 
-          max="600"
+          max="240"
           class="time-input"
           @change="updateFromInput"
           @keydown.enter="handleConfirm"
@@ -70,7 +70,7 @@
       <button 
         v-for="preset in presets" 
         :key="preset" 
-        @click="value = preset"
+        @click="setPreset(preset)"
         class="preset-btn"
         :class="{ active: value === preset }"
       >
@@ -92,19 +92,31 @@
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue';
 import { IonButton, modalController } from '@ionic/vue';
+import { Capacitor } from '@capacitor/core';
+import { Haptics } from '@capacitor/haptics';
 
 interface Props {
   initialValue?: number;
 }
 
+const MAX_SECONDS = 240;
+const HAPTIC_INTERVAL_MS = 60;
+
 const props = withDefaults(defineProps<Props>(), {
   initialValue: 60
 });
 
-const value = ref(props.initialValue);
-const inputValue = ref(props.initialValue);
+const clampSeconds = (rawValue: number) => {
+  const numericValue = Number(rawValue);
+  const safeValue = Number.isFinite(numericValue) ? numericValue : 1;
+  return Math.max(1, Math.min(MAX_SECONDS, Math.round(safeValue)));
+};
+
+const value = ref(clampSeconds(props.initialValue));
+const inputValue = ref(clampSeconds(props.initialValue));
 const isDragging = ref(false);
-const presets = [15, 30, 45, 60, 90, 120];
+const presets = [15, 30, 45, 60, 90, 120, 180, 240];
+const lastHapticAt = ref(0);
 
 const handleConfirm = async () => {
   await modalController.dismiss(value.value, 'confirm');
@@ -115,14 +127,14 @@ const handleCancel = async () => {
 };
 
 const rotation = computed(() => {
-  // Map 1-600 seconds to 0-360 degrees
-  return (value.value / 600) * 360;
+  // Map 1-240 seconds to 0-360 degrees
+  return (value.value / MAX_SECONDS) * 360;
 });
 
 const arcLength = computed(() => {
   // Calculate the arc length for the progress circle
   // SVG circle with r=130, circumference = 2π * 130 ≈ 816.8
-  return (value.value / 600) * (Math.PI * 260);
+  return (value.value / MAX_SECONDS) * (Math.PI * 260);
 });
 
 const handleMouseDown = () => {
@@ -183,22 +195,37 @@ const updateWheelValue = (svg: SVGElement, clientX: number, clientY: number) => 
   // Convert so 0 degrees is at top (12 o'clock)
   angle = (angle + 90 + 360) % 360;
 
-  // Map angle (0-360) to seconds (1-600)
-  const newValue = Math.round((angle / 360) * 600);
-  value.value = Math.max(1, Math.min(600, newValue));
+  // Map angle (0-360) to seconds (1-240)
+  const newValue = Math.round((angle / 360) * MAX_SECONDS);
+  value.value = clampSeconds(newValue);
   inputValue.value = value.value;
 };
 
 const updateFromInput = () => {
-  const numValue = Math.max(1, Math.min(600, inputValue.value || 1));
+  const numValue = clampSeconds(inputValue.value || 1);
   value.value = numValue;
   inputValue.value = numValue;
 };
 
 watch(() => props.initialValue, (newValue) => {
-  value.value = newValue;
-  inputValue.value = newValue;
+  const clampedValue = clampSeconds(newValue);
+  value.value = clampedValue;
+  inputValue.value = clampedValue;
 });
+
+watch(value, () => {
+  const now = Date.now();
+  if (now - lastHapticAt.value < HAPTIC_INTERVAL_MS) return;
+  if (!Capacitor.isNativePlatform()) return;
+  lastHapticAt.value = now;
+  void Haptics.selectionChanged();
+});
+
+const setPreset = (presetValue: number) => {
+  const clampedValue = clampSeconds(presetValue);
+  value.value = clampedValue;
+  inputValue.value = clampedValue;
+};
 
 defineExpose({
   getValue: () => value.value
