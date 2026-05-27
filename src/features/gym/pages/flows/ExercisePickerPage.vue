@@ -119,7 +119,7 @@ import {
   addExerciseToWorkout,
   getNextWorkoutOrderIndex,
   getLatestCompletedSetDefaultsForExercise
-} from '@/features/gym/services/gym_db';
+} from '@/shared/db/app_db';
 import { useRouter, useRoute } from 'vue-router';
 
 const router = useRouter();

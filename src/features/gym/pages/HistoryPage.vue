@@ -175,7 +175,7 @@ ion-content.home-content {
 <script setup lang="ts">
 import { IonPage, IonHeader, IonToolbar, IonTitle, IonContent,IonCard,IonCardHeader,IonCardContent,IonCardSubtitle,IonCardTitle,IonList,IonItem, 
 IonRefresher, IonRefresherContent, RefresherCustomEvent, onIonViewWillEnter, IonButton, alertController, toastController, IonButtons, IonIcon } from '@ionic/vue';
-import { getWorkouts,getWorkoutHistoryExercises, cancelWorkout, exportDatabaseToSQL, importDatabaseFromSQL } from '@/features/gym/services/gym_db'
+import { getWorkouts,getWorkoutHistoryExercises, cancelWorkout, exportDatabaseToSQL, importDatabaseFromSQL } from '@/shared/db/app_db'
 import { onMounted ,ref} from 'vue';
 import type { WorkoutHistory, WorkoutHistoryExercise } from '@/features/gym/types/models';
 import { cloudUploadOutline, downloadOutline } from 'ionicons/icons';

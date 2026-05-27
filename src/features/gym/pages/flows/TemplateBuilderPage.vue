@@ -94,7 +94,7 @@ import { IonPage, IonHeader, IonToolbar, IonTitle, IonContent, IonItem, IonButto
 import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import Draggable from 'vuedraggable';
-import { createTemplate, getExercises, addExerciseToTemplate } from '@/features/gym/services/gym_db';
+import { createTemplate, getExercises, addExerciseToTemplate } from '@/shared/db/app_db';
 
 const router = useRouter();
 
@@ -264,6 +264,5 @@ onIonViewWillEnter(() => {
   }
 });
 </script>
-
 
 

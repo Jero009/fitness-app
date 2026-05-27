@@ -86,7 +86,7 @@ import { IonPage, IonHeader, IonToolbar, IonTitle, IonContent, IonItem, IonButto
 import { ref } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import Draggable from 'vuedraggable';
-import { getTemplateById, getTemplateExercisesByTemplateId, renameTemplate, editTemplateExercises, addExerciseToTemplate, deleteTemplateExercise } from '@/features/gym/services/gym_db';
+import { getTemplateById, getTemplateExercisesByTemplateId, renameTemplate, editTemplateExercises, addExerciseToTemplate, deleteTemplateExercise } from '@/shared/db/app_db';
 
 const router = useRouter();
 const route = useRoute();

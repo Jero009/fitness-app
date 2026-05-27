@@ -1008,7 +1008,7 @@ export async function saveWorkoutTotalKg(workoutId: number,) {
   return result;
 }
 
-// In your gym_db.ts
+// In your app_db.ts
 export async function hasActiveWorkout() {
   if (!db) return false;
   const result = await db.query('SELECT id FROM workout WHERE time_end IS NULL LIMIT 1');

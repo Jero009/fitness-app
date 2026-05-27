@@ -135,7 +135,7 @@
 
 <script setup lang="ts">
 import { IonPage, IonHeader, IonToolbar, IonTitle, IonContent, IonCard, onIonViewWillEnter, IonIcon, IonSelect, IonSelectOption } from '@ionic/vue';
-import { getTemplates, startWorkoutFromTemplate, getActiveWorkout, getLatestWorkout, getWorkouts, getWorkoutsByName } from '@/features/gym/services/gym_db';
+import { getTemplates, startWorkoutFromTemplate, getActiveWorkout, getLatestWorkout, getWorkouts, getWorkoutsByName } from '@/shared/db/app_db';
 import { ref, onMounted, onUnmounted,computed,watch } from 'vue';
 import { barbellSharp } from 'ionicons/icons';
 import { useRouter } from 'vue-router';

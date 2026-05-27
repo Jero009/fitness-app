@@ -181,7 +181,7 @@ import type { RefresherCustomEvent } from '@ionic/vue';
 import { add } from 'ionicons/icons';
 import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
-import { getTemplates, getTemplateExercises, deleteTemplate, getExercises } from '@/features/gym/services/gym_db';
+import { getTemplates, getTemplateExercises, deleteTemplate, getExercises } from '@/shared/db/app_db';
 
 const router = useRouter();
 
@@ -300,7 +300,6 @@ onIonViewWillEnter(() => {
   loadTemplates();
 });
 </script>
-
 
 
 

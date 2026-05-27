@@ -125,7 +125,7 @@ import {
 } from '@ionic/vue';
 import { useRoute } from 'vue-router';
 import { ref, computed, onMounted, watch } from 'vue';
-import { getExerciseStats } from '@/features/gym/services/gym_db';
+import { getExerciseStats } from '@/shared/db/app_db';
 import { Chart, LineController, LineElement, PointElement, LinearScale, CategoryScale, Filler } from 'chart.js';
 import type { ExercisePR } from '@/features/gym/types/models';
 

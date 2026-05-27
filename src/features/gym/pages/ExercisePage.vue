@@ -259,7 +259,7 @@ import { IonPage, IonHeader, IonToolbar, IonTitle, IonContent, IonItem, IonButto
 import { add} from 'ionicons/icons'
 import { ref,onMounted,computed  } from 'vue';
 import type { Exercise, MuscleGroup, Equipment } from '@/features/gym/types/models';
-import { addExercise, getExercises,renameExercise,getMuscleGroups, getEquipment, getExercisePR } from '@/features/gym/services/gym_db';
+import { addExercise, getExercises,renameExercise,getMuscleGroups, getEquipment, getExercisePR } from '@/shared/db/app_db';
 import { useRouter } from 'vue-router';
 
 //creqating exercise modal
